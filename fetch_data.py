@@ -8,6 +8,11 @@ Fetches: Yahoo Finance quotes, FRED yield curves, RSS news, generates client ide
 
 import json, os, re, time, hashlib, datetime, requests, feedparser
 from typing import Dict, List, Optional
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
 
 # ─── Config ──────────────────────────────────────────────────────────────────
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
@@ -76,24 +81,89 @@ YAHOO_SYMBOLS: Dict[str, Dict] = {
 }
 
 def fetch_yahoo_batch(symbols: List[str]) -> Dict:
+    """Fetch quotes using yfinance (primary) with v7 API fallback."""
+    results = {}
+
+    # ── Primary: yfinance library ──────────────────────────────────────────
+    if YFINANCE_AVAILABLE:
+        try:
+            tickers = yf.Tickers(" ".join(symbols))
+            for sym in symbols:
+                try:
+                    info = tickers.tickers[sym].fast_info
+                    prev = getattr(info, "previous_close", None) or getattr(info, "regularMarketPreviousClose", None)
+                    price = getattr(info, "last_price", None) or getattr(info, "regularMarketPrice", None)
+                    if price:
+                        change = (price - prev) if prev else 0
+                        change_pct = (change / prev * 100) if prev else 0
+                        results[sym] = {
+                            "symbol": sym,
+                            "regularMarketPrice": price,
+                            "regularMarketChange": change,
+                            "regularMarketChangePercent": change_pct,
+                            "regularMarketPreviousClose": prev,
+                            "shortName": YAHOO_SYMBOLS.get(sym, {}).get("name", sym),
+                        }
+                except Exception:
+                    pass
+            if results:
+                print(f"  ✓ yfinance: {len(results)}/{len(symbols)} symbols")
+                # fill missing via v7 fallback below
+                missing = [s for s in symbols if s not in results]
+                if missing:
+                    print(f"  → fallback for {len(missing)} missing symbols via v7 API")
+                    v7 = _fetch_yahoo_v7(missing)
+                    results.update(v7)
+                return results
+        except Exception as e:
+            print(f"  ⚠ yfinance error: {e} — trying v7 API fallback")
+
+    # ── Fallback: Yahoo Finance v7 REST API ────────────────────────────────
+    return _fetch_yahoo_v7(symbols)
+
+def _fetch_yahoo_v7(symbols: List[str]) -> Dict:
+    """Direct Yahoo Finance v7 API call with rotating user agents."""
+    import random
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Gecko/20100101 Firefox/123.0",
+    ]
     syms = ",".join(symbols)
     url  = (
-        "https://query1.finance.yahoo.com/v7/finance/quote"
+        "https://query1.finance.yahoo.com/v8/finance/quote"
         f"?symbols={syms}"
         "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,"
         "regularMarketPreviousClose,shortName,currency,regularMarketTime"
     )
     headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120",
-        "Accept":     "application/json",
+        "User-Agent":      random.choice(user_agents),
+        "Accept":          "application/json",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Referer":         "https://finance.yahoo.com/",
     }
     try:
-        r = requests.get(url, headers=headers, timeout=25)
+        r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
-        return {q["symbol"]: q for q in r.json()["quoteResponse"]["result"]}
+        data = r.json()
+        results = r.json().get("quoteResponse", {}).get("result", [])
+        out = {q["symbol"]: q for q in results if q.get("regularMarketPrice")}
+        print(f"  ✓ v8 API: {len(out)}/{len(symbols)} symbols")
+        return out
     except Exception as e:
-        print(f"  ⚠ Yahoo Finance: {e}")
-        return {}
+        print(f"  ⚠ Yahoo v8 API: {e}")
+        # Try v7 as last resort
+        try:
+            url2 = url.replace("v8", "v7")
+            r2 = requests.get(url2, headers=headers, timeout=30)
+            r2.raise_for_status()
+            results2 = r2.json().get("quoteResponse", {}).get("result", [])
+            out2 = {q["symbol"]: q for q in results2 if q.get("regularMarketPrice")}
+            print(f"  ✓ v7 API: {len(out2)}/{len(symbols)} symbols")
+            return out2
+        except Exception as e2:
+            print(f"  ✗ All Yahoo Finance attempts failed: {e2}")
+            return {}
 
 # ─── FRED Yield Curve ─────────────────────────────────────────────────────────
 FRED_SERIES = {

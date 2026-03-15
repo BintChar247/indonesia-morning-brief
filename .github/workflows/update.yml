@@ -1,0 +1,44 @@
+name: Update Morning Brief Data
+
+on:
+  schedule:
+    # 6:00am WIB = 23:00 UTC (previous day)
+    - cron: '0 23 * * *'
+  workflow_dispatch:   # ← enables the "Refresh" button in the dashboard
+    inputs:
+      reason:
+        description: 'Reason for manual refresh'
+        required: false
+        default: 'Manual refresh from dashboard'
+
+permissions:
+  contents: read   # read-only — no repo writes needed (data goes to Supabase)
+
+jobs:
+  fetch-and-store:
+    name: Fetch market data and store in Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch data and write to Supabase
+        env:
+          SUPABASE_URL:         ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python fetch_data.py
+
+      - name: Report
+        if: always()
+        run: echo "Job completed at $(date -u) UTC | Trigger=${{ github.event_name }}"

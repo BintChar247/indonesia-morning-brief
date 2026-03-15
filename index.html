@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MUFG Indonesia Morning Brief</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root {
+  --bg:       #080c14;
+  --bg2:      #0d1421;
+  --bg3:      #111928;
+  --bg4:      #161f30;
+  --red:      #E60012;
+  --red-dim:  rgba(230,0,18,.12);
+  --text:     #e2e8f0;
+  --muted:    #8892a4;
+  --border:   rgba(255,255,255,.07);
+  --green:    #22c55e;
+  --amber:    #f59e0b;
+  --blue:     #60a5fa;
+  --purple:   #a78bfa;
+  --font:     'Inter', system-ui, -apple-system, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+input,select,textarea{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:rgba(230,0,18,.5)}
+button{cursor:pointer;font-family:var(--font);font-size:13px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+/* ── Header ─────────────────────────────────────────── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(8,12,20,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:10px 20px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-badge{background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px}
+.hdr-title{font-size:15px;font-weight:700;color:var(--text)}
+.hdr-sub{font-size:11px;color:var(--muted)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr-meta{font-size:11px;color:var(--muted);text-align:right}
+.hdr-meta strong{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:8px;padding:8px 14px;font-weight:600;transition:opacity .15s}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{opacity:.88}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Alert bar ───────────────────────────────────────── */
+.alert-bar{padding:6px 20px;display:flex;gap:8px;overflow-x:auto;white-space:nowrap;background:rgba(230,0,18,.06);border-bottom:1px solid rgba(230,0,18,.2);display:none}
+.alert-bar.show{display:flex}
+.alert-pill{background:rgba(230,0,18,.15);border:1px solid rgba(230,0,18,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#ff8a95}
+
+/* ── Nav tabs ────────────────────────────────────────── */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav-btn{background:none;border:none;color:var(--muted);padding:12px 14px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:#fff;border-bottom-color:var(--red)}
+
+/* ── Content ─────────────────────────────────────────── */
+.content{padding:20px;max-width:1400px;margin:0 auto;min-height:calc(100vh - 110px)}
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── Cards / grids ───────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px}
+.card-sm{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+.section-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.section-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* ── KPI card ────────────────────────────────────────── */
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.kpi-value{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
+.kpi-change{font-size:12px;font-weight:600}
+.kpi-change.up{color:var(--green)}
+.kpi-change.down{color:var(--red)}
+.kpi-change.flat{color:var(--muted)}
+
+/* ── Market table ────────────────────────────────────── */
+.mkt-table{width:100%;border-collapse:collapse}
+.mkt-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.mkt-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.mkt-table tr:hover td{background:rgba(255,255,255,.02)}
+.mkt-table tr:last-child td{border-bottom:none}
+.chg-up{color:var(--green);font-weight:600}
+.chg-dn{color:#ff6b7a;font-weight:600}
+.chg-flat{color:var(--muted)}
+.bar-wrap{width:60px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;display:inline-block;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.bar-up{background:var(--green)}
+.bar-dn{background:#ff6b7a}
+.mkt-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px}
+.tag-energy{background:rgba(245,158,11,.15);color:var(--amber)}
+.tag-fx{background:rgba(96,165,250,.15);color:var(--blue)}
+.tag-eq{background:rgba(167,139,250,.15);color:var(--purple)}
+.tag-metal{background:rgba(255,255,255,.1);color:var(--muted)}
+.tag-agri{background:rgba(34,197,94,.12);color:var(--green)}
+
+/* ── Yield curve SVG ─────────────────────────────────── */
+#yield-svg{width:100%;overflow:visible}
+.yc-line{fill:none;stroke:var(--red);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.yc-dot{fill:var(--red)}
+.yc-grid{stroke:rgba(255,255,255,.06);stroke-width:1}
+.yc-axis{fill:var(--muted);font-size:10px;font-family:var(--font)}
+.yc-label{fill:var(--text);font-size:11px;font-family:var(--font);font-weight:600}
+.yc-tooltip{position:absolute;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;pointer-events:none;display:none;font-size:12px;z-index:50}
+
+/* ── News ─────────────────────────────────────────────── */
+.news-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filter-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--muted);padding:5px 12px;font-size:12px;font-weight:500;transition:all .15s}
+.filter-btn:hover,.filter-btn.active{background:var(--red-dim);border-color:rgba(230,0,18,.4);color:#fff}
+.search-row{display:flex;gap:8px;margin-bottom:16px}
+.search-row input{flex:1}
+.news-list{display:flex;flex-direction:column;gap:10px}
+.news-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;transition:border-color .15s}
+.news-card:hover{border-color:rgba(230,0,18,.3)}
+.news-card.indonesia{border-left:3px solid var(--red)}
+.news-card.energy{border-left:3px solid var(--amber)}
+.news-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.news-time{font-size:10px;color:var(--muted)}
+.news-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px}
+.news-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px}
+.news-title a:hover{color:var(--red)}
+.news-title a{color:var(--text)}
+.news-summary{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── Client Ideas ────────────────────────────────────── */
+.idea-card{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.idea-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.idea-card.CRITICAL::before{background:#ff2d55}
+.idea-card.HIGH::before{background:var(--amber)}
+.idea-card.MEDIUM::before{background:var(--blue)}
+.idea-card.LOW::before{background:var(--muted)}
+.idea-card.CRITICAL{background:rgba(255,45,85,.05)}
+.idea-card.HIGH{background:rgba(245,158,11,.05)}
+.idea-card.MEDIUM{background:rgba(96,165,250,.05)}
+.idea-card.LOW{background:var(--bg2)}
+.idea-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.idea-icon{font-size:22px;line-height:1}
+.idea-meta{flex:1}
+.idea-priority{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.idea-priority.CRITICAL{color:#ff2d55}
+.idea-priority.HIGH{color:var(--amber)}
+.idea-priority.MEDIUM{color:var(--blue)}
+.idea-sector{font-size:15px;font-weight:700;color:var(--text)}
+.idea-clients{font-size:11px;color:var(--muted);margin-top:2px}
+.idea-trigger{font-size:11px;font-weight:600;color:var(--amber);background:rgba(245,158,11,.1);padding:4px 10px;border-radius:6px;display:inline-block;margin-bottom:8px}
+.idea-topic{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px}
+.idea-products{display:flex;flex-wrap:wrap;gap:6px}
+.idea-prod{font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;color:var(--muted);font-weight:500}
+
+/* ── Sector impact ───────────────────────────────────── */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sector-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.sector-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sev-badge{font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:4px;letter-spacing:.05em}
+.sev-critical{background:rgba(255,45,85,.2);color:#ff2d55}
+.sev-high{background:rgba(245,158,11,.2);color:var(--amber)}
+.sev-medium{background:rgba(96,165,250,.2);color:var(--blue)}
+.sev-low{background:rgba(255,255,255,.1);color:var(--muted)}
+.impact-row{font-size:11px;line-height:1.5;margin-bottom:4px;color:var(--muted)}
+.impact-row strong{color:var(--text)}
+
+/* ── MUFG Research ───────────────────────────────────── */
+.mufg-hero{background:linear-gradient(135deg,rgba(230,0,18,.1),rgba(230,0,18,.04));
+  border:1px solid rgba(230,0,18,.3);border-radius:16px;padding:24px;margin-bottom:20px}
+.tj-name{font-size:13px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tj-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+.tj-bio{font-size:12px;color:var(--muted);line-height:1.6}
+.mufg-articles{display:flex;flex-direction:column;gap:8px}
+.mufg-article{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s}
+.mufg-article:hover{border-color:rgba(230,0,18,.3)}
+.ma-cat{font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.ma-fx{background:rgba(96,165,250,.15);color:var(--blue)}
+.ma-macro{background:rgba(245,158,11,.15);color:var(--amber)}
+.ma-indonesia{background:var(--red-dim);color:#ff8a95}
+.ma-rates{background:rgba(167,139,250,.15);color:var(--purple)}
+.ma-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;flex:1}
+.ma-title a{color:var(--text)}
+.ma-title a:hover{color:var(--red)}
+.ma-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.notes-area{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;min-height:120px;font-size:13px;color:var(--text);line-height:1.6;resize:vertical;width:100%;font-family:var(--font)}
+
+/* ── Indonesia panel ─────────────────────────────────── */
+.idr-gauge{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.idr-val{font-size:48px;font-weight:900;letter-spacing:-.02em;margin-bottom:4px}
+.idr-change{font-size:14px;font-weight:600;margin-bottom:12px}
+.idr-bar-wrap{height:10px;background:var(--bg3);border-radius:5px;position:relative;margin-bottom:8px}
+.idr-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),var(--amber),#ff6b7a);transition:width 1s ease}
+.idr-markers{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.rating-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.rating-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.rating-agency{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.rating-grade{font-size:18px;font-weight:800;color:var(--text)}
+.rating-outlook{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-top:4px;display:inline-block}
+.neg{background:rgba(255,107,122,.15);color:#ff6b7a}
+.watch{background:rgba(245,158,11,.15);color:var(--amber)}
+
+/* ── Sources ─────────────────────────────────────────── */
+.source-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.source-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.source-url{font-size:11px;color:var(--muted);flex:2}
+.source-cat{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--bg3);color:var(--muted)}
+.toggle{width:36px;height:20px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--red)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:7px;top:2px;left:2px;transition:left .2s}
+.toggle.on::after{left:18px}
+.add-source-form{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.form-row input,.form-row select{flex:1;min-width:150px}
+.conn-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:6px;font-weight:600}
+.conn-ok{background:rgba(34,197,94,.12);color:var(--green)}
+.conn-err{background:rgba(255,107,122,.12);color:#ff6b7a}
+.conn-dot{width:7px;height:7px;border-radius:50%}
+.conn-dot.ok{background:var(--green)}
+.conn-dot.err{background:#ff6b7a}
+
+/* ── Setup modal ─────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;display:none}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.modal label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;margin-top:14px}
+.modal input{width:100%;margin-bottom:4px}
+.modal-footer{margin-top:20px;display:flex;gap:10px}
+.modal small{font-size:11px;color:var(--muted);margin-top:4px;display:block}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:800;margin-right:6px}
+
+/* ── Footer ──────────────────────────────────────────── */
+.footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center}
+
+/* ── Loading skeleton ────────────────────────────────── */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-text{height:14px;margin-bottom:8px}
+.skel-kpi{height:80px}
+
+/* ── Misc utils ──────────────────────────────────────── */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.mt-4{margin-top:16px}
+.mb-2{margin-bottom:8px}
+.flex{display:flex}
+.flex-center{display:flex;align-items:center}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.text-muted{color:var(--muted)}
+.text-red{color:var(--red)}
+.text-green{color:var(--green)}
+.text-amber{color:var(--amber)}
+.fw-700{font-weight:700}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- Setup modal -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal">
+    <div style="background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px;display:inline-block;margin-bottom:12px">MUFG</div>
+    <h2>Welcome, Michael 👋</h2>
+    <p>Connect to your Supabase database to start loading live market data. This takes about 2 minutes to set up once.</p>
+    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);line-height:1.8">
+        <span class="step-num">1</span>Create free account at <a href="https://supabase.com" target="_blank">supabase.com</a><br>
+        <span class="step-num">2</span>Run <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">supabase/schema.sql</code> in the SQL Editor<br>
+        <span class="step-num">3</span>Copy your <strong>Project URL</strong> and <strong>anon/public key</strong> from Settings → API<br>
+        <span class="step-num">4</span>Add <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">SUPABASE_URL</code> and <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">SUPABASE_SERVICE_KEY</code> to GitHub Secrets
+      </div>
+    </div>
+    <label>Supabase Project URL</label>
+    <input type="url" id="inp-url" placeholder="https://xyzxyz.supabase.co">
+    <small>Settings → API → Project URL</small>
+    <label>Supabase Anon/Public Key</label>
+    <input type="text" id="inp-anon" placeholder="eyJhbGciOiJIUzI1NiIs...">
+    <small>Settings → API → anon public key (safe to use in browser)</small>
+    <label>GitHub Repo (optional — for Refresh button)</label>
+    <input type="text" id="inp-repo" placeholder="yourusername/indonesia-morning-brief">
+    <label>GitHub Personal Access Token (optional)</label>
+    <input type="password" id="inp-token" placeholder="ghp_xxxxxxxxxxxx">
+    <small>Needed only for the Refresh button. Create at GitHub → Settings → Developer settings → PAT (workflow scope).</small>
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="saveConfig()">💾 Save & Connect</button>
+      <button class="btn btn-ghost" onclick="closeSetup()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div class="hdr-badge">MUFG</div>
+    <div>
+      <div class="hdr-title">Indonesia Morning Brief</div>
+      <div class="hdr-sub" id="hdr-date">Loading...</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-meta">
+      <div>Last updated: <strong id="hdr-updated">–</strong></div>
+      <div id="hdr-status" class="text-muted">–</div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="openSetup()" title="Settings">⚙️</button>
+    <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn">🔄 Refresh</button>
+  </div>
+</div>
+
+<!-- Alert bar -->
+<div class="alert-bar" id="alertBar"></div>
+
+<!-- Nav tabs -->
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
+  <button class="nav-btn" onclick="switchTab('markets',this)">📈 Markets</button>
+  <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
+  <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
+  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Client Ideas</button>
+  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 MUFG Research</button>
+  <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 1: OVERVIEW -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="content">
+<div class="panel active" id="panel-overview">
+  <div id="ov-greeting" style="font-size:20px;font-weight:800;margin-bottom:16px;color:var(--text)">Good morning, Michael ☀️</div>
+
+  <!-- Hero KPIs -->
+  <div class="grid-4 mb-2" id="ov-kpis" style="margin-bottom:16px">
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+  </div>
+
+  <!-- 3-column grid: movers | top news | ideas -->
+  <div style="display:grid;grid-template-columns:1fr 1.6fr 1.2fr;gap:16px">
+
+    <!-- Market movers -->
+    <div>
+      <div class="section-label">Market Movers</div>
+      <div id="ov-movers" class="card" style="padding:12px">
+        <div class="skeleton skel-text"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text"></div>
+      </div>
+    </div>
+
+    <!-- Top news -->
+    <div>
+      <div class="section-label">Top Headlines</div>
+      <div id="ov-news" style="display:flex;flex-direction:column;gap:8px">
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+      </div>
+    </div>
+
+    <!-- Client priorities -->
+    <div>
+      <div class="section-label">Today's Priorities</div>
+      <div id="ov-priorities" style="display:flex;flex-direction:column;gap:8px">
+        <div class="card skeleton skel-text" style="height:70px"></div>
+        <div class="card skeleton skel-text" style="height:70px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sector snapshot -->
+  <div style="margin-top:20px">
+    <div class="section-label" style="margin-bottom:10px">Sector Impact Snapshot</div>
+    <div id="ov-sectors" class="sector-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 2: MARKETS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-markets">
+  <div class="section-label">Live Market Data</div>
+  <div class="section-title">Markets — Commodities, FX, Equities & Rates</div>
+  <div class="section-sub">Updated each GitHub Actions run · Click Refresh to trigger a new fetch</div>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px">
+
+    <!-- Commodities -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        ⚡ <span>Energy & Commodities</span>
+      </div>
+      <table class="mkt-table" id="tbl-commodities"><tbody>
+        <tr><td colspan="5" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table>
+    </div>
+
+    <!-- FX -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        💱 <span>Foreign Exchange</span>
+      </div>
+      <table class="mkt-table" id="tbl-fx"><tbody>
+        <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px">
+
+    <!-- Equities -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        📈 <span>Equity Indices</span>
+      </div>
+      <table class="mkt-table" id="tbl-equities"><tbody>
+        <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table>
+    </div>
+
+    <!-- Yield Curve -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        📉 <span>US Treasury Yield Curve</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Source: FRED (St. Louis Fed)</div>
+      <div style="position:relative">
+        <svg id="yield-svg" viewBox="0 0 420 160"></svg>
+        <div class="yc-tooltip" id="yc-tip"></div>
+      </div>
+      <div id="rates-row" style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 3: INDONESIA -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-indonesia">
+  <div class="section-label">Indonesia Macro Dashboard</div>
+  <div class="section-title">Sovereign Risk, Currency & Macro Indicators</div>
+  <div class="section-sub">MUFG target: USDIDR 17,000 · 5Y CDS >80bps · MSCI review: May 2026</div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+
+    <!-- IDR Panel -->
+    <div>
+      <div class="idr-gauge" id="idr-panel">
+        <div class="section-label">USD / IDR</div>
+        <div class="idr-val text-red" id="idr-val">—</div>
+        <div class="idr-change" id="idr-change">–</div>
+        <div class="idr-bar-wrap"><div class="idr-fill" id="idr-fill" style="width:50%"></div></div>
+        <div class="idr-markers">
+          <span>Rp 15,000</span><span>MUFG base 17,000</span><span>Tail 17,400</span><span>Crisis</span>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="card-sm">
+            <div class="section-label">MUFG Oil Sensitivity</div>
+            <div style="font-size:13px;font-weight:700">+$10/bbl → <span style="color:var(--red)">+0.4pp CPI</span></div>
+            <div style="font-size:11px;color:var(--muted)">& −0.2% GDP trade balance</div>
+          </div>
+          <div class="card-sm">
+            <div class="section-label">BI Rate (held 6 months)</div>
+            <div style="font-size:20px;font-weight:800">4.75%</div>
+            <div style="font-size:11px;color:var(--muted)">MUFG: 2×25bp cuts → Q2+ 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget & CDS -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Fiscal & Sovereign Risk</div>
+        <div class="grid-2" style="gap:10px">
+          <div class="card-sm"><div class="section-label">5Y CDS</div><div style="font-size:20px;font-weight:800;color:var(--amber)">&gt;80bps</div><div style="font-size:11px;color:var(--muted)">March 2026</div></div>
+          <div class="card-sm"><div class="section-label">Budget Deficit (Jan 2026)</div><div style="font-size:18px;font-weight:800;color:#ff6b7a">IDR 54.6T</div><div style="font-size:11px;color:var(--muted)">vs IDR 23.5T yr ago</div></div>
+          <div class="card-sm"><div class="section-label">Gov't Spending YoY</div><div style="font-size:20px;font-weight:800;color:var(--amber)">+25.7%</div><div style="font-size:11px;color:var(--muted)">Revenue only +9.8%</div></div>
+          <div class="card-sm"><div class="section-label">MSCI Deadline</div><div style="font-size:16px;font-weight:800;color:var(--red)">May 2026</div><div style="font-size:11px;color:var(--muted)">EM→FM reclassification risk</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Ratings + Indonesia news -->
+    <div>
+      <div class="section-label" style="margin-bottom:8px">Sovereign Credit Ratings</div>
+      <div class="rating-grid" style="margin-bottom:14px">
+        <div class="rating-card">
+          <div class="rating-agency">Moody's</div>
+          <div class="rating-grade">Baa2</div>
+          <div class="rating-outlook neg">Negative</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">5 Feb 2026</div>
+        </div>
+        <div class="rating-card">
+          <div class="rating-agency">Fitch</div>
+          <div class="rating-grade">BBB</div>
+          <div class="rating-outlook neg">Negative</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">4 Mar 2026</div>
+        </div>
+        <div class="rating-card">
+          <div class="rating-agency">S&P</div>
+          <div class="rating-grade">BBB</div>
+          <div class="rating-outlook watch">Watch Neg</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">26 Feb 2026</div>
+        </div>
+      </div>
+
+      <!-- MSCI status -->
+      <div class="card" style="margin-bottom:14px;background:rgba(230,0,18,.05);border-color:rgba(230,0,18,.2)">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">⚠️ MSCI Reclassification Risk</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">MSCI warned Jan 2026: Indonesia may be downgraded from <strong style="color:var(--text)">Emerging Market → Frontier Market</strong> (May 2026) if free float (15% rule) and ownership transparency unresolved. Impact: <strong style="color:#ff6b7a">~USD 120B market cap wiped</strong>, USD 14B in 2025 outflows. MSCI Indonesia: −13% (2024) vs. EM +33.6%.</div>
+      </div>
+
+      <!-- Indonesia news -->
+      <div class="section-label" style="margin-bottom:8px">Indonesia Headlines</div>
+      <div id="id-news" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto">
+        <div class="text-muted" style="padding:20px;text-align:center">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 4: NEWS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-news">
+  <div class="section-label">News Feed</div>
+  <div class="section-title">All Sources</div>
+
+  <div class="news-filters" id="news-filters">
+    <button class="filter-btn active" data-filter="all" onclick="filterNews('all',this)">🌏 All</button>
+    <button class="filter-btn" data-filter="indonesia" onclick="filterNews('indonesia',this)">🇮🇩 Indonesia</button>
+    <button class="filter-btn" data-filter="energy" onclick="filterNews('energy',this)">⚡ Energy</button>
+    <button class="filter-btn" data-filter="fx_rates" onclick="filterNews('fx_rates',this)">💱 FX &amp; Rates</button>
+    <button class="filter-btn" data-filter="macro" onclick="filterNews('macro',this)">📊 Macro</button>
+    <button class="filter-btn" data-filter="commodities" onclick="filterNews('commodities',this)">🪨 Commodities</button>
+    <button class="filter-btn" data-filter="global" onclick="filterNews('global',this)">🌍 Global</button>
+  </div>
+  <div class="search-row">
+    <input type="text" id="news-search" placeholder="🔍 Search headlines..." oninput="renderNews()">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('news-search').value='';renderNews()">✕ Clear</button>
+  </div>
+  <div id="news-count" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+  <div class="news-list" id="news-list">
+    <div class="text-muted" style="padding:30px;text-align:center">Loading news...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 5: CLIENT IDEAS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-ideas">
+  <div class="section-label">RM Intelligence</div>
+  <div class="section-title">Client Ideas & Discussion Topics</div>
+  <div class="section-sub">Auto-generated from today's market moves · Use these as conversation starters with clients and RMs</div>
+
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+
+    <!-- Ideas list -->
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--red)"></div>Today's Priority Conversations</div>
+      <div id="ideas-list">
+        <div class="text-muted" style="padding:30px;text-align:center">Loading ideas...</div>
+      </div>
+    </div>
+
+    <!-- Sector impact + RM templates -->
+    <div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--amber)"></div>Sector Direct / Indirect Impact</div>
+      <div id="sector-impact" class="sector-grid" style="grid-template-columns:1fr"></div>
+      <hr class="divider">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px">RM Segment Briefing Notes</div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="rm-notes">
+        <!-- Rendered from JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 6: MUFG RESEARCH -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-mufg">
+  <div class="mufg-hero">
+    <div class="tj-name">Tom Joyce — Head of Capital Markets Strategy, Americas</div>
+    <div class="tj-title">MUFG Research Intelligence</div>
+    <div class="tj-bio">Tom Joyce leads MUFG's Capital Markets Strategy Group, providing in-depth analysis on the impact of economic, political, public policy and regulatory dynamics on credit, FX, rates and commodities markets for S&amp;P 500 corporate clients. He publishes daily/weekly updates on <a href="https://www.linkedin.com/in/tom-joyce-07055314a/" target="_blank">LinkedIn</a> and at <a href="https://www.mufgresearch.com/macro/" target="_blank">mufgresearch.com</a>.</div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <a href="https://www.linkedin.com/search/results/content/?keywords=Tom%20Joyce%20MUFG&sortBy=date" target="_blank" class="btn btn-ghost btn-sm">🔗 Search Tom Joyce on LinkedIn</a>
+      <a href="https://www.mufgresearch.com/macro/" target="_blank" class="btn btn-ghost btn-sm">📄 MUFG Macro Research</a>
+      <a href="https://www.mufgresearch.com/fx/" target="_blank" class="btn btn-ghost btn-sm">💱 MUFG FX Research</a>
+      <a href="https://www.mufgresearch.com/rates/" target="_blank" class="btn btn-ghost btn-sm">📉 MUFG Rates Research</a>
+      <a href="https://www.mufgresearch.com/fx/?s=indonesia" target="_blank" class="btn btn-ghost btn-sm">🇮🇩 Indonesia Research</a>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="mufg-filters">
+    <button class="filter-btn active" onclick="filterMufg('all',this)">All</button>
+    <button class="filter-btn" onclick="filterMufg('FX',this)">FX</button>
+    <button class="filter-btn" onclick="filterMufg('Macro',this)">Macro</button>
+    <button class="filter-btn" onclick="filterMufg('Indonesia',this)">Indonesia</button>
+    <button class="filter-btn" onclick="filterMufg('RATES',this)">Rates</button>
+  </div>
+
+  <div class="mufg-articles" id="mufg-articles">
+    <div class="text-muted" style="padding:20px;text-align:center">Loading MUFG Research...</div>
+  </div>
+
+  <hr class="divider">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">📝 My Notes on Latest Tom Joyce Update</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Paste Tom Joyce's latest LinkedIn post or notes here. Saved locally in your browser.</div>
+  <textarea class="notes-area" id="tj-notes" placeholder="Paste Tom Joyce's latest macro update here or write your own notes...&#10;&#10;e.g. 'Tom Joyce — 15 Mar 2026: Oil price surge has invalidated the January Transformative Change baseline. Stagflation scenario now the primary risk. Key message for corporates: hedge now, rates going higher before lower...'" oninput="saveNotes()"></textarea>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Saved automatically to localStorage ✓</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 7: SOURCES -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-sources">
+  <div class="section-label">Data Sources & Configuration</div>
+  <div class="section-title">Sources, Settings & Refresh</div>
+
+  <!-- Connection status -->
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">Supabase:</span>
+      <span id="sb-status" class="conn-badge conn-err"><span class="conn-dot err"></span>Not connected</span>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">GitHub Actions:</span>
+      <span id="gh-status" class="conn-badge conn-err"><span class="conn-dot err"></span>Not configured</span>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">News items:</span>
+      <strong id="src-news-count">–</strong>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">Last fetch:</span>
+      <strong id="src-last-fetch">–</strong>
+    </div>
+  </div>
+
+  <!-- Add custom source -->
+  <div class="add-source-form">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">➕ Add Custom RSS Source</div>
+    <div class="form-row">
+      <input type="text" id="new-src-name" placeholder="Source name (e.g. Kontan)">
+      <select id="new-src-cat">
+        <option value="custom">Custom</option>
+        <option value="indonesia">Indonesia</option>
+        <option value="energy">Energy</option>
+        <option value="markets">Markets</option>
+        <option value="global">Global</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input type="url" id="new-src-url" placeholder="RSS feed URL (e.g. https://example.com/feed.xml)" style="flex:3">
+      <button class="btn btn-red" onclick="addCustomSource()">Add Source</button>
+    </div>
+  </div>
+
+  <!-- Custom sources -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Custom Sources</div>
+  <div id="custom-sources-list">
+    <div class="text-muted">No custom sources added yet.</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Default RSS sources -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Default RSS Sources (fetched by GitHub Actions)</div>
+  <div id="default-sources-list"></div>
+
+  <hr class="divider">
+
+  <!-- GitHub / Supabase settings -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px">⚙️ Connection Settings</div>
+  <div class="grid-2">
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">Supabase</div>
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Project URL</label>
+      <input type="url" id="set-sb-url" placeholder="https://xxx.supabase.co" style="width:100%;margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Anon/Public Key</label>
+      <input type="text" id="set-sb-anon" placeholder="eyJhbGciOi..." style="width:100%;margin-bottom:8px">
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">GitHub Actions Refresh</div>
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Repository (username/repo)</label>
+      <input type="text" id="set-gh-repo" placeholder="yourusername/indonesia-morning-brief" style="width:100%;margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Personal Access Token (workflow scope)</label>
+      <input type="password" id="set-gh-token" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;margin-bottom:8px">
+    </div>
+  </div>
+  <button class="btn btn-red btn-sm" onclick="saveSettingsFromTab()">💾 Save Settings</button>
+  <button class="btn btn-ghost btn-sm" onclick="clearAllSettings()" style="margin-left:8px">🗑 Clear All</button>
+  <div id="settings-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Settings saved</div>
+</div>
+</div><!-- /content -->
+
+<div class="footer">
+  <strong>MUFG Bank — Indonesia Corporate Coverage Morning Brief</strong> &nbsp;·&nbsp;
+  Data: Yahoo Finance · FRED · RSS feeds · mufgresearch.com &nbsp;·&nbsp;
+  <span id="ft-updated">–</span>
+</div>
+
+<!-- ═══════ JAVASCRIPT ═══════════════════════════════════════════════ -->
+<script>
+// ── Config helpers ──────────────────────────────────────────────────────
+const LS = {
+  get:    k => localStorage.getItem(k),
+  set:    (k,v) => localStorage.setItem(k, typeof v==='object'?JSON.stringify(v):v),
+  json:   k => { try{return JSON.parse(localStorage.getItem(k))||null}catch{return null} },
+  del:    k => localStorage.removeItem(k)
+};
+let SB = null;  // Supabase client
+
+function getConfig(){ return { url: LS.get('sb_url'), anon: LS.get('sb_anon'), repo: LS.get('gh_repo'), token: LS.get('gh_token') }; }
+
+// ── State ───────────────────────────────────────────────────────────────
+let ALL_NEWS   = [];
+let ALL_MUFG   = [];
+let ALL_IDEAS  = [];
+let newsFilter = 'all';
+let mufgFilter = 'all';
+
+// ── Init ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setGreeting();
+  loadSettings();
+  loadNotes();
+  renderDefaultSources();
+  renderCustomSources();
+  const cfg = getConfig();
+  if(!cfg.url || !cfg.anon){
+    document.getElementById('setupModal').classList.add('show');
+  } else {
+    initSupabase(cfg.url, cfg.anon);
+    loadAll();
+  }
+});
+
+function setGreeting(){
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('ov-greeting').textContent = `${g}, Michael ☀️`;
+  document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' · Jakarta WIB';
+}
+
+function initSupabase(url, anon){
+  try {
+    SB = supabase.createClient(url, anon);
+    document.getElementById('sb-status').className='conn-badge conn-ok';
+    document.getElementById('sb-status').innerHTML='<span class="conn-dot ok"></span>Connected';
+    // Real-time: reload when app_meta changes (fetch completed)
+    SB.channel('meta_changes')
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'app_meta'},() => {
+        console.log('Supabase: new data detected, reloading...');
+        setTimeout(loadAll, 1000);
+      }).subscribe();
+  } catch(e){
+    console.error('Supabase init error:',e);
+    document.getElementById('sb-status').innerHTML='<span class="conn-dot err"></span>Error';
+  }
+}
+
+// ── Load all data ────────────────────────────────────────────────────────
+async function loadAll(){
+  if(!SB) return;
+  try {
+    const [meta, market, yields, news, ideas, mufg] = await Promise.all([
+      SB.from('app_meta').select('*'),
+      SB.from('market_data').select('*'),
+      SB.from('yield_curve').select('*').order('id'),
+      SB.from('news_items').select('*').order('created_at',{ascending:false}).limit(80),
+      SB.from('client_ideas').select('*'),
+      SB.from('mufg_research').select('*').order('id',{ascending:false}),
+    ]);
+
+    const metaMap = {};
+    (meta.data||[]).forEach(r => metaMap[r.key]=r.value);
+
+    document.getElementById('hdr-updated').textContent = metaMap['last_updated_display'] || '–';
+    document.getElementById('ft-updated').textContent  = 'Last updated: ' + (metaMap['last_updated_display']||'–');
+    document.getElementById('src-last-fetch').textContent = metaMap['last_updated_display']||'–';
+    document.getElementById('src-news-count').textContent = metaMap['news_count']||'0';
+    const status = metaMap['fetch_status']||'unknown';
+    document.getElementById('hdr-status').textContent = status === 'ok' ? '✓ Fetch OK' : '⚠ '+status;
+    document.getElementById('hdr-status').className   = status==='ok'?'text-green':'text-amber';
+
+    const mkt  = market.data||[];
+    const ylds = yields.data||[];
+    ALL_NEWS   = news.data||[];
+    ALL_IDEAS  = ideas.data||[];
+    ALL_MUFG   = mufg.data||[];
+
+    renderKPIs(mkt);
+    renderAlerts(mkt);
+    renderMovers(mkt);
+    renderTables(mkt);
+    renderYieldCurve(ylds);
+    renderRatesRow(ylds);
+    renderIDR(mkt);
+    renderIDNews();
+    renderNews();
+    renderIdeas();
+    renderSectorImpact();
+    renderRMNotes();
+    renderMufgArticles();
+    renderOvNews();
+    renderOvPriorities();
+    renderOvSectors();
+  } catch(e){
+    console.error('loadAll error:',e);
+    document.getElementById('hdr-status').textContent = '⚠ Load error — check Supabase config';
+    document.getElementById('hdr-status').className   = 'text-red';
+  }
+}
+
+// ── Render KPIs ──────────────────────────────────────────────────────────
+function renderKPIs(mkt){
+  const q = bySymbol(mkt);
+  const cards = [
+    { label:'Brent Crude', sym:'BZ=F',  fmt:v=>`$${v.toFixed(2)}`, unit:'USD/bbl' },
+    { label:'USD / IDR',   sym:'IDR=X', fmt:v=>`Rp ${v.toLocaleString('en',{maximumFractionDigits:0})}`, unit:'Indonesian Rupiah' },
+    { label:'S&P 500',     sym:'^GSPC', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'US Equity Index' },
+    { label:'IDX Composite',sym:'^JKSE',fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'Indonesian Stocks' },
+  ];
+  document.getElementById('ov-kpis').innerHTML = cards.map(c=>{
+    const d = q[c.sym]; if(!d) return `<div class="kpi"><div class="kpi-label">${c.label}</div><div class="kpi-value text-muted">–</div></div>`;
+    const pc = d.change_pct||0; const cls = pc>0?'up':pc<0?'down':'flat'; const arr = pc>0?'▲':pc<0?'▼':'–';
+    const alert = c.sym==='IDR=X'&&d.price>=17000 ? 'border-color:rgba(230,0,18,.5)' : '';
+    return `<div class="kpi" style="${alert}">
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.fmt(d.price)}</div>
+      <div class="kpi-change ${cls}">${arr} ${pc>0?'+':''}${pc.toFixed(2)}%</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${c.unit}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Alerts ───────────────────────────────────────────────────────────────
+function renderAlerts(mkt){
+  const movers = mkt.filter(r=>Math.abs(r.change_pct||0)>=2);
+  const bar = document.getElementById('alertBar');
+  if(!movers.length){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  bar.innerHTML = '<span style="font-size:11px;font-weight:700;color:#ff8a95;white-space:nowrap">⚡ Market Alerts:</span> ' +
+    movers.map(r=>{
+      const pc=r.change_pct||0;
+      return `<span class="alert-pill">${r.name} ${pc>0?'+':''}${pc.toFixed(1)}%</span>`;
+    }).join('');
+}
+
+// ── Market movers ────────────────────────────────────────────────────────
+function renderMovers(mkt){
+  const sorted = [...mkt].filter(r=>r.price>0).sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0)).slice(0,8);
+  document.getElementById('ov-movers').innerHTML = sorted.map(r=>{
+    const pc=r.change_pct||0; const cls=pc>0?'chg-up':'chg-dn';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;font-weight:600">${r.name}</span>
+      <span class="${cls}" style="font-size:12px">${pc>0?'▲ +':'▼ '}${pc.toFixed(2)}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Market tables ────────────────────────────────────────────────────────
+function renderTables(mkt){
+  const q = bySymbol(mkt);
+  const comOrder = ['BZ=F','CL=F','NG=F','FKPO.KLS','ZW=F','ZS=F','GC=F','SI=F','HG=F'];
+  const fxOrder  = ['IDR=X','SGD=X','EURUSD=X','JPY=X','MYR=X','CNY=X','DX-Y.NYB'];
+  const eqOrder  = ['^GSPC','^IXIC','^DJI','^STI','^JKSE','^STOXX50E','^N225','^HSI'];
+
+  function row(sym, tagHtml=''){
+    const d=q[sym]; if(!d||!d.price) return '';
+    const pc=d.change_pct||0; const cls=pc>0?'chg-up':'chg-dn'; const arr=pc>0?'▲':'▼';
+    const bw = Math.min(60,Math.abs(pc)*10);
+    const bar = `<div class="bar-wrap"><div class="bar-fill ${pc>0?'bar-up':'bar-dn'}" style="width:${bw}%"></div></div>`;
+    const priceStr = d.price>1000?d.price.toLocaleString('en',{maximumFractionDigits:0}):(d.price<1?d.price.toFixed(4):d.price.toFixed(2));
+    return `<tr>
+      <td><span style="font-weight:600">${d.name}</span>${tagHtml}</td>
+      <td style="text-align:right;font-weight:700">${priceStr}</td>
+      <td class="${cls}" style="text-align:right">${arr} ${pc.toFixed(2)}%</td>
+      <td>${bar}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbl-commodities').innerHTML = `<thead><tr><th>Commodity</th><th style="text-align:right">Price</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${comOrder.map(s=>row(s)).join('')}</tbody>`;
+  document.getElementById('tbl-fx').innerHTML          = `<thead><tr><th>Pair</th><th style="text-align:right">Rate</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${fxOrder.map(s=>row(s)).join('')}</tbody>`;
+  document.getElementById('tbl-equities').innerHTML    = `<thead><tr><th>Index</th><th style="text-align:right">Level</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${eqOrder.map(s=>row(s)).join('')}</tbody>`;
+}
+
+// ── Yield curve ───────────────────────────────────────────────────────────
+function renderYieldCurve(data){
+  if(!data||!data.length) return;
+  const tenorOrder = ['1M','3M','6M','1Y','2Y','5Y','10Y','30Y'];
+  const pts = tenorOrder.map((t,i)=>{ const d=data.find(r=>r.tenor===t); return d&&d.yield_pct!=null?{t,i,y:d.yield_pct}:null; }).filter(Boolean);
+  if(!pts.length) return;
+
+  const W=420, H=160, PAD={l:36,r:12,t:12,b:28};
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const minY=Math.min(...pts.map(p=>p.y))-0.2, maxY=Math.max(...pts.map(p=>p.y))+0.2;
+  const scX=i=>(i/(tenorOrder.length-1))*cW+PAD.l;
+  const scY=v=>PAD.t+cH-(v-minY)/(maxY-minY)*cH;
+
+  let svg=`<svg id="yield-svg" viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  // Grid
+  [0,.25,.5,.75,1].forEach(frac=>{
+    const y=PAD.t+cH*frac; const yv=(maxY-(maxY-minY)*frac).toFixed(2);
+    svg+=`<line class="yc-grid" x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}"/>`;
+    svg+=`<text class="yc-axis" x="${PAD.l-4}" y="${y+4}" text-anchor="end">${yv}%</text>`;
+  });
+  // X labels
+  pts.forEach(p=>{
+    const x=scX(tenorOrder.indexOf(p.t));
+    svg+=`<text class="yc-axis" x="${x}" y="${H-5}" text-anchor="middle">${p.t}</text>`;
+  });
+  // Path
+  const pathD=pts.map((p,i)=>`${i===0?'M':'L'}${scX(tenorOrder.indexOf(p.t))},${scY(p.y)}`).join(' ');
+  svg+=`<path class="yc-line" d="${pathD}"/>`;
+  // Area
+  const areaD=`${pathD} L${scX(tenorOrder.indexOf(pts[pts.length-1].t))},${PAD.t+cH} L${scX(tenorOrder.indexOf(pts[0].t))},${PAD.t+cH} Z`;
+  svg+=`<path d="${areaD}" fill="rgba(230,0,18,.08)" stroke="none"/>`;
+  // Dots
+  pts.forEach(p=>{
+    const x=scX(tenorOrder.indexOf(p.t)), y=scY(p.y);
+    svg+=`<circle class="yc-dot" cx="${x}" cy="${y}" r="4"/>`;
+    svg+=`<text class="yc-label" x="${x}" y="${y-8}" text-anchor="middle">${p.y.toFixed(2)}%</text>`;
+  });
+  svg+='</svg>';
+  document.getElementById('yield-svg').outerHTML=svg;
+}
+
+function renderRatesRow(data){
+  const key = {'2Y':'US 2Y','10Y':'US 10Y','30Y':'US 30Y'};
+  const html = Object.entries(key).map(([t,n])=>{
+    const d=data.find(r=>r.tenor===t);
+    return d&&d.yield_pct!=null?`<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">${n}</div><div style="font-size:14px;font-weight:700">${d.yield_pct.toFixed(2)}%</div></div>`:'';
+  }).join('') + `<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">BI Rate</div><div style="font-size:14px;font-weight:700">4.75%</div></div>`;
+  document.getElementById('rates-row').innerHTML=html;
+}
+
+// ── IDR panel ─────────────────────────────────────────────────────────────
+function renderIDR(mkt){
+  const d=bySymbol(mkt)['IDR=X']; if(!d||!d.price) return;
+  const p=d.price, pc=d.change_pct||0;
+  document.getElementById('idr-val').textContent = 'Rp '+p.toLocaleString('en',{maximumFractionDigits:0});
+  const cls=pc>0?'text-red':'text-green';
+  document.getElementById('idr-change').innerHTML=`<span class="${cls}">${pc>0?'▲ IDR weakening':'▼ IDR strengthening'} ${Math.abs(pc).toFixed(2)}% today</span>`;
+  // Position on bar: 15000=0%, 18000=100%
+  const pct=Math.min(100,Math.max(0,(p-15000)/(18000-15000)*100));
+  document.getElementById('idr-fill').style.width=pct+'%';
+}
+
+function renderIDNews(){
+  const items=ALL_NEWS.filter(n=>n.is_indonesia).slice(0,8);
+  document.getElementById('id-news').innerHTML=items.length?items.map(n=>newsCardHTML(n,true)).join(''):'<div class="text-muted" style="padding:12px">No Indonesia-specific headlines</div>';
+}
+
+// ── News ──────────────────────────────────────────────────────────────────
+const TAG_STYLE = {
+  indonesia: 'background:var(--red-dim);color:#ff8a95',
+  energy:    'background:rgba(245,158,11,.15);color:var(--amber)',
+  fx_rates:  'background:rgba(96,165,250,.15);color:var(--blue)',
+  commodities:'background:rgba(34,197,94,.12);color:var(--green)',
+  macro:     'background:rgba(167,139,250,.15);color:var(--purple)',
+  global:    'background:rgba(255,255,255,.08);color:var(--muted)',
+};
+const TAG_EMOJI = {indonesia:'🇮🇩',energy:'⚡',fx_rates:'💱',commodities:'🪨',macro:'📊',global:'🌍'};
+
+function newsCardHTML(n, compact=false){
+  const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${t}</span>`).join('');
+  const border=n.is_indonesia?'indonesia':n.is_energy?'energy':'';
+  const ago=timeAgo(n.published_raw);
+  return `<div class="news-card ${border}">
+    <div class="news-meta">
+      <span class="news-src">${n.source}</span>
+      ${ago?`<span class="news-time">${ago}</span>`:''}
+      ${tags}
+    </div>
+    <div class="news-title"><a href="${n.url}" target="_blank">${n.title}</a></div>
+    ${!compact&&n.summary?`<div class="news-summary">${n.summary}</div>`:''}
+  </div>`;
+}
+
+function renderNews(){
+  const q=(document.getElementById('news-search').value||'').toLowerCase();
+  const filtered=ALL_NEWS.filter(n=>{
+    const matchFilter=newsFilter==='all'||(n.tags||[]).includes(newsFilter)||
+      (newsFilter==='indonesia'&&n.is_indonesia)||(newsFilter==='energy'&&n.is_energy)||
+      (newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
+    const matchQ=!q||n.title.toLowerCase().includes(q)||(n.summary||'').toLowerCase().includes(q)||(n.source||'').toLowerCase().includes(q);
+    return matchFilter&&matchQ;
+  });
+  document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${ALL_NEWS.length} articles`;
+  document.getElementById('news-list').innerHTML=filtered.length?filtered.map(n=>newsCardHTML(n)).join(''):'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
+}
+
+function filterNews(f,btn){
+  newsFilter=f;
+  document.querySelectorAll('#news-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNews();
+}
+
+function renderOvNews(){
+  const top=ALL_NEWS.slice(0,6);
+  document.getElementById('ov-news').innerHTML=top.map(n=>{
+    const pc=n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
+    const tag=n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
+    return `<div class="card-sm" style="${pc}padding:10px 12px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${n.source}</div>
+      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${n.url}" target="_blank" style="color:var(--text)">${n.title}</a></div>
+    </div>`;
+  }).join('');
+}
+
+// ── Client Ideas ──────────────────────────────────────────────────────────
+function renderIdeas(){
+  document.getElementById('ideas-list').innerHTML = ALL_IDEAS.length
+    ? ALL_IDEAS.map(idea=>`
+      <div class="idea-card ${idea.priority}">
+        <div class="idea-header">
+          <div class="idea-icon">${idea.icon||'💡'}</div>
+          <div class="idea-meta">
+            <div class="idea-priority ${idea.priority}">${idea.priority} PRIORITY</div>
+            <div class="idea-sector">${idea.sector}</div>
+            <div class="idea-clients">Clients: ${idea.clients}</div>
+          </div>
+        </div>
+        <div class="idea-trigger">${idea.trigger}</div>
+        <div class="idea-topic">${idea.topic}</div>
+        <div class="idea-products">${(idea.products||'').split(',').map(p=>`<span class="idea-prod">${p.trim()}</span>`).join('')}</div>
+      </div>`).join('')
+    : '<div class="text-muted" style="padding:30px;text-align:center">No client ideas generated — market data may still be loading</div>';
+}
+
+function renderOvPriorities(){
+  const top=ALL_IDEAS.slice(0,3);
+  document.getElementById('ov-priorities').innerHTML=top.map(idea=>`
+    <div class="card-sm idea-card ${idea.priority}" style="padding:10px 12px;margin-bottom:0">
+      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:3px">${idea.icon||'💡'} ${idea.priority}</div>
+      <div style="font-size:12px;font-weight:700">${idea.sector}</div>
+      <div style="font-size:11px;color:var(--muted)">${idea.trigger}</div>
+    </div>`).join('');
+}
+
+// ── Sector Impact ─────────────────────────────────────────────────────────
+const SECTORS = [
+  {name:'Energy & Utilities',  emoji:'⚡', sev:'CRITICAL', clients:'Pertamina, PLN, PGN',
+   direct:'Crude procurement costs +50%; LNG input costs; LPG subsidy blowout',
+   indirect:'Govt subsidy transfers rising; fiscal deficit widening'},
+  {name:'Mining & Extractives', emoji:'⛏', sev:'HIGH', clients:'Adaro, Sinar Mas Berau, Nickel smelters',
+   direct:'Freight costs on exports; coal revenue −21.8%; nickel oversupply (288k tonne surplus)',
+   indirect:'Revenue volatility → conglomerate credit risk; ESG financing tightening'},
+  {name:'Petrochemicals',       emoji:'🏭', sev:'HIGH', clients:'Chemical MNCs, Pupuk Indonesia',
+   direct:'LPG/naphtha feedstock cost spike from Gulf disruption',
+   indirect:'Polymer supply tight → packaging/FMCG input cost inflation'},
+  {name:'Manufacturing',        emoji:'🏗', sev:'MEDIUM', clients:'Astra, Textiles, Electronics MNCs',
+   direct:'Energy 15–25% of opex; electricity tariff rising with gas costs',
+   indirect:'Export margin compression; employment risk'},
+  {name:'FMCG & Consumer',      emoji:'🛒', sev:'MEDIUM', clients:'Salim/Indofood, MNC FMCG',
+   direct:'Wheat/CPO import costs + freight; LPG cooking fuel cost rise',
+   indirect:'Consumer purchasing power squeeze; MSME credit deterioration'},
+  {name:'Financial Services',   emoji:'🏦', sev:'MEDIUM', clients:'Bank Danamon, BRI, FIG clients',
+   direct:'Wholesale funding spread widening on sovereign rating downgrades',
+   indirect:'NPL risk from manufacturing/agri/logistics borrowers over 12–18 months'},
+  {name:'Agriculture',          emoji:'🌾', sev:'MEDIUM', clients:'Pupuk Indonesia, Bulog, Farmers',
+   direct:'Fertiliser input costs rising (gas-linked urea); rice import costs +11%',
+   indirect:'Food security risk; staple price inflation'},
+  {name:'Logistics & Transport',emoji:'🚢', sev:'MEDIUM', clients:'Pelindo, Astra logistics, shippers',
+   direct:'Bunker fuel +50%; B40 blending costs; inter-island freight rising',
+   indirect:'Distributes cost inflation to all sectors via supply chain'},
+  {name:'Technology / Data Ctr',emoji:'💻', sev:'LOW', clients:'Data centre operators, cloud providers',
+   direct:'Grid electricity cost rising with coal/gas generation costs',
+   indirect:'Clean energy procurement urgency; capex planning uncertainty'},
+];
+
+function renderSectorImpact(){
+  const html=SECTORS.map(s=>`
+    <div class="sector-card">
+      <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
+      <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
+      <div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">Key clients: ${s.clients}</div>
+    </div>`).join('');
+  const el=document.getElementById('sector-impact');
+  if(el) el.innerHTML=html;
+}
+
+function renderOvSectors(){
+  const top=SECTORS.filter(s=>['CRITICAL','HIGH'].includes(s.sev));
+  document.getElementById('ov-sectors').innerHTML=top.map(s=>`
+    <div class="sector-card">
+      <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
+      <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
+      <div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>
+    </div>`).join('');
+}
+
+// ── RM segment notes ──────────────────────────────────────────────────────
+const RM_NOTES = [
+  {seg:'SOEs (Pertamina, PLN, Bulog, PGN)', color:'var(--red)', note:'Focus: Commodity & FX hedging, subsidy impact review, PLN renewable project finance (42.6 GW pipeline), ART energy clause cost analysis. Open question: has CFO modelled Brent at $100+?'},
+  {seg:'FIG (Banks, Danamon)', color:'var(--blue)', note:'Focus: MSCI reclassification stress test, NPL monitoring in energy/manufacturing books, sustainable finance co-lending (Danamon Rp 32.7T portfolio), BI rate path + capital adequacy.'},
+  {seg:'MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). MUFG N0W platform — schedule follow-up on energy transition advisory.'},
+  {seg:'Large Local Conglomerates (Adaro, Sinar Mas, Salim, Astra)', color:'var(--green)', note:'Focus: USD debt service coverage (IDR at 17,000 risk), coal/nickel transition finance roadmap, CPO export hedging, Indofood wheat import cost review, Sinar Mas geothermal (440 MW JV).'},
+];
+function renderRMNotes(){
+  document.getElementById('rm-notes').innerHTML=RM_NOTES.map(r=>`
+    <div class="card-sm" style="border-left:3px solid ${r.color}">
+      <div style="font-size:11px;font-weight:700;color:${r.color};margin-bottom:5px">${r.seg}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5">${r.note}</div>
+    </div>`).join('');
+}
+
+// ── MUFG Research ─────────────────────────────────────────────────────────
+function renderMufgArticles(){
+  const filtered=mufgFilter==='all'?ALL_MUFG:ALL_MUFG.filter(a=>a.category===mufgFilter);
+  const catClass={'FX':'ma-fx','Macro':'ma-macro','Indonesia':'ma-indonesia','RATES':'ma-rates','MACRO':'ma-macro'};
+  document.getElementById('mufg-articles').innerHTML=filtered.length?filtered.map(a=>`
+    <div class="mufg-article">
+      <span class="ma-cat ${catClass[a.category]||'ma-fx'}">${a.category}</span>
+      <div>
+        <div class="ma-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
+        <div class="ma-meta">${a.author||''} ${a.date_str?'· '+a.date_str:''}</div>
+      </div>
+    </div>`).join('')
+    :'<div class="text-muted" style="padding:20px">No articles in this category</div>';
+}
+function filterMufg(f,btn){
+  mufgFilter=f;
+  document.querySelectorAll('#mufg-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMufgArticles();
+}
+
+// ── Notes ─────────────────────────────────────────────────────────────────
+function saveNotes(){ LS.set('tj_notes',document.getElementById('tj-notes').value); }
+function loadNotes(){ const v=LS.get('tj_notes'); if(v) document.getElementById('tj-notes').value=v; }
+
+// ── Sources ───────────────────────────────────────────────────────────────
+const DEFAULT_SOURCES = [
+  {name:'Yahoo Finance',      url:'https://finance.yahoo.com/rss/topstories',                       cat:'markets'},
+  {name:'CNBC Markets',       url:'https://www.cnbc.com/id/100003114/device/rss/rss.html',          cat:'markets'},
+  {name:'OilPrice.com',       url:'https://oilprice.com/rss/main',                                  cat:'energy'},
+  {name:'Jakarta Post',       url:'https://www.thejakartapost.com/feed',                            cat:'indonesia'},
+  {name:'Investing.com',      url:'https://www.investing.com/rss/news.rss',                         cat:'markets'},
+  {name:'MarketWatch',        url:'https://www.marketwatch.com/rss/realtimeheadlines',              cat:'markets'},
+  {name:'The Guardian Biz',   url:'https://www.theguardian.com/business/rss',                       cat:'global'},
+  {name:'Bisnis Indonesia',   url:'https://bisnis.com/feed',                                        cat:'indonesia'},
+  {name:'Kontan',             url:'https://rss.kontan.co.id/',                                      cat:'indonesia'},
+  {name:'Reuters via Yahoo',  url:'https://finance.yahoo.com/rss/industry?ind=Energy&lang=en-US',  cat:'energy'},
+];
+function renderDefaultSources(){
+  const el=document.getElementById('default-sources-list');
+  if(!el) return;
+  el.innerHTML=DEFAULT_SOURCES.map(s=>`
+    <div class="source-row">
+      <span class="source-name">${s.name}</span>
+      <span class="source-url">${s.url.substring(0,60)}...</span>
+      <span class="source-cat">${s.cat}</span>
+      <span style="font-size:11px;color:var(--green)">✓ active</span>
+    </div>`).join('');
+}
+
+async function addCustomSource(){
+  const name=document.getElementById('new-src-name').value.trim();
+  const url=document.getElementById('new-src-url').value.trim();
+  const cat=document.getElementById('new-src-cat').value;
+  if(!name||!url){alert('Please enter both a name and URL');return;}
+  if(!SB){alert('Connect to Supabase first');return;}
+  try{
+    const {error}=await SB.from('user_sources').insert([{name,url,category:cat,enabled:true}]);
+    if(error) throw error;
+    document.getElementById('new-src-name').value='';
+    document.getElementById('new-src-url').value='';
+    renderCustomSources();
+    alert(`✓ "${name}" added. It will be included in the next scheduled fetch.`);
+  }catch(e){alert('Error: '+e.message);}
+}
+
+async function renderCustomSources(){
+  if(!SB) return;
+  try{
+    const {data}=await SB.from('user_sources').select('*').order('added_at',{ascending:false});
+    const el=document.getElementById('custom-sources-list');
+    if(!data||!data.length){el.innerHTML='<div class="text-muted">No custom sources added yet.</div>';return;}
+    el.innerHTML=data.map(s=>`
+      <div class="source-row">
+        <span class="source-name">${s.name}</span>
+        <span class="source-url">${(s.url||'').substring(0,50)}...</span>
+        <span class="source-cat">${s.category||'custom'}</span>
+        <div class="toggle ${s.enabled?'on':''}" onclick="toggleSource(${s.id},${!s.enabled})"></div>
+        <button class="btn btn-ghost btn-sm" style="color:#ff6b7a" onclick="deleteSource(${s.id})">✕</button>
+      </div>`).join('');
+  }catch(e){console.error(e);}
+}
+
+async function toggleSource(id,val){
+  if(!SB) return;
+  await SB.from('user_sources').update({enabled:val}).eq('id',id);
+  renderCustomSources();
+}
+async function deleteSource(id){
+  if(!SB||!confirm('Remove this source?')) return;
+  await SB.from('user_sources').delete().eq('id',id);
+  renderCustomSources();
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────
+function loadSettings(){
+  const cfg=getConfig();
+  if(cfg.url)   {document.getElementById('set-sb-url').value=cfg.url; document.getElementById('inp-url').value=cfg.url;}
+  if(cfg.anon)  {document.getElementById('set-sb-anon').value=cfg.anon; document.getElementById('inp-anon').value=cfg.anon;}
+  if(cfg.repo)  {document.getElementById('set-gh-repo').value=cfg.repo; document.getElementById('inp-repo').value=cfg.repo; document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+  if(cfg.token) {document.getElementById('set-gh-token').value=cfg.token; document.getElementById('inp-token').value=cfg.token;}
+  if(cfg.repo&&cfg.token){document.getElementById('gh-status').className='conn-badge conn-ok';document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+}
+
+function saveConfig(){
+  const url=document.getElementById('inp-url').value.trim();
+  const anon=document.getElementById('inp-anon').value.trim();
+  const repo=document.getElementById('inp-repo').value.trim();
+  const tok=document.getElementById('inp-token').value.trim();
+  if(!url||!anon){alert('Supabase URL and Anon key are required');return;}
+  LS.set('sb_url',url); LS.set('sb_anon',anon);
+  if(repo) LS.set('gh_repo',repo);
+  if(tok)  LS.set('gh_token',tok);
+  closeSetup();
+  initSupabase(url,anon);
+  loadAll();
+  renderCustomSources();
+}
+
+function saveSettingsFromTab(){
+  const url=document.getElementById('set-sb-url').value.trim();
+  const anon=document.getElementById('set-sb-anon').value.trim();
+  const repo=document.getElementById('set-gh-repo').value.trim();
+  const tok=document.getElementById('set-gh-token').value.trim();
+  if(url)  LS.set('sb_url',url);
+  if(anon) LS.set('sb_anon',anon);
+  if(repo) LS.set('gh_repo',repo);
+  if(tok)  LS.set('gh_token',tok);
+  const msg=document.getElementById('settings-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',3000);
+  if(url&&anon) initSupabase(url,anon);
+  if(repo&&tok){document.getElementById('gh-status').className='conn-badge conn-ok';document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+}
+
+function clearAllSettings(){
+  if(!confirm('Clear all settings?')) return;
+  ['sb_url','sb_anon','gh_repo','gh_token','tj_notes'].forEach(k=>LS.del(k));
+  location.reload();
+}
+
+function openSetup(){ document.getElementById('setupModal').classList.add('show'); loadSettings(); }
+function closeSetup(){ document.getElementById('setupModal').classList.remove('show'); }
+
+// ── Refresh (GitHub Actions trigger) ─────────────────────────────────────
+async function triggerRefresh(){
+  const cfg=getConfig();
+  const btn=document.getElementById('refreshBtn');
+  if(!cfg.repo||!cfg.token){
+    openSetup();
+    alert('Please configure your GitHub repo and Personal Access Token to use the Refresh button.');
+    return;
+  }
+  btn.disabled=true; btn.innerHTML='<span class="spin">⏳</span> Triggering...';
+  try{
+    const r=await fetch(`https://api.github.com/repos/${cfg.repo}/actions/workflows/update.yml/dispatches`,{
+      method:'POST',
+      headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({ref:'main',inputs:{reason:'Manual refresh from dashboard'}})
+    });
+    if(r.status===204){
+      btn.innerHTML='✅ Triggered!';
+      document.getElementById('hdr-status').textContent='⏳ Fetching new data... (~2 min)';
+      setTimeout(()=>{btn.disabled=false;btn.innerHTML='🔄 Refresh';},5000);
+    } else {
+      const err=await r.text();
+      alert(`GitHub error ${r.status}: ${err}`);
+      btn.disabled=false; btn.innerHTML='🔄 Refresh';
+    }
+  }catch(e){
+    alert('Request failed: '+e.message);
+    btn.disabled=false; btn.innerHTML='🔄 Refresh';
+  }
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='sources') renderCustomSources();
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function bySymbol(mkt){ const o={}; (mkt||[]).forEach(r=>o[r.symbol]=r); return o; }
+
+function timeAgo(str){
+  if(!str) return '';
+  try{
+    const d=new Date(str);
+    if(isNaN(d)) return '';
+    const mins=Math.floor((Date.now()-d)/60000);
+    if(mins<60)  return mins+'m ago';
+    if(mins<1440) return Math.floor(mins/60)+'h ago';
+    return Math.floor(mins/1440)+'d ago';
+  }catch{return '';}
+}
+</script>
+</body>
+</html>

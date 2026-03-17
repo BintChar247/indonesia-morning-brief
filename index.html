@@ -329,7 +329,6 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <!-- Header -->
 <div class="hdr">
   <div class="hdr-logo">
-    <div class="hdr-badge">MUFG</div>
     <div>
       <div class="hdr-title">Indonesia Morning Brief</div>
       <div class="hdr-sub" id="hdr-date">Loading...</div>
@@ -354,7 +353,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <button class="nav-btn" onclick="switchTab('markets',this)">📈 Markets</button>
   <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
   <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
-  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Client Ideas</button>
+  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Corporate Ideas</button>
   <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 MUFG Research</button>
   <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
 </div>
@@ -597,7 +596,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="panel" id="panel-ideas">
   <div class="section-label">RM Intelligence</div>
-  <div class="section-title">Client Ideas & Discussion Topics</div>
+  <div class="section-title">Corporate Ideas & Discussion Topics</div>
 
   <!-- Source summary bar -->
   <div id="ideas-source-bar" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--muted)">
@@ -1136,7 +1135,7 @@ const SECTORS = [
   {name:'FMCG & Consumer',      emoji:'🛒', sev:'MEDIUM', clients:'Salim/Indofood, MNC FMCG',
    direct:'Wheat/CPO import costs + freight; LPG cooking fuel cost rise',
    indirect:'Consumer purchasing power squeeze; MSME credit deterioration'},
-  {name:'Financial Services',   emoji:'🏦', sev:'MEDIUM', clients:'Bank Danamon, BRI, FIG clients',
+  {name:'Financial Services',   emoji:'🏦', sev:'MEDIUM', clients:'Bank Danamon, BRI, FI / NBFI',
    direct:'Wholesale funding spread widening on sovereign rating downgrades',
    indirect:'NPL risk from manufacturing/agri/logistics borrowers over 12–18 months'},
   {name:'Agriculture',          emoji:'🌾', sev:'MEDIUM', clients:'Pupuk Indonesia, Bulog, Farmers',
@@ -1221,7 +1220,7 @@ function ideaCardHTML(idea){
       <div class="idea-meta">
         <div class="idea-priority ${idea.priority}">${idea.priority} PRIORITY</div>
         <div class="idea-sector">${idea.sector}</div>
-        <div class="idea-clients">${idea.clients?'Clients: '+idea.clients:''}</div>
+        <div class="idea-clients">${idea.clients?((/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(idea.clients+idea.sector)?'FI: ':'Corporates: ')+idea.clients):''}</div>
       </div>
     </div>
     ${srcBadge}
@@ -1299,7 +1298,7 @@ function renderSectorImpact(){
       <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
       <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
       ${s.indirect?`<div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>`:''}
-      <div style="font-size:10px;color:var(--muted);margin-top:6px">Key clients: ${s.clients}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">${/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(s.clients)?'Key FI:':'Key Corporates:'} ${s.clients}</div>
       ${srcBlock}
     </div>`;
   }).join('');
@@ -1320,8 +1319,8 @@ function renderOvSectors(){
 // ── RM segment notes ──────────────────────────────────────────────────────
 const RM_NOTES = [
   {seg:'SOEs (Pertamina, PLN, Bulog, PGN)', color:'var(--red)', note:'Focus: Commodity & FX hedging, subsidy impact review, PLN renewable project finance (42.6 GW pipeline), ART energy clause cost analysis. Open question: has CFO modelled Brent at $100+?'},
-  {seg:'FIG (Banks, Danamon)', color:'var(--blue)', note:'Focus: MSCI reclassification stress test, NPL monitoring in energy/manufacturing books, sustainable finance co-lending (Danamon Rp 32.7T portfolio), BI rate path + capital adequacy.'},
-  {seg:'MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). MUFG N0W platform — schedule follow-up on energy transition advisory.'},
+  {seg:'FI / NBFI (Banks, Danamon)', color:'var(--blue)', note:'Focus: MSCI reclassification stress test, NPL monitoring in energy/manufacturing books, sustainable finance co-lending (Danamon Rp 32.7T portfolio), BI rate path + capital adequacy.'},
+  {seg:'Corporate MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). MUFG N0W platform — schedule follow-up on energy transition advisory.'},
   {seg:'Large Local Conglomerates (Adaro, Sinar Mas, Salim, Astra)', color:'var(--green)', note:'Focus: USD debt service coverage (IDR at 17,000 risk), coal/nickel transition finance roadmap, CPO export hedging, Indofood wheat import cost review, Sinar Mas geothermal (440 MW JV).'},
 ];
 function renderRMNotes(){
@@ -1530,7 +1529,7 @@ const INSIGHT_RULES = [
     risk_headline: "Indonesia macro signal — BI policy / IDR / equity market implications",
     opportunities: [
       {segment:"Corporates (USD exposure)", idea:"IDR hedging review — FX forwards or vanilla options to protect import costs", urgency:"HIGH"},
-      {segment:"FIG / Banks", idea:"BI rate path update — NIM sensitivity and bond portfolio repositioning", urgency:"MEDIUM"},
+      {segment:"FI (Banks & NBFIs)", idea:"BI rate path update — NIM sensitivity and bond portfolio repositioning", urgency:"MEDIUM"},
       {segment:"SOE / Government-linked", idea:"Fiscal policy discussion — budget deficit implications and sovereign rating watch", urgency:"MEDIUM"},
     ],
     sectors: [
@@ -1544,7 +1543,7 @@ const INSIGHT_RULES = [
     risk_level: "HIGH",
     risk_headline: "Crude oil price movement — energy cost and current account implications",
     opportunities: [
-      {segment:"Energy sector clients", idea:"Commodity price risk management — crude oil swaps or collar structures", urgency:"HIGH"},
+      {segment:"Energy sector corporates", idea:"Commodity price risk management — crude oil swaps or collar structures", urgency:"HIGH"},
       {segment:"Manufacturing / Industrials", idea:"Fuel oil input cost hedging — energy price protection structures", urgency:"MEDIUM"},
       {segment:"Plantation / Agriculture", idea:"CPO vs crude correlation play — relative value discussion", urgency:"MEDIUM"},
     ],
@@ -1562,7 +1561,7 @@ const INSIGHT_RULES = [
     opportunities: [
       {segment:"Utility / PLN", idea:"Gas procurement cost discussion — LNG price risk management and term contracts", urgency:"MEDIUM"},
       {segment:"Fertiliser (Pupuk Indonesia)", idea:"Gas feedstock cost — hedging structures for margin protection", urgency:"MEDIUM"},
-      {segment:"Industrial estate clients", idea:"Energy cost outlook — impact on operating margins", urgency:"LOW"},
+      {segment:"Industrial estate corporates", idea:"Energy cost outlook — impact on operating margins", urgency:"LOW"},
     ],
     sectors: [
       {sector:"Power & Utilities", impact:"Direct", detail:"Gas-fired power generation cost"},
@@ -1576,7 +1575,7 @@ const INSIGHT_RULES = [
     risk_headline: "US Fed / global rates signal — capital flow and Indonesia bond market implications",
     opportunities: [
       {segment:"All corporates with USD debt", idea:"Interest rate hedging review — USD IRS or cross-currency swap positioning", urgency:"HIGH"},
-      {segment:"FIG / Banks", idea:"Bond portfolio duration risk — positioning vs BI rate path divergence", urgency:"HIGH"},
+      {segment:"FI (Banks & NBFIs)", idea:"Bond portfolio duration risk — positioning vs BI rate path divergence", urgency:"HIGH"},
       {segment:"Real estate / REITs", idea:"Cap rate sensitivity to rate environment — refinancing discussion", urgency:"MEDIUM"},
     ],
     sectors: [
@@ -1592,7 +1591,7 @@ const INSIGHT_RULES = [
     opportunities: [
       {segment:"Exporters (palm oil, mining)", idea:"Export revenue FX hedging — USD receivables protection structures", urgency:"HIGH"},
       {segment:"Importers / supply chain", idea:"Supply chain diversification financing — trade finance structures", urgency:"MEDIUM"},
-      {segment:"MNC clients", idea:"Geopolitical risk scenario planning — balance sheet and FX stress testing", urgency:"MEDIUM"},
+      {segment:"MNC corporates", idea:"Geopolitical risk scenario planning — balance sheet and FX stress testing", urgency:"MEDIUM"},
     ],
     sectors: [
       {sector:"Commodity exports (Palm oil, Coal, Nickel)", impact:"Direct", detail:"Export pricing and volume risk"},
@@ -1605,9 +1604,9 @@ const INSIGHT_RULES = [
     risk_level: "MEDIUM",
     risk_headline: "Commodity / mining sector signal — export revenue and capex implications",
     opportunities: [
-      {segment:"Mining clients (Adaro, Bayan, Vale)", idea:"Revenue hedging — commodity price forward contracts", urgency:"MEDIUM"},
+      {segment:"Mining corporates (Adaro, Bayan, Vale)", idea:"Revenue hedging — commodity price forward contracts", urgency:"MEDIUM"},
       {segment:"Mining capex financing", idea:"Project finance and equipment leasing discussion", urgency:"LOW"},
-      {segment:"Export-oriented clients", idea:"FX receivables hedging — USD export revenue protection", urgency:"MEDIUM"},
+      {segment:"Export-oriented corporates", idea:"FX receivables hedging — USD export revenue protection", urgency:"MEDIUM"},
     ],
     sectors: [
       {sector:"Mining & Resources", impact:"Direct", detail:"Revenue tied directly to commodity prices"},
@@ -1619,7 +1618,7 @@ const INSIGHT_RULES = [
     risk_level: "MEDIUM",
     risk_headline: "Palm oil / CPO signal — plantation sector and biodiesel policy impact",
     opportunities: [
-      {segment:"Plantation clients (Astra Agro, SMART)", idea:"CPO price risk management — futures and options structures", urgency:"MEDIUM"},
+      {segment:"Plantation corporates (Astra Agro, SMART)", idea:"CPO price risk management — futures and options structures", urgency:"MEDIUM"},
       {segment:"Downstream oleochemicals", idea:"Feedstock cost hedging and margin protection", urgency:"LOW"},
       {segment:"Biodiesel policy beneficiaries", idea:"B35/B40 mandate — domestic demand floor discussion", urgency:"LOW"},
     ],
@@ -1634,8 +1633,8 @@ const INSIGHT_RULES = [
     risk_headline: "Global macro deterioration — growth and inflation risk for Indonesia",
     opportunities: [
       {segment:"All segments", idea:"Portfolio stress test discussion — scenario analysis for recession/stagflation", urgency:"HIGH"},
-      {segment:"Fixed income clients", idea:"Duration positioning — government bond vs corporate credit spreads", urgency:"MEDIUM"},
-      {segment:"Export clients", idea:"Demand outlook review — order book and revenue hedging", urgency:"MEDIUM"},
+      {segment:"FI (Fixed income portfolio managers)", idea:"Duration positioning — government bond vs corporate credit spreads", urgency:"MEDIUM"},
+      {segment:"Export corporates", idea:"Demand outlook review — order book and revenue hedging", urgency:"MEDIUM"},
     ],
     sectors: [
       {sector:"All sectors", impact:"High", detail:"Broad macro deterioration affects all borrowers"},
@@ -1778,7 +1777,7 @@ function renderFlagged(){
     const sects = (f.sector_impacts||[]).slice(0,6);
     const oppsHTML = opps.length ? `
       <div class="risk-opps">
-        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Client Opportunities</div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Corporate / FI Opportunities</div>
         ${opps.map(o=>`<div class="risk-opp">
           <span class="risk-opp-seg">${o.segment||''}</span>
           <span class="risk-opp-idea">${o.idea||''}</span>

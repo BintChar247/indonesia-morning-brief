@@ -133,9 +133,11 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .news-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .news-time{font-size:11px;color:var(--amber);font-weight:600;margin-left:4px}
-.flag-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;opacity:0.5;transition:opacity .15s,transform .15s;margin-left:auto}
-.flag-btn:hover{opacity:1;transform:scale(1.2)}
-.flag-btn.flagged{opacity:1;filter:drop-shadow(0 0 4px rgba(230,0,18,.6))}
+.flag-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);cursor:pointer;font-size:13px;padding:3px 7px;border-radius:6px;opacity:0.75;transition:all .15s;margin-left:auto;color:var(--muted);display:flex;align-items:center;gap:3px}
+.flag-btn::after{content:'Flag';font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.flag-btn:hover{opacity:1;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:var(--amber);transform:scale(1.05)}
+.flag-btn.flagged{opacity:1;background:rgba(230,0,18,.12);border-color:rgba(230,0,18,.4);color:#ff6b7a;filter:drop-shadow(0 0 4px rgba(230,0,18,.3))}
+.flag-btn.flagged::after{content:'Flagged'}
 .risk-signals-panel{background:rgba(230,0,18,.06);border:1px solid rgba(230,0,18,.25);border-radius:12px;padding:16px;margin-bottom:20px}
 .risk-signals-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .risk-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:10px;padding:14px;margin-bottom:10px}
@@ -1066,12 +1068,19 @@ function filterNews(f,btn){
 }
 
 function renderOvNews(){
-  const top=ALL_NEWS.slice(0,6);
+  // Sort by published date descending so latest headlines always appear first
+  const sorted=[...ALL_NEWS].sort((a,b)=>{
+    const da=parseDate(a.published_raw)||parseDate(a.created_at)||0;
+    const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
+    return db-da;
+  });
+  const top=sorted.slice(0,6);
   document.getElementById('ov-news').innerHTML=top.map(n=>{
     const pc=n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
     const tag=n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
+    const ago=timeAgo(n.published_raw);
     return `<div class="card-sm" style="${pc}padding:10px 12px">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${n.source}</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${n.source}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
       <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${n.url}" target="_blank" style="color:var(--text)">${n.title}</a></div>
     </div>`;
   }).join('');

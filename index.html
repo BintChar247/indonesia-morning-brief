@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MUFG Indonesia Morning Brief</title>
+<title>Indonesia Morning Brief</title>
+<meta property="og:title" content="Indonesia Morning Brief">
+<meta property="og:description" content="Daily Indonesia corporate coverage dashboard — markets, FX, commodities, news & corporate ideas.">
+<meta property="og:type" content="website">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 :root {
@@ -364,7 +367,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
   <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
   <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Corporate Ideas</button>
-  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 MUFG Research</button>
+  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 Research</button>
   <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
 </div>
 
@@ -527,7 +530,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <div class="panel" id="panel-indonesia">
   <div class="section-label">Indonesia Macro Dashboard</div>
   <div class="section-title">Sovereign Risk, Currency & Macro Indicators</div>
-  <div class="section-sub">MUFG target: USDIDR 17,000 · 5Y CDS >80bps · MSCI review: May 2026</div>
+  <div class="section-sub">Target: USDIDR 17,000 · 5Y CDS >80bps · MSCI review: May 2026</div>
 
   <div class="grid-2" style="margin-bottom:16px">
 
@@ -539,18 +542,18 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
         <div class="idr-change" id="idr-change">–</div>
         <div class="idr-bar-wrap"><div class="idr-fill" id="idr-fill" style="width:50%"></div></div>
         <div class="idr-markers">
-          <span>Rp 15,000</span><span>MUFG base 17,000</span><span>Tail 17,400</span><span>Crisis</span>
+          <span>Rp 15,000</span><span>Base 17,000</span><span>Tail 17,400</span><span>Crisis</span>
         </div>
         <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="card-sm">
-            <div class="section-label">MUFG Oil Sensitivity</div>
+            <div class="section-label">Oil Sensitivity</div>
             <div style="font-size:13px;font-weight:700">+$10/bbl → <span style="color:var(--red)">+0.4pp CPI</span></div>
             <div style="font-size:11px;color:var(--muted)">& −0.2% GDP trade balance</div>
           </div>
           <div class="card-sm">
             <div class="section-label">BI Rate (held 6 months)</div>
             <div style="font-size:20px;font-weight:800">4.75%</div>
-            <div style="font-size:11px;color:var(--muted)">MUFG: 2×25bp cuts → Q2+ 2026</div>
+            <div style="font-size:11px;color:var(--muted)">Forecast: 2×25bp cuts → Q2+ 2026</div>
           </div>
         </div>
       </div>
@@ -687,7 +690,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <div class="panel" id="panel-mufg">
   <div class="mufg-hero">
     <div class="tj-name">Tom Joyce — Head of Capital Markets Strategy, Americas</div>
-    <div class="tj-title">MUFG Research Intelligence</div>
+    <div class="tj-title">Research Intelligence</div>
     <div class="tj-bio">Tom Joyce leads MUFG's Capital Markets Strategy Group, providing in-depth analysis on the impact of economic, political, public policy and regulatory dynamics on credit, FX, rates and commodities markets for S&amp;P 500 corporate clients. He publishes daily/weekly updates on <a href="https://www.linkedin.com/in/tom-joyce-07055314a/" target="_blank">LinkedIn</a> and at <a href="https://www.mufgresearch.com/macro/" target="_blank">mufgresearch.com</a>.</div>
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
       <a href="https://www.linkedin.com/search/results/content/?keywords=Tom%20Joyce%20MUFG&sortBy=date" target="_blank" class="btn btn-ghost btn-sm">🔗 Search Tom Joyce on LinkedIn</a>
@@ -707,7 +710,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   </div>
 
   <div class="mufg-articles" id="mufg-articles">
-    <div class="text-muted" style="padding:20px;text-align:center">Loading MUFG Research...</div>
+    <div class="text-muted" style="padding:20px;text-align:center">Loading Research...</div>
   </div>
 
   <hr class="divider">
@@ -1432,15 +1435,15 @@ function showSourceDetail(type){
       : '<div style="color:var(--muted);padding:20px;text-align:center">No flagged articles — flag news items from the News tab</div>';
 
   } else if(type==='mufg'){
-    title.textContent = '🏦 MUFG Research — Articles Used';
+    title.textContent = '🏦 Research Intelligence — Articles Used';
     const used = ALL_MUFG.filter(a=>{
       const ins = generateArticleInsights({title:a.title||'',summary:'',tags:[a.category?a.category.toLowerCase():'global']});
       return ins.risk_level !== 'LOW';
     });
     body.innerHTML = used.length
-      ? used.map(a=>row('🏦', a.title||'Untitled', (a.author||'MUFG Research')+(a.date_str?' · '+a.date_str:''), a.url||null,
+      ? used.map(a=>row('🏦', a.title||'Untitled', (a.author||'Research Team')+(a.date_str?' · '+a.date_str:''), a.url||null,
           a.category, '#60a5fa')).join('')
-      : '<div style="color:var(--muted);padding:20px;text-align:center">No MUFG articles matched insight rules</div>';
+      : '<div style="color:var(--muted);padding:20px;text-align:center">No research articles matched insight rules</div>';
   }
   modal.classList.add('show');
 }
@@ -1515,7 +1518,7 @@ function renderOvSectors(){
 const RM_NOTES = [
   {seg:'SOEs (Pertamina, PLN, Bulog, PGN)', color:'var(--red)', note:'Focus: Commodity & FX hedging, subsidy impact review, PLN renewable project finance (42.6 GW pipeline), ART energy clause cost analysis. Open question: has CFO modelled Brent at $100+?'},
   {seg:'FI / NBFI (Banks, Danamon)', color:'var(--blue)', note:'Focus: MSCI reclassification stress test, NPL monitoring in energy/manufacturing books, sustainable finance co-lending (Danamon Rp 32.7T portfolio), BI rate path + capital adequacy.'},
-  {seg:'Corporate MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). MUFG N0W platform — schedule follow-up on energy transition advisory.'},
+  {seg:'Corporate MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). N0W platform — schedule follow-up on energy transition advisory.'},
   {seg:'Large Local Conglomerates (Adaro, Sinar Mas, Salim, Astra)', color:'var(--green)', note:'Focus: USD debt service coverage (IDR at 17,000 risk), coal/nickel transition finance roadmap, CPO export hedging, Indofood wheat import cost review, Sinar Mas geothermal (440 MW JV).'},
 ];
 function renderRMNotes(){
@@ -1850,7 +1853,7 @@ function generateArticleInsights(article){
   if(!matched.length){
     return {
       risk_level: 'LOW',
-      risk_headline: 'Monitor — no specific MUFG franchise keyword match',
+      risk_headline: 'Monitor — no specific franchise keyword match',
       client_opportunities: [{segment:'All segments', idea:'Discuss at next scheduled client review', urgency:'LOW'}],
       sector_impacts: [{sector:'Broad markets', impact:'Low', detail:'No direct sector match identified'}],
     };

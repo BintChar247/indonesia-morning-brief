@@ -295,34 +295,33 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 </head>
 <body>
 
-<!-- Setup modal -->
+<!-- Admin Settings modal (public visitors never see this) -->
 <div class="modal-overlay" id="setupModal">
   <div class="modal">
-    <div style="background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px;display:inline-block;margin-bottom:12px">MUFG</div>
-    <h2>Welcome, Michael 👋</h2>
-    <p>Connect to your Supabase database to start loading live market data. This takes about 2 minutes to set up once.</p>
-    <div style="background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px">
-      <div style="font-size:12px;color:var(--muted);line-height:1.8">
-        <span class="step-num">1</span>Create free account at <a href="https://supabase.com" target="_blank">supabase.com</a><br>
-        <span class="step-num">2</span>Run <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">supabase/schema.sql</code> in the SQL Editor<br>
-        <span class="step-num">3</span>Copy your <strong>Project URL</strong> and <strong>anon/public key</strong> from Settings → API<br>
-        <span class="step-num">4</span>Add <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">SUPABASE_URL</code> and <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">SUPABASE_SERVICE_KEY</code> to GitHub Secrets
-      </div>
+    <div style="background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px;display:inline-block;margin-bottom:12px">MUFG ADMIN</div>
+    <h2>Admin Settings ⚙️</h2>
+    <p style="margin-bottom:12px">Configure your GitHub Actions trigger. Supabase credentials are pre-configured site-wide — no action needed.</p>
+
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--green)">
+      ✓ Site database connected — public visitors load data automatically
     </div>
-    <label>Supabase Project URL</label>
-    <input type="url" id="inp-url" placeholder="https://xyzxyz.supabase.co">
-    <small>Settings → API → Project URL</small>
-    <label>Supabase Anon/Public Key</label>
-    <input type="text" id="inp-anon" placeholder="eyJhbGciOiJIUzI1NiIs...">
-    <small>Settings → API → anon public key (safe to use in browser)</small>
-    <label>GitHub Repo (optional — for Refresh button)</label>
+
+    <label>GitHub Repo (for Refresh button)</label>
     <input type="text" id="inp-repo" placeholder="yourusername/indonesia-morning-brief">
-    <label>GitHub Personal Access Token (optional)</label>
+    <label style="margin-top:12px">GitHub Personal Access Token</label>
     <input type="password" id="inp-token" placeholder="ghp_xxxxxxxxxxxx">
-    <small>Needed only for the Refresh button. Create at GitHub → Settings → Developer settings → PAT (workflow scope).</small>
+    <small>Create at GitHub → Settings → Developer settings → Personal Access Tokens → workflow scope. Stored only in this browser — never shared publicly.</small>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Override Supabase connection (optional — only needed if you change databases)</div>
+    <label>Supabase Project URL</label>
+    <input type="url" id="inp-url" placeholder="Leave blank to use site default">
+    <label style="margin-top:8px">Supabase Anon Key</label>
+    <input type="text" id="inp-anon" placeholder="Leave blank to use site default">
+
     <div class="modal-footer">
-      <button class="btn btn-red" onclick="saveConfig()">💾 Save & Connect</button>
-      <button class="btn btn-ghost" onclick="closeSetup()">Skip for now</button>
+      <button class="btn btn-red" onclick="saveConfig()">💾 Save Admin Settings</button>
+      <button class="btn btn-ghost" onclick="closeSetup()">Close</button>
     </div>
   </div>
 </div>
@@ -341,8 +340,8 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div>Last updated: <strong id="hdr-updated">–</strong></div>
       <div id="hdr-status" class="text-muted">–</div>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="openSetup()" title="Settings">⚙️</button>
-    <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn">🔄 Refresh</button>
+    <button class="btn btn-ghost btn-sm" onclick="openSetup()" title="Admin Settings">⚙️</button>
+    <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none">🔄 Refresh</button>
   </div>
 </div>
 
@@ -756,6 +755,13 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
 <!-- ═══════ JAVASCRIPT ═══════════════════════════════════════════════ -->
 <script>
+// ─────────────────────────────────────────────────────────────────────
+//  PUBLIC SITE CREDENTIALS  ← Fill these in once, then push to GitHub
+//  The anon/public key is safe to expose — Supabase RLS protects data.
+// ─────────────────────────────────────────────────────────────────────
+const SITE_SB_URL  = 'YOUR_SUPABASE_URL';   // e.g. https://xyzxyz.supabase.co
+const SITE_SB_ANON = 'YOUR_SUPABASE_ANON_KEY'; // Settings → API → anon public key
+
 // ── Config helpers ──────────────────────────────────────────────────────
 const LS = {
   get:    k => localStorage.getItem(k),
@@ -765,7 +771,24 @@ const LS = {
 };
 let SB = null;  // Supabase client
 
-function getConfig(){ return { url: LS.get('sb_url'), anon: LS.get('sb_anon'), repo: LS.get('gh_repo'), token: LS.get('gh_token') }; }
+// Use site constants as defaults; localStorage overrides (for admins)
+function getConfig(){
+  return {
+    url:   LS.get('sb_url')   || SITE_SB_URL,
+    anon:  LS.get('sb_anon')  || SITE_SB_ANON,
+    repo:  LS.get('gh_repo')  || '',
+    token: LS.get('gh_token') || '',
+  };
+}
+function hasSiteCredentials(){
+  return SITE_SB_URL  !== 'YOUR_SUPABASE_URL' &&
+         SITE_SB_ANON !== 'YOUR_SUPABASE_ANON_KEY';
+}
+function updateRefreshVisibility(){
+  // Refresh button only shown to admins who have stored a GitHub PAT
+  const btn = document.getElementById('refreshBtn');
+  if(btn) btn.style.display = LS.get('gh_token') ? '' : 'none';
+}
 
 // ── State ───────────────────────────────────────────────────────────────
 let ALL_NEWS   = [];
@@ -783,12 +806,15 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNotes();
   renderDefaultSources();
   renderCustomSources();
+  updateRefreshVisibility();
   const cfg = getConfig();
-  if(!cfg.url || !cfg.anon){
-    document.getElementById('setupModal').classList.add('show');
-  } else {
+  if(cfg.url && cfg.anon){
+    // Auto-connect: site credentials or admin localStorage override
     initSupabase(cfg.url, cfg.anon);
     loadAll();
+  } else {
+    // Only show setup modal if site credentials haven't been filled in yet
+    document.getElementById('setupModal').classList.add('show');
   }
 });
 
@@ -1411,16 +1437,19 @@ function loadSettings(){
 }
 
 function saveConfig(){
-  const url=document.getElementById('inp-url').value.trim();
-  const anon=document.getElementById('inp-anon').value.trim();
-  const repo=document.getElementById('inp-repo').value.trim();
-  const tok=document.getElementById('inp-token').value.trim();
-  if(!url||!anon){alert('Supabase URL and Anon key are required');return;}
-  LS.set('sb_url',url); LS.set('sb_anon',anon);
+  const url  = document.getElementById('inp-url').value.trim();
+  const anon = document.getElementById('inp-anon').value.trim();
+  const repo = document.getElementById('inp-repo').value.trim();
+  const tok  = document.getElementById('inp-token').value.trim();
+  // Only override Supabase if both fields are filled
+  if(url && anon){ LS.set('sb_url',url); LS.set('sb_anon',anon); }
   if(repo) LS.set('gh_repo',repo);
   if(tok)  LS.set('gh_token',tok);
   closeSetup();
-  initSupabase(url,anon);
+  updateRefreshVisibility();
+  // Re-init with potentially new override credentials
+  const cfg = getConfig();
+  initSupabase(cfg.url, cfg.anon);
   loadAll();
   renderCustomSources();
 }
@@ -1438,6 +1467,7 @@ function saveSettingsFromTab(){
   msg.style.display='block'; setTimeout(()=>msg.style.display='none',3000);
   if(url&&anon) initSupabase(url,anon);
   if(repo&&tok){document.getElementById('gh-status').className='conn-badge conn-ok';document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+  updateRefreshVisibility();
 }
 
 function clearAllSettings(){

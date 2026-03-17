@@ -616,17 +616,6 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="section-label">News Feed</div>
   <div class="section-title">All Sources</div>
 
-  <!-- Risk Signals panel — shows flagged articles with auto-generated insights -->
-  <div id="risk-signals-panel" style="display:none">
-    <div class="risk-signals-panel">
-      <div class="risk-signals-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <span>🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></span>
-        <button id="recompute-btn" class="btn btn-ghost btn-sm" onclick="recomputeAllInsights()" style="font-size:11px;border-color:rgba(230,0,18,.3);color:var(--red)">⚡ Recompute Insights</button>
-      </div>
-      <div id="flagged-list"></div>
-    </div>
-  </div>
-
   <!-- Manual URL entry -->
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px">
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
@@ -639,6 +628,20 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <button class="btn btn-ghost btn-sm" onclick="addManualURL()" id="manual-url-btn" style="border-color:rgba(245,158,11,.4);color:var(--amber);white-space:nowrap">🔗 Add & Analyse</button>
     </div>
     <div id="manual-url-status" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>
+  </div>
+
+  <!-- Risk Signals panel — shows flagged articles with auto-generated insights -->
+  <div id="risk-signals-panel" style="display:none">
+    <div class="risk-signals-panel">
+      <div class="risk-signals-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="recompute-btn" class="btn btn-ghost btn-sm" onclick="recomputeAllInsights()" style="font-size:11px;border-color:rgba(230,0,18,.3);color:var(--red)">⚡ Recompute Insights</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleRiskSignals()" id="risk-collapse-btn" title="Collapse / expand" style="font-size:13px;padding:2px 8px;border-color:var(--border)">▾</button>
+        </div>
+      </div>
+      <div id="flagged-list"></div>
+    </div>
   </div>
 
   <div class="news-filters" id="news-filters">
@@ -1899,6 +1902,15 @@ async function computeAndSaveInsights(article){
   };
   await SB.from('flagged_articles').update(patch).eq('id', article.id);
   return {...article, ...patch};
+}
+
+function toggleRiskSignals(){
+  const list = document.getElementById('flagged-list');
+  const btn  = document.getElementById('risk-collapse-btn');
+  if(!list) return;
+  const collapsed = list.style.display === 'none';
+  list.style.display = collapsed ? '' : 'none';
+  btn.textContent   = collapsed ? '▾' : '▸';
 }
 
 async function recomputeAllInsights(){

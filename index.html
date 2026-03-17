@@ -637,10 +637,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
         <span>🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></span>
         <div style="display:flex;align-items:center;gap:8px">
           <button id="recompute-btn" class="btn btn-ghost btn-sm" onclick="recomputeAllInsights()" style="font-size:11px;border-color:rgba(230,0,18,.3);color:var(--red)">⚡ Recompute Insights</button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleRiskSignals()" id="risk-collapse-btn" title="Collapse / expand" style="font-size:13px;padding:2px 8px;border-color:var(--border)">▾</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleRiskSignals()" id="risk-collapse-btn" title="Collapse / expand" style="font-size:13px;padding:2px 8px;border-color:var(--border)">▸</button>
         </div>
       </div>
-      <div id="flagged-list"></div>
+      <div id="flagged-list" style="display:none"></div>
     </div>
   </div>
 

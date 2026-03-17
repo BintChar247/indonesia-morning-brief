@@ -1247,8 +1247,21 @@ function parseDate(str){
 }
 
 function renderNews(){
+  // Merge manually-added flagged articles into news list (deduplicated by id)
+  const existingIds = new Set(ALL_NEWS.map(n=>n.id));
+  const flaggedAsNews = ALL_FLAGGED
+    .filter(f=>!existingIds.has(f.id))
+    .map(f=>({
+      id:f.id, title:f.title, url:f.url||'', source:f.source||'Manual',
+      source_cat:f.source_cat||'', summary:f.summary||'',
+      tags:f.tags||[], is_indonesia:f.is_indonesia, is_energy:f.is_energy,
+      is_fx:(f.tags||[]).includes('fx_rates'), is_macro:(f.tags||[]).includes('macro'),
+      published_raw:f.flagged_at, created_at:f.flagged_at,
+    }));
+  const combined = [...ALL_NEWS, ...flaggedAsNews];
+
   const q=(document.getElementById('news-search').value||'').toLowerCase();
-  const filtered=ALL_NEWS.filter(n=>{
+  const filtered=combined.filter(n=>{
     const matchFilter=newsFilter==='all'||(n.tags||[]).includes(newsFilter)||
       (newsFilter==='indonesia'&&n.is_indonesia)||(newsFilter==='energy'&&n.is_energy)||
       (newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
@@ -1261,7 +1274,7 @@ function renderNews(){
     const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
     return db-da;
   });
-  document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${ALL_NEWS.length} articles`;
+  document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${combined.length} articles`;
   document.getElementById('news-list').innerHTML=filtered.length?filtered.map(n=>newsCardHTML(n)).join(''):'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
 }
 

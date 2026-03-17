@@ -133,6 +133,30 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .news-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .news-time{font-size:11px;color:var(--amber);font-weight:600;margin-left:4px}
+.flag-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;border-radius:4px;opacity:0.5;transition:opacity .15s,transform .15s;margin-left:auto}
+.flag-btn:hover{opacity:1;transform:scale(1.2)}
+.flag-btn.flagged{opacity:1;filter:drop-shadow(0 0 4px rgba(230,0,18,.6))}
+.risk-signals-panel{background:rgba(230,0,18,.06);border:1px solid rgba(230,0,18,.25);border-radius:12px;padding:16px;margin-bottom:20px}
+.risk-signals-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.risk-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:10px;padding:14px;margin-bottom:10px}
+.risk-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.risk-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.risk-badge.CRITICAL{background:rgba(230,0,18,.2);color:#ff4444}
+.risk-badge.HIGH{background:rgba(255,140,0,.2);color:#ff8c00}
+.risk-badge.MEDIUM{background:rgba(59,130,246,.2);color:#60a5fa}
+.risk-badge.LOW{background:rgba(100,100,100,.2);color:var(--muted)}
+.risk-headline{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px}
+.risk-article-title{font-size:13px;color:var(--muted);margin-bottom:8px}
+.risk-opps{margin-top:8px}
+.risk-opp{display:flex;gap:8px;margin-bottom:5px;font-size:12px}
+.risk-opp-seg{color:var(--amber);font-weight:600;min-width:140px;flex-shrink:0}
+.risk-opp-idea{color:var(--text-sub)}
+.risk-sectors{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.risk-sector-chip{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--muted)}
+.risk-sector-chip.Direct{background:rgba(230,0,18,.12);color:#ff6666}
+.risk-sector-chip.High{background:rgba(255,140,0,.12);color:#ffaa44}
+.unflag-btn{font-size:10px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;margin-top:6px}
+.unflag-btn:hover{color:var(--red);border-color:var(--red)}
 .news-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px}
 .news-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px}
 .news-title a:hover{color:var(--red)}
@@ -537,6 +561,14 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="section-label">News Feed</div>
   <div class="section-title">All Sources</div>
 
+  <!-- Risk Signals panel — shows flagged articles with auto-generated insights -->
+  <div id="risk-signals-panel" style="display:none">
+    <div class="risk-signals-panel">
+      <div class="risk-signals-title">🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></div>
+      <div id="flagged-list"></div>
+    </div>
+  </div>
+
   <div class="news-filters" id="news-filters">
     <button class="filter-btn active" data-filter="all" onclick="filterNews('all',this)">🌏 All</button>
     <button class="filter-btn" data-filter="indonesia" onclick="filterNews('indonesia',this)">🇮🇩 Indonesia</button>
@@ -730,6 +762,8 @@ function getConfig(){ return { url: LS.get('sb_url'), anon: LS.get('sb_anon'), r
 let ALL_NEWS   = [];
 let ALL_MUFG   = [];
 let ALL_IDEAS  = [];
+let ALL_FLAGGED = [];
+let FLAGGED_IDS = new Set();
 let newsFilter = 'all';
 let mufgFilter = 'all';
 
@@ -777,13 +811,14 @@ function initSupabase(url, anon){
 async function loadAll(){
   if(!SB) return;
   try {
-    const [meta, market, yields, news, ideas, mufg] = await Promise.all([
+    const [meta, market, yields, news, ideas, mufg, flagged] = await Promise.all([
       SB.from('app_meta').select('*'),
       SB.from('market_data').select('*'),
       SB.from('yield_curve').select('*').order('id'),
       SB.from('news_items').select('*').order('created_at',{ascending:false}).limit(80),
       SB.from('client_ideas').select('*'),
       SB.from('mufg_research').select('*').order('id',{ascending:false}),
+      SB.from('flagged_articles').select('*').order('flagged_at',{ascending:false}),
     ]);
 
     const metaMap = {};
@@ -799,9 +834,11 @@ async function loadAll(){
 
     const mkt  = market.data||[];
     const ylds = yields.data||[];
-    ALL_NEWS   = news.data||[];
-    ALL_IDEAS  = ideas.data||[];
-    ALL_MUFG   = mufg.data||[];
+    ALL_NEWS    = news.data||[];
+    ALL_IDEAS   = ideas.data||[];
+    ALL_MUFG    = mufg.data||[];
+    ALL_FLAGGED = flagged.data||[];
+    FLAGGED_IDS = new Set(ALL_FLAGGED.map(f=>f.id));
 
     renderKPIs(mkt);
     renderAlerts(mkt);
@@ -819,6 +856,7 @@ async function loadAll(){
     renderOvNews();
     renderOvPriorities();
     renderOvSectors();
+    renderFlagged();
   } catch(e){
     console.error('loadAll error:',e);
     document.getElementById('hdr-status').textContent = '⚠ Load error — check Supabase config';
@@ -981,11 +1019,15 @@ function newsCardHTML(n, compact=false){
   const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${t}</span>`).join('');
   const border=n.is_indonesia?'indonesia':n.is_energy?'energy':'';
   const ago=timeAgo(n.published_raw);
-  return `<div class="news-card ${border}">
+  const isFlagged=FLAGGED_IDS.has(n.id);
+  const flagIcon=isFlagged?'🚩':'🏳';
+  const flagTip=isFlagged?'Flagged as Risk Signal — click to unflag':'Flag as Risk Signal for franchise';
+  return `<div class="news-card ${border}" id="ncard-${n.id}">
     <div class="news-meta">
       <span class="news-src">${n.source}</span>
       ${ago?`<span class="news-time">${ago}</span>`:''}
       ${tags}
+      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag(${JSON.stringify(n).replace(/"/g,'&quot;')})">${flagIcon}</button>
     </div>
     <div class="news-title"><a href="${n.url}" target="_blank">${n.title}</a></div>
     ${!compact&&n.summary?`<div class="news-summary">${n.summary}</div>`:''}
@@ -1307,6 +1349,104 @@ function switchTab(id,btn){
 
 // ── Utilities ─────────────────────────────────────────────────────────────
 function bySymbol(mkt){ const o={}; (mkt||[]).forEach(r=>o[r.symbol]=r); return o; }
+
+// ── Flagging / Risk Signals ───────────────────────────────────────────────
+async function toggleFlag(n){
+  if(!SB) return;
+  if(FLAGGED_IDS.has(n.id)){
+    await unflagArticle(n.id);
+  } else {
+    await flagArticle(n);
+  }
+}
+
+async function flagArticle(n){
+  if(!SB) return;
+  const row = {
+    id:          n.id,
+    title:       n.title,
+    url:         n.url||'',
+    source:      n.source||'',
+    source_cat:  n.source_cat||'',
+    summary:     n.summary||'',
+    tags:        n.tags||[],
+    is_indonesia:!!n.is_indonesia,
+    is_energy:   !!n.is_energy,
+    flagged_at:  new Date().toISOString(),
+    risk_level:  'MEDIUM',
+    risk_headline: 'Computing insights on next data refresh...',
+    client_opportunities: [],
+    sector_impacts: [],
+  };
+  const {error} = await SB.from('flagged_articles').upsert(row, {onConflict:'id'});
+  if(!error){
+    FLAGGED_IDS.add(n.id);
+    ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==n.id), row];
+    renderFlagged();
+    // Update the card's flag button in place
+    const card = document.getElementById('ncard-'+n.id);
+    if(card){
+      const btn=card.querySelector('.flag-btn');
+      if(btn){btn.textContent='🚩';btn.classList.add('flagged');btn.title='Flagged as Risk Signal — click to unflag';}
+    }
+  }
+}
+
+async function unflagArticle(id){
+  if(!SB) return;
+  const {error} = await SB.from('flagged_articles').delete().eq('id',id);
+  if(!error){
+    FLAGGED_IDS.delete(id);
+    ALL_FLAGGED = ALL_FLAGGED.filter(f=>f.id!==id);
+    renderFlagged();
+    const card = document.getElementById('ncard-'+id);
+    if(card){
+      const btn=card.querySelector('.flag-btn');
+      if(btn){btn.textContent='🏳';btn.classList.remove('flagged');btn.title='Flag as Risk Signal for franchise';}
+    }
+  }
+}
+
+function renderFlagged(){
+  const panel = document.getElementById('risk-signals-panel');
+  const list  = document.getElementById('flagged-list');
+  const cnt   = document.getElementById('flag-count');
+  if(!ALL_FLAGGED.length){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  cnt.textContent = `(${ALL_FLAGGED.length} article${ALL_FLAGGED.length>1?'s':''})`;
+
+  const LEVEL_ORDER = {CRITICAL:4,HIGH:3,MEDIUM:2,LOW:1};
+  const sorted = [...ALL_FLAGGED].sort((a,b)=>(LEVEL_ORDER[b.risk_level]||0)-(LEVEL_ORDER[a.risk_level]||0));
+
+  list.innerHTML = sorted.map(f=>{
+    const opps  = (f.client_opportunities||[]).slice(0,4);
+    const sects = (f.sector_impacts||[]).slice(0,6);
+    const oppsHTML = opps.length ? `
+      <div class="risk-opps">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Client Opportunities</div>
+        ${opps.map(o=>`<div class="risk-opp">
+          <span class="risk-opp-seg">${o.segment||''}</span>
+          <span class="risk-opp-idea">${o.idea||''}</span>
+          ${o.urgency?`<span style="font-size:9px;font-weight:700;color:${o.urgency==='HIGH'?'#ff8c00':o.urgency==='CRITICAL'?'#ff4444':'var(--muted)'};white-space:nowrap">${o.urgency}</span>`:''}
+        </div>`).join('')}
+      </div>` : '';
+    const sectsHTML = sects.length ? `
+      <div style="font-size:10px;font-weight:700;color:var(--muted);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.05em">Sector Impact</div>
+      <div class="risk-sectors">${sects.map(s=>`<span class="risk-sector-chip ${s.impact||''}" title="${s.detail||''}">${s.sector} · ${s.impact}</span>`).join('')}</div>` : '';
+    return `<div class="risk-card">
+      <div class="risk-card-header">
+        <div>
+          <div class="risk-headline">${f.risk_headline||'Analysing...'}</div>
+          <div class="risk-article-title"><a href="${f.url||'#'}" target="_blank" style="color:var(--muted);text-decoration:none">${f.title}</a></div>
+          <div style="font-size:10px;color:var(--muted)">${f.source||''} ${f.flagged_at?'· Flagged '+timeAgo(f.flagged_at):''}</div>
+        </div>
+        <span class="risk-badge ${f.risk_level||'MEDIUM'}">${f.risk_level||'MEDIUM'}</span>
+      </div>
+      ${oppsHTML}${sectsHTML}
+      <button class="unflag-btn" onclick="unflagArticle('${f.id}')">✕ Remove from Risk Signals</button>
+    </div>`;
+  }).join('');
+}
 
 function timeAgo(str){
   if(!str) return '';

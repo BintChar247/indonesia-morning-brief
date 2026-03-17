@@ -270,6 +270,213 @@ def fetch_all_news() -> List[Dict]:
             print(f"  ⚠ RSS [{src['name']}]: {e}")
     return items
 
+# ─── Flagged Article Insights (rules-based) ───────────────────────────────────
+INSIGHT_RULES = [
+    {
+        "keywords": ["idr","rupiah","indonesia","jakarta","pertamina","pln","bri","mandiri","jkse","bank indonesia","bi rate","prabowo","bulog"],
+        "risk_level": "HIGH",
+        "risk_headline": "Indonesia macro signal — BI policy / IDR / equity market implications",
+        "opportunities": [
+            {"segment": "Corporates (USD exposure)", "idea": "IDR hedging review — FX forwards or vanilla options to protect import costs", "urgency": "HIGH"},
+            {"segment": "FIG / Banks", "idea": "BI rate path update — NIM sensitivity and bond portfolio repositioning", "urgency": "MEDIUM"},
+            {"segment": "SOE / Government-linked", "idea": "Fiscal policy discussion — budget deficit implications and sovereign rating watch", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "Banking & Finance", "impact": "Direct", "detail": "NIM, liquidity, BI rate sensitivity"},
+            {"sector": "Import-dependent manufacturing", "impact": "High", "detail": "IDR weakness increases raw material costs"},
+            {"sector": "Retail / Consumer", "impact": "Medium", "detail": "Imported goods inflation pass-through"},
+        ]
+    },
+    {
+        "keywords": ["brent","crude oil","wti","opec","petroleum","oil price","barrel","upstream","downstream"],
+        "risk_level": "HIGH",
+        "risk_headline": "Crude oil price movement — energy cost and current account implications",
+        "opportunities": [
+            {"segment": "Energy sector clients", "idea": "Commodity price risk management — crude oil swaps or collar structures", "urgency": "HIGH"},
+            {"segment": "Manufacturing / Industrials", "idea": "Fuel oil input cost hedging — energy price protection structures", "urgency": "MEDIUM"},
+            {"segment": "Plantation / Agriculture", "idea": "CPO vs crude correlation play — relative value discussion", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "Energy / Oil & Gas", "impact": "Direct", "detail": "Revenue and margin directly tied to crude price"},
+            {"sector": "Petrochemicals", "impact": "Direct", "detail": "Feedstock cost movement"},
+            {"sector": "Aviation / Transportation", "impact": "High", "detail": "Jet fuel and transport fuel cost"},
+            {"sector": "Fertiliser / Agriculture", "impact": "Medium", "detail": "LNG/gas feedstock for fertiliser production"},
+        ]
+    },
+    {
+        "keywords": ["lng","natural gas","gas price","liquefied natural gas","pltgu","regasification"],
+        "risk_level": "MEDIUM",
+        "risk_headline": "Natural gas / LNG price signal — PLN and fertiliser sector impact",
+        "opportunities": [
+            {"segment": "Utility / PLN", "idea": "Gas procurement cost discussion — LNG price risk management and term contracts", "urgency": "MEDIUM"},
+            {"segment": "Fertiliser (Pupuk Indonesia)", "idea": "Gas feedstock cost — hedging structures for margin protection", "urgency": "MEDIUM"},
+            {"segment": "Industrial estate clients", "idea": "Energy cost outlook — impact on operating margins", "urgency": "LOW"},
+        ],
+        "sectors": [
+            {"sector": "Power & Utilities", "impact": "Direct", "detail": "Gas-fired power generation cost"},
+            {"sector": "Fertiliser", "impact": "Direct", "detail": "Natural gas is primary feedstock"},
+            {"sector": "Manufacturing", "impact": "Medium", "detail": "Industrial gas for production processes"},
+        ]
+    },
+    {
+        "keywords": ["federal reserve","fomc","rate hike","rate cut","powell","hawkish","dovish","treasury yield","us rates","fed funds"],
+        "risk_level": "HIGH",
+        "risk_headline": "US Fed / rates signal — global risk-off and Indonesia capital flow implications",
+        "opportunities": [
+            {"segment": "All corporates with USD debt", "idea": "Interest rate hedging review — USD IRS or cross-currency swap positioning", "urgency": "HIGH"},
+            {"segment": "FIG / Banks", "idea": "Bond portfolio duration risk — positioning vs BI rate path divergence", "urgency": "HIGH"},
+            {"segment": "Real estate / REITs", "idea": "Cap rate sensitivity to rate environment — refinancing discussion", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "Banking & Finance", "impact": "Direct", "detail": "Bond portfolio MTM, NIM, funding costs"},
+            {"sector": "Real Estate", "impact": "High", "detail": "Cap rate and financing cost sensitivity"},
+            {"sector": "Infrastructure / Utilities", "impact": "High", "detail": "Long-duration asset financing cost"},
+        ]
+    },
+    {
+        "keywords": ["tariff","trade war","trump","sanction","trade policy","import duty","export ban","protectionism"],
+        "risk_level": "HIGH",
+        "risk_headline": "Trade policy / tariff risk — Indonesia trade flows and FX implications",
+        "opportunities": [
+            {"segment": "Exporters (palm oil, mining)", "idea": "Export revenue FX hedging — USD receivables protection structures", "urgency": "HIGH"},
+            {"segment": "Importers / supply chain", "idea": "Supply chain diversification financing — trade finance structures", "urgency": "MEDIUM"},
+            {"segment": "MNC clients", "idea": "Geopolitical risk scenario planning — balance sheet and FX stress testing", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "Commodity exports (Palm oil, Coal, Nickel)", "impact": "Direct", "detail": "Export pricing and volume risk"},
+            {"sector": "Manufacturing / Electronics", "impact": "High", "detail": "Supply chain disruption risk"},
+            {"sector": "Retail / Consumer", "impact": "Medium", "detail": "Imported goods cost pass-through"},
+        ]
+    },
+    {
+        "keywords": ["coal","thermal coal","mining","nickel","copper","tin","bauxite","mineral","adaro","bayan","vale indonesia"],
+        "risk_level": "MEDIUM",
+        "risk_headline": "Commodity / mining sector signal — export revenue and capex implications",
+        "opportunities": [
+            {"segment": "Mining clients (Adaro, Bayan, Vale)", "idea": "Revenue hedging — commodity price forward contracts", "urgency": "MEDIUM"},
+            {"segment": "Mining capex financing", "idea": "Project finance and equipment leasing discussion", "urgency": "LOW"},
+            {"segment": "Export-oriented clients", "idea": "FX receivables hedging — USD export revenue protection", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "Mining & Resources", "impact": "Direct", "detail": "Revenue tied directly to commodity prices"},
+            {"sector": "Infrastructure / Logistics", "impact": "Medium", "detail": "Mining capex and logistics investment"},
+        ]
+    },
+    {
+        "keywords": ["cpo","palm oil","plantation","sawit","biodiesel","b35","b40","kppu","astra agro"],
+        "risk_level": "MEDIUM",
+        "risk_headline": "Palm oil / CPO signal — plantation sector and biodiesel policy impact",
+        "opportunities": [
+            {"segment": "Plantation clients (Astra Agro, SMART)", "idea": "CPO price risk management — futures and options structures", "urgency": "MEDIUM"},
+            {"segment": "Downstream oleochemicals", "idea": "Feedstock cost hedging and margin protection", "urgency": "LOW"},
+            {"segment": "Biodiesel policy beneficiaries", "idea": "B35/B40 mandate — domestic demand floor discussion", "urgency": "LOW"},
+        ],
+        "sectors": [
+            {"sector": "Plantation / Agriculture", "impact": "Direct", "detail": "Revenue directly tied to CPO price"},
+            {"sector": "Food & Consumer goods", "impact": "Medium", "detail": "Cooking oil and food ingredient costs"},
+        ]
+    },
+    {
+        "keywords": ["recession","stagflation","gdp contraction","growth slowing","economic slowdown","inflation surge","cpi spike"],
+        "risk_level": "HIGH",
+        "risk_headline": "Global macro deterioration — growth and inflation risk for Indonesia",
+        "opportunities": [
+            {"segment": "All segments", "idea": "Portfolio stress test discussion — scenario analysis for recession/stagflation", "urgency": "HIGH"},
+            {"segment": "Fixed income clients", "idea": "Duration positioning — government bond vs corporate credit spreads", "urgency": "MEDIUM"},
+            {"segment": "Export clients", "idea": "Demand outlook review — order book and revenue hedging", "urgency": "MEDIUM"},
+        ],
+        "sectors": [
+            {"sector": "All sectors", "impact": "High", "detail": "Broad macro deterioration affects all borrowers"},
+            {"sector": "Consumer / Retail", "impact": "Direct", "detail": "Spending slowdown risk"},
+            {"sector": "Real Estate / Property", "impact": "High", "detail": "Demand slowdown and financing cost pressure"},
+        ]
+    },
+]
+
+def generate_article_insights(article: Dict) -> Dict:
+    """Rules-based insight generation for a flagged article."""
+    title   = (article.get("title","") or "").lower()
+    summary = (article.get("summary","") or "").lower()
+    text    = title + " " + summary
+    tags    = article.get("tags") or []
+
+    matched_rules = []
+    for rule in INSIGHT_RULES:
+        if any(k in text for k in rule["keywords"]):
+            matched_rules.append(rule)
+
+    # Tag-based fallback
+    if not matched_rules:
+        if "indonesia" in tags: matched_rules.append(INSIGHT_RULES[0])
+        elif "energy" in tags:  matched_rules.append(INSIGHT_RULES[1])
+
+    if not matched_rules:
+        return {
+            "risk_level": "LOW",
+            "risk_headline": "Monitor for further developments — no specific MUFG franchise match",
+            "client_opportunities": [{"segment": "All segments", "idea": "Discuss implications during next scheduled client review", "urgency": "LOW"}],
+            "sector_impacts": [{"sector": "Broad markets", "impact": "Low", "detail": "No direct sector match identified"}],
+        }
+
+    level_order = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
+    primary = max(matched_rules, key=lambda r: level_order.get(r["risk_level"], 0))
+
+    all_opps, all_sectors = [], []
+    seen_segs, seen_secs  = set(), set()
+    for rule in matched_rules:
+        for opp in rule.get("opportunities", []):
+            if opp["segment"] not in seen_segs:
+                all_opps.append(opp); seen_segs.add(opp["segment"])
+        for sec in rule.get("sectors", []):
+            if sec["sector"] not in seen_secs:
+                all_sectors.append(sec); seen_secs.add(sec["sector"])
+
+    return {
+        "risk_level":            primary["risk_level"],
+        "risk_headline":         primary["risk_headline"],
+        "client_opportunities":  all_opps[:6],
+        "sector_impacts":        all_sectors[:8],
+    }
+
+def process_flagged_articles() -> int:
+    """Read flagged articles, compute insights, write back to Supabase."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/flagged_articles?select=*"
+        headers = {
+            "apikey":        SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Accept":        "application/json",
+        }
+        r = requests.get(url, headers=headers, timeout=15)
+        if r.status_code != 200:
+            print(f"  ⚠ flagged_articles read: {r.status_code} {r.text[:100]}")
+            return 0
+        flagged = r.json()
+        if not flagged:
+            print("  → no flagged articles to process")
+            return 0
+        now_str = now_wib().isoformat()
+        updated = 0
+        for article in flagged:
+            insights = generate_article_insights(article)
+            patch = {
+                "risk_level":           insights["risk_level"],
+                "risk_headline":        insights["risk_headline"],
+                "client_opportunities": insights["client_opportunities"],
+                "sector_impacts":       insights["sector_impacts"],
+                "last_computed":        now_str,
+            }
+            patch_url = f"{SUPABASE_URL}/rest/v1/flagged_articles?id=eq.{article['id']}"
+            ph = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}",
+                  "Content-Type": "application/json", "Prefer": "return=minimal"}
+            requests.patch(patch_url, headers=ph, json=patch, timeout=10)
+            updated += 1
+        print(f"  ✓ flagged_articles: {updated} article insights refreshed")
+        return updated
+    except Exception as e:
+        print(f"  ⚠ process_flagged_articles: {e}")
+        return 0
+
 # ─── Client Ideas (rules-based) ───────────────────────────────────────────────
 def generate_client_ideas(market_rows: List[Dict], news: List[Dict]) -> List[Dict]:
     # Build quick lookup by symbol
@@ -555,13 +762,16 @@ def main():
     ideas = generate_client_ideas(market_rows, news)
     write_client_ideas(ideas)
 
-    print("5/5  Fetching MUFG Research articles...")
+    print("5/6  Fetching MUFG Research articles...")
     articles = fetch_mufg_research()
     write_mufg_research(articles)
 
+    print("6/6  Processing flagged articles — refreshing risk insights...")
+    flagged_count = process_flagged_articles()
+
     write_app_meta("ok", len(news), len(ideas))
 
-    print(f"\n✅ Done — {len(news)} news, {len(ideas)} ideas, {len(articles)} MUFG articles\n")
+    print(f"\n✅ Done — {len(news)} news, {len(ideas)} ideas, {len(articles)} MUFG articles, {flagged_count} flagged insights refreshed\n")
 
 if __name__ == "__main__":
     main()

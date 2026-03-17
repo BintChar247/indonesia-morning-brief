@@ -597,6 +597,14 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="section-label">RM Intelligence</div>
   <div class="section-title">Corporate Ideas & Discussion Topics</div>
 
+  <!-- Segment Briefing Notes — full width at top -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--green)"></div>Segment Briefing Notes</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px" id="rm-notes">
+      <!-- Rendered from JS -->
+    </div>
+  </div>
+
   <!-- Source summary bar -->
   <div id="ideas-source-bar" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--muted)">
     <span style="color:var(--muted)">Loading sources...</span>
@@ -612,15 +620,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       </div>
     </div>
 
-    <!-- Sector impact + RM templates -->
+    <!-- Sector impact -->
     <div>
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--amber)"></div>Sector Direct / Indirect Impact</div>
       <div id="sector-impact" class="sector-grid" style="grid-template-columns:1fr"></div>
-      <hr class="divider">
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px">RM Segment Briefing Notes</div>
-      <div style="display:flex;flex-direction:column;gap:8px" id="rm-notes">
-        <!-- Rendered from JS -->
-      </div>
     </div>
   </div>
 </div>

@@ -627,6 +627,20 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
   </div>
 
+  <!-- Manual URL entry -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <div style="width:12px;height:2px;background:var(--amber)"></div> Add Article by URL
+      <span style="font-size:10px;font-weight:400;opacity:.6;margin-left:4px">Paste any news link — will be flagged as Risk Signal and immediately analysed</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="url" id="manual-url-input" placeholder="https://www.ft.com/content/..." style="flex:1;min-width:260px" oninput="document.getElementById('manual-url-status').textContent=''">
+      <input type="text" id="manual-title-input" placeholder="Title (optional — auto-detected)" style="flex:1;min-width:200px">
+      <button class="btn btn-ghost btn-sm" onclick="addManualURL()" id="manual-url-btn" style="border-color:rgba(245,158,11,.4);color:var(--amber);white-space:nowrap">🔗 Add & Analyse</button>
+    </div>
+    <div id="manual-url-status" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>
+  </div>
+
   <div class="news-filters" id="news-filters">
     <button class="filter-btn active" data-filter="all" onclick="filterNews('all',this)">🌏 All</button>
     <button class="filter-btn" data-filter="indonesia" onclick="filterNews('indonesia',this)">🇮🇩 Indonesia</button>
@@ -1894,11 +1908,13 @@ async function recomputeAllInsights(){
   const updated = [];
   for(const f of ALL_FLAGGED){ updated.push(await computeAndSaveInsights(f)); }
   ALL_FLAGGED = updated;
-  renderFlagged(); // cascades insights to Client Ideas & Overview
-  // After recompute: collapse Risk Signals panel on News — insights now live in Client Ideas & Overview only
+  renderFlagged();
+  renderIdeas();        // push updated insights to Corporate Ideas tab
+  renderOvPriorities(); // push to Overview priorities
+  renderOvSectors();    // push to Overview sector snapshot
   const panel = document.getElementById('risk-signals-panel');
   if(panel) panel.style.display = 'none';
-  if(btn){ btn.disabled=false; btn.textContent='✅ Insights applied'; setTimeout(()=>{ btn.textContent='⚡ Recompute Insights'; }, 2500); }
+  if(btn){ btn.disabled=false; btn.textContent='✅ Ideas updated'; setTimeout(()=>{ btn.textContent='⚡ Recompute Insights'; }, 2500); }
 }
 
 // ── Flagging / Risk Signals ───────────────────────────────────────────────
@@ -1938,6 +1954,9 @@ async function flagArticle(n){
     const withInsights = await computeAndSaveInsights(row);
     ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==n.id), withInsights];
     renderFlagged();
+    renderIdeas();
+    renderOvPriorities();
+    renderOvSectors();
     // Update the card's flag button in place
     const card = document.getElementById('ncard-'+n.id);
     if(card){
@@ -1960,6 +1979,82 @@ async function unflagArticle(id){
       if(btn){btn.textContent='🏳';btn.classList.remove('flagged');btn.title='Flag as Risk Signal for franchise';}
     }
   }
+}
+
+// ── Manual URL entry → direct flag + immediate insight compute ────────────
+function urlHash(str){ let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i)>>>0;} return h.toString(16).padStart(12,'0').substring(0,12); }
+
+async function addManualURL(){
+  const urlInput   = document.getElementById('manual-url-input');
+  const titleInput = document.getElementById('manual-title-input');
+  const status     = document.getElementById('manual-url-status');
+  const btn        = document.getElementById('manual-url-btn');
+  const rawUrl = (urlInput.value||'').trim();
+  if(!rawUrl || !rawUrl.startsWith('http')){ status.textContent='⚠ Please enter a valid URL starting with http(s)://'; status.style.color='var(--amber)'; return; }
+  if(!SB){ status.textContent='⚠ Not connected to database'; status.style.color='var(--red)'; return; }
+
+  btn.disabled=true; btn.textContent='⏳ Fetching...';
+  status.textContent='Attempting to read article title...'; status.style.color='var(--muted)';
+
+  // Try to extract page title via CORS proxy
+  let title = (titleInput.value||'').trim();
+  if(!title){
+    try{
+      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
+      const res = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+      const html = await res.text();
+      const m = html.match(/<title[^>]*>([^<]{3,200})<\/title>/i);
+      if(m) title = m[1].replace(/\s+/g,' ').trim();
+    } catch(e){ /* silent fallback */ }
+  }
+  if(!title) title = rawUrl.replace(/^https?:\/\//,'').split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ')||rawUrl;
+
+  // Derive tags from title + URL
+  const text = (title+' '+rawUrl).toLowerCase();
+  const tags = [];
+  if(/indonesia|idr|rupiah|jakarta|pertamina|pln|bri|jkse|bi rate/i.test(text)) tags.push('indonesia');
+  if(/oil|crude|brent|wti|lng|gas|energy|opec|petroleum/i.test(text)) tags.push('energy');
+  if(/dollar|usd|forex|currency|fed|rate|yield|inflation|treasury/i.test(text)) tags.push('fx_rates');
+  if(/gold|copper|nickel|palm|cpo|coal|wheat|commodity/i.test(text)) tags.push('commodities');
+  if(/gdp|recession|growth|tariff|trade|stagflation|macro/i.test(text)) tags.push('macro');
+  if(!tags.length) tags.push('global');
+
+  const id = urlHash(rawUrl);
+  const domain = rawUrl.replace(/^https?:\/\//,'').split('/')[0];
+  const row = {
+    id, title, url: rawUrl,
+    source: domain, source_cat: tags[0]||'global',
+    summary: '', tags,
+    is_indonesia: tags.includes('indonesia'),
+    is_energy:    tags.includes('energy'),
+    flagged_at:   new Date().toISOString(),
+    risk_level:   'MEDIUM',
+    risk_headline:'Computing...',
+    client_opportunities:[], sector_impacts:[],
+  };
+
+  status.textContent='Saving to Risk Signals...'; status.style.color='var(--muted)';
+  const {error} = await SB.from('flagged_articles').upsert(row, {onConflict:'id'});
+  if(error){ status.textContent=`⚠ Save failed: ${error.message}`; status.style.color='var(--red)'; btn.disabled=false; btn.textContent='🔗 Add & Analyse'; return; }
+
+  FLAGGED_IDS.add(id);
+  ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==id), row];
+
+  status.textContent='Running insight analysis...'; status.style.color='var(--blue)';
+  btn.textContent='⚡ Analysing...';
+  const withInsights = await computeAndSaveInsights(row);
+  ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==id), withInsights];
+
+  renderFlagged();
+  renderIdeas();
+  renderOvPriorities();
+  renderOvSectors();
+
+  urlInput.value=''; titleInput.value='';
+  status.innerHTML=`✅ "<strong>${title.substring(0,60)}${title.length>60?'…':''}</strong>" added as Risk Signal · Corporate Ideas updated`;
+  status.style.color='var(--green)';
+  btn.disabled=false; btn.textContent='🔗 Add & Analyse';
+  setTimeout(()=>{ status.textContent=''; }, 6000);
 }
 
 function renderFlagged(){

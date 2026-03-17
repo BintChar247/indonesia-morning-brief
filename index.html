@@ -40,10 +40,49 @@ body.light {
   --blue:     #2563eb;
   --purple:   #7c3aed;
 }
+/* Header & nav */
 body.light .hdr{background:rgba(240,244,248,.97)}
-body.light ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18)}
-body.light .btn-ghost{background:rgba(0,0,0,.05);color:var(--text)}
+body.light .nav-btn.active{color:var(--red)}
+body.light .filter-btn:hover,body.light .filter-btn.active{color:var(--red);background:var(--red-dim)}
+
+/* Buttons */
+body.light .btn-ghost{background:rgba(0,0,0,.05);color:var(--text);border-color:rgba(0,0,0,.12)}
 body.light .btn-ghost:hover{background:rgba(0,0,0,.1)}
+
+/* Scrollbar */
+body.light ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18)}
+
+/* Market table */
+body.light .mkt-table td{border-bottom:1px solid rgba(0,0,0,.06)}
+body.light .mkt-table tr:hover td{background:rgba(0,0,0,.03)}
+body.light .bar-wrap{background:rgba(0,0,0,.1)}
+body.light .chg-dn{color:#c8000f}
+
+/* News */
+body.light .flag-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
+body.light .flag-btn:hover{background:rgba(245,158,11,.1)}
+body.light .news-title a{color:var(--text)}
+
+/* Yield curve SVG */
+body.light .yc-grid{stroke:rgba(0,0,0,.08)}
+body.light .yc-axis{fill:var(--muted)}
+body.light .yc-label{fill:var(--text)}
+body.light .yc-tooltip{background:var(--bg2)}
+
+/* Risk signal panel */
+body.light .risk-sector-chip{background:var(--bg3);color:var(--muted)}
+
+/* Sector & idea cards */
+body.light .idea-card.HIGH{background:rgba(245,158,11,.04)}
+body.light .idea-card.MEDIUM{background:rgba(37,99,235,.04)}
+body.light .idea-card.CRITICAL{background:rgba(200,0,15,.04)}
+body.light .idea-prod{background:var(--bg3);color:var(--muted)}
+
+/* Sources toggle */
+body.light .toggle{background:var(--bg3)}
+
+/* Footer */
+body.light .footer{border-top-color:rgba(0,0,0,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
 a{color:var(--blue);text-decoration:none}

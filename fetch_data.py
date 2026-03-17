@@ -218,9 +218,29 @@ def tag_article(title: str, summary: str = "") -> List[str]:
     if any(k in text for k in MAC_KW): tags.append("macro")
     return tags if tags else ["global"]
 
+def fetch_user_sources() -> List[Dict]:
+    """Read enabled custom RSS sources from Supabase user_sources table."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/user_sources?enabled=eq.true&select=url,name,category"
+        headers = {
+            "apikey":        SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Accept":        "application/json",
+        }
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code == 200:
+            rows = r.json()
+            sources = [{"name": row.get("name") or row["url"][:40], "url": row["url"], "cat": row.get("category","global")} for row in rows]
+            print(f"  ✓ user_sources: {len(sources)} custom feeds loaded")
+            return sources
+    except Exception as e:
+        print(f"  ⚠ user_sources fetch: {e}")
+    return []
+
 def fetch_all_news() -> List[Dict]:
+    all_sources = RSS_SOURCES + fetch_user_sources()
     items, seen = [], set()
-    for src in RSS_SOURCES:
+    for src in all_sources:
         try:
             feed = feedparser.parse(src["url"])
             for e in feed.entries[:10]:

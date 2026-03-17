@@ -25,6 +25,25 @@
   --purple:   #a78bfa;
   --font:     'Inter', system-ui, -apple-system, sans-serif;
 }
+body.light {
+  --bg:       #f0f4f8;
+  --bg2:      #ffffff;
+  --bg3:      #e8edf4;
+  --bg4:      #dde3ec;
+  --red:      #C8000F;
+  --red-dim:  rgba(200,0,15,.1);
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --border:   rgba(0,0,0,.1);
+  --green:    #16a34a;
+  --amber:    #d97706;
+  --blue:     #2563eb;
+  --purple:   #7c3aed;
+}
+body.light .hdr{background:rgba(240,244,248,.97)}
+body.light ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18)}
+body.light .btn-ghost{background:rgba(0,0,0,.05);color:var(--text)}
+body.light .btn-ghost:hover{background:rgba(0,0,0,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
 a{color:var(--blue);text-decoration:none}
@@ -352,6 +371,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div>Last updated: <strong id="hdr-updated">–</strong></div>
       <div id="hdr-status" class="text-muted">–</div>
     </div>
+    <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="font-size:15px;padding:4px 9px">🌙</button>
     <button class="btn btn-ghost btn-sm" onclick="openSetup()" title="Admin Settings">⚙️</button>
     <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none">🔄 Refresh</button>
   </div>
@@ -863,6 +883,22 @@ function updateRefreshVisibility(){
   const btn = document.getElementById('refreshBtn');
   if(btn) btn.style.display = LS.get('gh_token') ? '' : 'none';
 }
+
+// ── Theme ───────────────────────────────────────────────────────────────
+function toggleTheme(){
+  const light = document.body.classList.toggle('light');
+  document.getElementById('theme-toggle').textContent = light ? '☀️' : '🌙';
+  LS.set('theme', light ? 'light' : 'dark');
+}
+(function(){ // apply saved theme immediately
+  if(localStorage.getItem('theme')==='light'){
+    document.body.classList.add('light');
+    document.addEventListener('DOMContentLoaded',()=>{
+      const btn=document.getElementById('theme-toggle');
+      if(btn) btn.textContent='☀️';
+    });
+  }
+})();
 
 // ── State ───────────────────────────────────────────────────────────────
 let ALL_NEWS   = [];

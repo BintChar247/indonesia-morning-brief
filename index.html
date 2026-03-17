@@ -1279,7 +1279,7 @@ async function triggerRefresh(){
     const r=await fetch(`https://api.github.com/repos/${cfg.repo}/actions/workflows/update.yml/dispatches`,{
       method:'POST',
       headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({ref:'main',inputs:{reason:'Manual refresh from dashboard'}})
+      body:JSON.stringify({ref:'master',inputs:{reason:'Manual refresh from dashboard'}})
     });
     if(r.status===204){
       btn.innerHTML='✅ Triggered!';

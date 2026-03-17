@@ -566,7 +566,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <!-- Risk Signals panel — shows flagged articles with auto-generated insights -->
   <div id="risk-signals-panel" style="display:none">
     <div class="risk-signals-panel">
-      <div class="risk-signals-title">🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></div>
+      <div class="risk-signals-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></span>
+        <button id="recompute-btn" class="btn btn-ghost btn-sm" onclick="recomputeAllInsights()" style="font-size:11px;border-color:rgba(230,0,18,.3);color:var(--red)">⚡ Recompute Insights</button>
+      </div>
       <div id="flagged-list"></div>
     </div>
   </div>
@@ -1370,6 +1373,185 @@ function switchTab(id,btn){
 // ── Utilities ─────────────────────────────────────────────────────────────
 function bySymbol(mkt){ const o={}; (mkt||[]).forEach(r=>o[r.symbol]=r); return o; }
 
+// ── Insight Rules Engine (browser-side, mirrors fetch_data.py) ───────────────
+const INSIGHT_RULES = [
+  {
+    keywords: ["idr","rupiah","indonesia","jakarta","pertamina","pln","bri","mandiri","jkse","bank indonesia","bi rate","prabowo","bulog"],
+    risk_level: "HIGH",
+    risk_headline: "Indonesia macro signal — BI policy / IDR / equity market implications",
+    opportunities: [
+      {segment:"Corporates (USD exposure)", idea:"IDR hedging review — FX forwards or vanilla options to protect import costs", urgency:"HIGH"},
+      {segment:"FIG / Banks", idea:"BI rate path update — NIM sensitivity and bond portfolio repositioning", urgency:"MEDIUM"},
+      {segment:"SOE / Government-linked", idea:"Fiscal policy discussion — budget deficit implications and sovereign rating watch", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Banking & Finance", impact:"Direct", detail:"NIM, liquidity, BI rate sensitivity"},
+      {sector:"Import-dependent manufacturing", impact:"High", detail:"IDR weakness increases raw material costs"},
+      {sector:"Retail / Consumer", impact:"Medium", detail:"Imported goods inflation pass-through"},
+    ]
+  },
+  {
+    keywords: ["brent","crude oil","wti","opec","petroleum","oil price","barrel","upstream","downstream","hormuz","strait"],
+    risk_level: "HIGH",
+    risk_headline: "Crude oil price movement — energy cost and current account implications",
+    opportunities: [
+      {segment:"Energy sector clients", idea:"Commodity price risk management — crude oil swaps or collar structures", urgency:"HIGH"},
+      {segment:"Manufacturing / Industrials", idea:"Fuel oil input cost hedging — energy price protection structures", urgency:"MEDIUM"},
+      {segment:"Plantation / Agriculture", idea:"CPO vs crude correlation play — relative value discussion", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Energy / Oil & Gas", impact:"Direct", detail:"Revenue and margin directly tied to crude price"},
+      {sector:"Petrochemicals", impact:"Direct", detail:"Feedstock cost movement"},
+      {sector:"Aviation / Transportation", impact:"High", detail:"Jet fuel and transport fuel cost"},
+      {sector:"Fertiliser / Agriculture", impact:"Medium", detail:"LNG/gas feedstock for fertiliser production"},
+    ]
+  },
+  {
+    keywords: ["lng","natural gas","gas price","liquefied natural gas","pltgu","regasification"],
+    risk_level: "MEDIUM",
+    risk_headline: "Natural gas / LNG price signal — PLN and fertiliser sector impact",
+    opportunities: [
+      {segment:"Utility / PLN", idea:"Gas procurement cost discussion — LNG price risk management and term contracts", urgency:"MEDIUM"},
+      {segment:"Fertiliser (Pupuk Indonesia)", idea:"Gas feedstock cost — hedging structures for margin protection", urgency:"MEDIUM"},
+      {segment:"Industrial estate clients", idea:"Energy cost outlook — impact on operating margins", urgency:"LOW"},
+    ],
+    sectors: [
+      {sector:"Power & Utilities", impact:"Direct", detail:"Gas-fired power generation cost"},
+      {sector:"Fertiliser", impact:"Direct", detail:"Natural gas is primary feedstock"},
+      {sector:"Manufacturing", impact:"Medium", detail:"Industrial gas for production processes"},
+    ]
+  },
+  {
+    keywords: ["federal reserve","fomc","rate hike","rate cut","powell","hawkish","dovish","treasury yield","us rates","fed funds","nikkei","japan stocks","japan","trade"],
+    risk_level: "HIGH",
+    risk_headline: "US Fed / global rates signal — capital flow and Indonesia bond market implications",
+    opportunities: [
+      {segment:"All corporates with USD debt", idea:"Interest rate hedging review — USD IRS or cross-currency swap positioning", urgency:"HIGH"},
+      {segment:"FIG / Banks", idea:"Bond portfolio duration risk — positioning vs BI rate path divergence", urgency:"HIGH"},
+      {segment:"Real estate / REITs", idea:"Cap rate sensitivity to rate environment — refinancing discussion", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Banking & Finance", impact:"Direct", detail:"Bond portfolio MTM, NIM, funding costs"},
+      {sector:"Real Estate", impact:"High", detail:"Cap rate and financing cost sensitivity"},
+      {sector:"Infrastructure / Utilities", impact:"High", detail:"Long-duration asset financing cost"},
+    ]
+  },
+  {
+    keywords: ["tariff","trade war","trump","sanction","trade policy","import duty","export ban","protectionism","trade truce","us-china","china trade","summit"],
+    risk_level: "HIGH",
+    risk_headline: "Trade policy / tariff risk — Indonesia trade flows and FX implications",
+    opportunities: [
+      {segment:"Exporters (palm oil, mining)", idea:"Export revenue FX hedging — USD receivables protection structures", urgency:"HIGH"},
+      {segment:"Importers / supply chain", idea:"Supply chain diversification financing — trade finance structures", urgency:"MEDIUM"},
+      {segment:"MNC clients", idea:"Geopolitical risk scenario planning — balance sheet and FX stress testing", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Commodity exports (Palm oil, Coal, Nickel)", impact:"Direct", detail:"Export pricing and volume risk"},
+      {sector:"Manufacturing / Electronics", impact:"High", detail:"Supply chain disruption risk"},
+      {sector:"Retail / Consumer", impact:"Medium", detail:"Imported goods cost pass-through"},
+    ]
+  },
+  {
+    keywords: ["coal","thermal coal","mining","nickel","copper","tin","bauxite","mineral","adaro","bayan","vale indonesia"],
+    risk_level: "MEDIUM",
+    risk_headline: "Commodity / mining sector signal — export revenue and capex implications",
+    opportunities: [
+      {segment:"Mining clients (Adaro, Bayan, Vale)", idea:"Revenue hedging — commodity price forward contracts", urgency:"MEDIUM"},
+      {segment:"Mining capex financing", idea:"Project finance and equipment leasing discussion", urgency:"LOW"},
+      {segment:"Export-oriented clients", idea:"FX receivables hedging — USD export revenue protection", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Mining & Resources", impact:"Direct", detail:"Revenue tied directly to commodity prices"},
+      {sector:"Infrastructure / Logistics", impact:"Medium", detail:"Mining capex and logistics investment"},
+    ]
+  },
+  {
+    keywords: ["cpo","palm oil","plantation","sawit","biodiesel","b35","b40","kppu","astra agro"],
+    risk_level: "MEDIUM",
+    risk_headline: "Palm oil / CPO signal — plantation sector and biodiesel policy impact",
+    opportunities: [
+      {segment:"Plantation clients (Astra Agro, SMART)", idea:"CPO price risk management — futures and options structures", urgency:"MEDIUM"},
+      {segment:"Downstream oleochemicals", idea:"Feedstock cost hedging and margin protection", urgency:"LOW"},
+      {segment:"Biodiesel policy beneficiaries", idea:"B35/B40 mandate — domestic demand floor discussion", urgency:"LOW"},
+    ],
+    sectors: [
+      {sector:"Plantation / Agriculture", impact:"Direct", detail:"Revenue directly tied to CPO price"},
+      {sector:"Food & Consumer goods", impact:"Medium", detail:"Cooking oil and food ingredient costs"},
+    ]
+  },
+  {
+    keywords: ["recession","stagflation","gdp contraction","growth slowing","economic slowdown","inflation surge","cpi spike","diesel prices","fuel prices","diesel"],
+    risk_level: "HIGH",
+    risk_headline: "Global macro deterioration — growth and inflation risk for Indonesia",
+    opportunities: [
+      {segment:"All segments", idea:"Portfolio stress test discussion — scenario analysis for recession/stagflation", urgency:"HIGH"},
+      {segment:"Fixed income clients", idea:"Duration positioning — government bond vs corporate credit spreads", urgency:"MEDIUM"},
+      {segment:"Export clients", idea:"Demand outlook review — order book and revenue hedging", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"All sectors", impact:"High", detail:"Broad macro deterioration affects all borrowers"},
+      {sector:"Consumer / Retail", impact:"Direct", detail:"Spending slowdown risk"},
+      {sector:"Real Estate / Property", impact:"High", detail:"Demand slowdown and financing cost pressure"},
+    ]
+  },
+];
+
+function generateArticleInsights(article){
+  const text = ((article.title||'') + ' ' + (article.summary||'')).toLowerCase();
+  const tags  = article.tags || [];
+  let matched = INSIGHT_RULES.filter(r => r.keywords.some(k => text.includes(k)));
+  if(!matched.length){
+    if(tags.includes('indonesia')) matched = [INSIGHT_RULES[0]];
+    else if(tags.includes('energy')) matched = [INSIGHT_RULES[1]];
+  }
+  if(!matched.length){
+    return {
+      risk_level: 'LOW',
+      risk_headline: 'Monitor — no specific MUFG franchise keyword match',
+      client_opportunities: [{segment:'All segments', idea:'Discuss at next scheduled client review', urgency:'LOW'}],
+      sector_impacts: [{sector:'Broad markets', impact:'Low', detail:'No direct sector match identified'}],
+    };
+  }
+  const LEVEL = {CRITICAL:4, HIGH:3, MEDIUM:2, LOW:1};
+  const primary = matched.reduce((a,b) => (LEVEL[b.risk_level]||0) > (LEVEL[a.risk_level]||0) ? b : a);
+  const allOpps=[], allSecs=[], seenSegs=new Set(), seenSecs=new Set();
+  for(const r of matched){
+    for(const o of r.opportunities||[]){ if(!seenSegs.has(o.segment)){allOpps.push(o);seenSegs.add(o.segment);} }
+    for(const s of r.sectors||[]){     if(!seenSecs.has(s.sector)){allSecs.push(s);seenSecs.add(s.sector);} }
+  }
+  return {
+    risk_level: primary.risk_level,
+    risk_headline: primary.risk_headline,
+    client_opportunities: allOpps.slice(0,6),
+    sector_impacts: allSecs.slice(0,8),
+  };
+}
+
+async function computeAndSaveInsights(article){
+  if(!SB) return article;
+  const insights = generateArticleInsights(article);
+  const patch = {
+    risk_level:           insights.risk_level,
+    risk_headline:        insights.risk_headline,
+    client_opportunities: insights.client_opportunities,
+    sector_impacts:       insights.sector_impacts,
+    last_computed:        new Date().toISOString(),
+  };
+  await SB.from('flagged_articles').update(patch).eq('id', article.id);
+  return {...article, ...patch};
+}
+
+async function recomputeAllInsights(){
+  if(!SB || !ALL_FLAGGED.length) return;
+  const btn = document.getElementById('recompute-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Computing...'; }
+  const updated = [];
+  for(const f of ALL_FLAGGED){ updated.push(await computeAndSaveInsights(f)); }
+  ALL_FLAGGED = updated;
+  renderFlagged();
+  if(btn){ btn.disabled=false; btn.textContent='⚡ Recompute Insights'; }
+}
+
 // ── Flagging / Risk Signals ───────────────────────────────────────────────
 async function toggleFlag(id){
   if(!SB) return;
@@ -1403,7 +1585,9 @@ async function flagArticle(n){
   const {error} = await SB.from('flagged_articles').upsert(row, {onConflict:'id'});
   if(!error){
     FLAGGED_IDS.add(n.id);
-    ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==n.id), row];
+    // Compute insights immediately in browser — no need to wait for GitHub Actions
+    const withInsights = await computeAndSaveInsights(row);
+    ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==n.id), withInsights];
     renderFlagged();
     // Update the card's flag button in place
     const card = document.getElementById('ncard-'+n.id);

@@ -1492,20 +1492,21 @@ function renderOvPriorities(){
 // ── Sector Impact — Unified (Market Analysis + Risk Signals) ──────────────
 function buildUnifiedSectorImpacts(){
   const byName={};
-  for(const s of SECTORS) byName[s.name]={...s,_sources:['📊 Market Analysis'],_flaggedDetails:[]};
+  for(const s of SECTORS) byName[s.name]={...s,_sources:['📊 Market Analysis'],_flaggedArticles:[],_flaggedDetails:[]};
 
   for(const f of ALL_FLAGGED){
     for(const si of f.sector_impacts||[]){
       const sn=si.sector;
+      const artObj={id:f.id,title:f.title,url:f.url||'',risk_level:f.risk_level,risk_headline:f.risk_headline,client_opportunities:f.client_opportunities||[]};
       const label=`🚩 ${f.title.length>45?f.title.substring(0,45)+'…':f.title}`;
       if(byName[sn]){
         const curSev=byName[sn].sev; const newSev=si.impact||'MEDIUM';
         if((SORDER[newSev]||0)>(SORDER[curSev]||0)) byName[sn].sev=newSev;
-        if(!byName[sn]._sources.includes(label)) byName[sn]._sources.push(label);
+        if(!byName[sn]._flaggedArticles.find(a=>a.id===f.id)) byName[sn]._flaggedArticles.push(artObj);
         if(si.detail&&!byName[sn]._flaggedDetails.includes(si.detail)) byName[sn]._flaggedDetails.push(si.detail);
       } else {
         byName[sn]={name:sn,emoji:'📌',sev:si.impact||'MEDIUM',clients:'See Risk Signals',
-          direct:si.detail||'',indirect:'',_sources:[label],_flaggedDetails:[]};
+          direct:si.detail||'',indirect:'',_sources:['📊 Market Analysis'],_flaggedArticles:[artObj],_flaggedDetails:[]};
       }
     }
   }
@@ -1515,14 +1516,14 @@ function buildUnifiedSectorImpacts(){
 function renderSectorImpact(){
   const sectors=buildUnifiedSectorImpacts();
   const html=sectors.map(s=>{
-    const flagSrcs=s._sources.filter(x=>x.startsWith('🚩'));
-    const srcBlock=flagSrcs.length?`
+    const arts=s._flaggedArticles||[];
+    const srcBlock=arts.length?`
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(230,0,18,.15)">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.05em;margin-bottom:3px">Risk Signals contributing</div>
-        ${flagSrcs.map(l=>`<div style="font-size:10px;color:var(--muted);margin-bottom:1px">${l}</div>`).join('')}
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.05em;margin-bottom:4px">Risk Signals contributing</div>
+        ${arts.map(a=>`<div onclick="showFlaggedDetail('${a.id}')" style="font-size:10px;color:var(--muted);margin-bottom:3px;cursor:pointer;padding:3px 6px;border-radius:4px;transition:background .15s" onmouseover="this.style.background='rgba(230,0,18,.1)'" onmouseout="this.style.background=''">🚩 ${a.title.length>50?a.title.substring(0,50)+'…':a.title}</div>`).join('')}
         ${s._flaggedDetails.slice(0,2).map(d=>`<div style="font-size:10px;color:var(--amber);margin-top:3px">${d}</div>`).join('')}
       </div>`:'';
-    return `<div class="sector-card" style="${flagSrcs.length?'border-color:rgba(230,0,18,.25)':''}">
+    return `<div class="sector-card" style="${arts.length?'border-color:rgba(230,0,18,.25)':''}">
       <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
       <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
       ${s.indirect?`<div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>`:''}
@@ -2152,6 +2153,54 @@ function formatDateStr(str){
   }catch{}
   return '';
 }
+// ── Flagged Article Detail Modal ──────────────────────────────────────────
+function showFlaggedDetail(id){
+  const f = ALL_FLAGGED.find(a=>a.id===id);
+  if(!f) return;
+  const lvlColor = {CRITICAL:'var(--red)',HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--green)'}[f.risk_level]||'var(--muted)';
+  const opps = (f.client_opportunities||[]).map(o=>`
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:var(--amber);white-space:nowrap;margin-top:1px">${o.urgency||'MED'}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${o.idea||''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${o.segment||''}</div>
+      </div>
+    </div>`).join('');
+  const sects = (f.sector_impacts||[]).map(s=>`
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(230,0,18,.12);color:var(--red);white-space:nowrap;margin-top:1px">${s.impact||''}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${s.sector||''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.detail||''}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('fda-title').innerHTML = f.url
+    ? `<a href="${f.url}" target="_blank" style="color:var(--text)">${f.title}</a>`
+    : f.title;
+  document.getElementById('fda-meta').innerHTML = `<span style="color:${lvlColor};font-weight:700">${f.risk_level}</span> &nbsp;·&nbsp; ${f.risk_headline||''}`;
+  document.getElementById('fda-opps').innerHTML = opps || '<div style="color:var(--muted);font-size:12px">No client opportunities computed</div>';
+  document.getElementById('fda-sects').innerHTML = sects || '<div style="color:var(--muted);font-size:12px">No sector impacts computed</div>';
+  document.getElementById('flagged-detail-overlay').style.display='flex';
+}
+function closeFlaggedDetail(){ document.getElementById('flagged-detail-overlay').style.display='none'; }
 </script>
+
+<!-- ── Flagged Article Detail Overlay ── -->
+<div id="flagged-detail-overlay" onclick="if(event.target===this)closeFlaggedDetail()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-width:620px;max-height:85vh;overflow-y:auto;padding:20px 22px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:6px">🚩 Risk Signal</div>
+        <div id="fda-title" style="font-size:14px;font-weight:700;line-height:1.4;color:var(--text)"></div>
+        <div id="fda-meta" style="font-size:11px;color:var(--muted);margin-top:5px"></div>
+      </div>
+      <button onclick="closeFlaggedDetail()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:4px 10px;font-size:14px;flex-shrink:0">✕</button>
+    </div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px">Client Opportunities</div>
+    <div id="fda-opps"></div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px">Sector Impacts</div>
+    <div id="fda-sects"></div>
+  </div>
+</div>
 </body>
 </html>

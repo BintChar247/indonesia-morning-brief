@@ -477,6 +477,48 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div id="rates-row" style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap"></div>
     </div>
   </div>
+
+  <!-- IDR NDF & CCS -->
+  <div class="card" style="margin-top:16px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+      💱 <span>IDR NDF Implied Forward Curve & Cross-Currency Swap (CCS) — Indicative</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
+      Derived from USD/IDR spot · BI Rate 4.75% · FRED USD rates · Term structure estimated from BI Rate + market premium · For indicative / discussion purposes only
+    </div>
+    <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:20px">
+
+      <!-- NDF -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <div style="width:12px;height:2px;background:var(--blue)"></div> NDF Implied Forwards & Hedge Cost
+        </div>
+        <table class="mkt-table" id="tbl-ndf"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table>
+        <div style="position:relative;margin-top:14px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Forward Points (IDR pips above spot)</div>
+          <svg id="ndf-svg" viewBox="0 0 420 120" style="width:100%;overflow:visible"></svg>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
+          NDF rate = Spot × (1 + IDR rate × T) / (1 + USD rate × T). Hedge cost = annualised cost of buying USD forward. Higher IDR rates = more expensive hedging for importers.
+        </div>
+      </div>
+
+      <!-- CCS -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <div style="width:12px;height:2px;background:var(--green)"></div> Cross-Currency Swap — Pay USD SOFR / Receive IDR Fixed
+        </div>
+        <table class="mkt-table" id="tbl-ccs"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table>
+        <div style="margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">RM Talking Points</div>
+          <div id="ccs-talking-points" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">
+          CCS spread = IDR fixed leg − USD SOFR. Corporates with USD bonds can swap to IDR fixed via CCS. CCS IDR fixed ≈ NDF implied − ~40bps liquidity premium.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════ -->
@@ -893,6 +935,7 @@ async function loadAll(){
     renderTables(mkt);
     renderYieldCurve(ylds);
     renderRatesRow(ylds);
+    renderNDFandCCS(mkt, ylds);
     renderIDR(mkt);
     renderIDNews();
     renderNews();
@@ -1032,6 +1075,103 @@ function renderRatesRow(data){
     return d&&d.yield_pct!=null?`<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">${n}</div><div style="font-size:14px;font-weight:700">${d.yield_pct.toFixed(2)}%</div></div>`:'';
   }).join('') + `<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">BI Rate</div><div style="font-size:14px;font-weight:700">4.75%</div></div>`;
   document.getElementById('rates-row').innerHTML=html;
+}
+
+// ── IDR NDF & CCS ─────────────────────────────────────────────────────────
+const BI_RATE = 4.75; // % p.a. — Bank Indonesia benchmark rate
+const IDR_TERM_PREM = {'1M':0.30,'3M':0.60,'6M':0.90,'1Y':1.25,'2Y':1.70,'3Y':2.00,'5Y':2.30};
+const NDF_TENORS = [{l:'1M',t:1/12},{l:'3M',t:3/12},{l:'6M',t:6/12},{l:'1Y',t:1},{l:'2Y',t:2}];
+const CCS_TENORS = [{l:'1Y',t:1},{l:'2Y',t:2},{l:'3Y',t:3},{l:'5Y',t:5}];
+
+function renderNDFandCCS(mkt, yields){
+  const q=bySymbol(mkt);
+  const spot=q['IDR=X']?.price; if(!spot) return;
+  const ym={}; (yields||[]).forEach(r=>{ ym[r.tenor]=r.yield_pct; });
+
+  // ── NDF ──────────────────────────────────────────────────────────────────
+  const ndfData = NDF_TENORS.map(({l,t})=>{
+    const idrR = (BI_RATE + (IDR_TERM_PREM[l]||1.25)) / 100;
+    const usdR = (ym[l] ?? ym['1Y'] ?? 4.5) / 100;
+    const ndf  = spot * (1 + idrR*t) / (1 + usdR*t);
+    const fwdPts = ndf - spot;
+    const hedgeCost = (ndf/spot - 1) / t * 100;
+    return {l, t, ndf, fwdPts, hedgeCost, idrR:idrR*100, usdR:usdR*100};
+  });
+
+  document.getElementById('tbl-ndf').innerHTML=`
+    <thead><tr>
+      <th>Tenor</th><th style="text-align:right">IDR Rate</th>
+      <th style="text-align:right">NDF</th><th style="text-align:right">Fwd Pts</th><th style="text-align:right">Hedge Cost p.a.</th>
+    </tr></thead>
+    <tbody>
+      <tr><td colspan="5" style="font-size:10px;color:var(--muted);padding:3px 12px">Spot: Rp ${spot.toLocaleString('en',{maximumFractionDigits:0})} · USD rates from FRED · IDR = BI Rate + term premium</td></tr>
+      ${ndfData.map(r=>`<tr>
+        <td style="font-weight:700">${r.l}</td>
+        <td style="text-align:right;color:var(--amber)">${r.idrR.toFixed(2)}%</td>
+        <td style="text-align:right;font-weight:700">${r.ndf.toLocaleString('en',{maximumFractionDigits:0})}</td>
+        <td style="text-align:right" class="chg-dn">+${r.fwdPts.toLocaleString('en',{maximumFractionDigits:0})}</td>
+        <td style="text-align:right;color:var(--blue)">${r.hedgeCost.toFixed(2)}%</td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  // NDF svg — forward points curve
+  const W=420,H=120,PAD={l:48,r:12,t:14,b:26};
+  const fps=ndfData.map(r=>r.fwdPts);
+  const maxF=Math.max(...fps)*1.15, minF=0;
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const scX=i=>PAD.l+(i/(ndfData.length-1))*cW;
+  const scY=v=>PAD.t+cH-(v-minF)/(maxF-minF)*cH;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">`;
+  [0,.33,.67,1].forEach(frac=>{
+    const y=PAD.t+cH*frac, yv=((maxF-minF)*(1-frac)+minF).toFixed(0);
+    svg+=`<line class="yc-grid" x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}"/>`;
+    svg+=`<text class="yc-axis" x="${PAD.l-4}" y="${y+4}" text-anchor="end">${yv}</text>`;
+  });
+  ndfData.forEach((r,i)=>{ svg+=`<text class="yc-axis" x="${scX(i)}" y="${H-2}" text-anchor="middle">${r.l}</text>`; });
+  const pathD=ndfData.map((r,i)=>`${i===0?'M':'L'}${scX(i)},${scY(r.fwdPts)}`).join(' ');
+  svg+=`<path class="yc-line" d="${pathD}" stroke="var(--blue)"/>`;
+  svg+=`<path d="${pathD} L${scX(ndfData.length-1)},${PAD.t+cH} L${scX(0)},${PAD.t+cH} Z" fill="rgba(96,165,250,.1)" stroke="none"/>`;
+  ndfData.forEach((r,i)=>{
+    const x=scX(i), y=scY(r.fwdPts);
+    svg+=`<circle cx="${x}" cy="${y}" r="4" fill="var(--blue)"/>`;
+    svg+=`<text class="yc-label" x="${x}" y="${y-8}" text-anchor="middle" fill="var(--blue)">${Math.round(r.fwdPts)}</text>`;
+  });
+  svg+='</svg>';
+  document.getElementById('ndf-svg').outerHTML=svg;
+
+  // ── CCS ──────────────────────────────────────────────────────────────────
+  const sofrBase = ym['3M'] ?? 4.5;
+  const ccsData = CCS_TENORS.map(({l,t})=>{
+    const idrR  = (BI_RATE + (IDR_TERM_PREM[l]||IDR_TERM_PREM['2Y'])) / 100;
+    const usdR  = (ym[l] ?? ym['1Y'] ?? 4.5) / 100;
+    const ndfImplied = (Math.pow((1+idrR*t)/(1+usdR*t), 1/t)-1)*100;
+    const ccsIDR    = ndfImplied - 0.40; // ~40bps CCS vs NDF liquidity premium
+    const ccsSpread = ccsIDR - sofrBase;
+    return {l, sofrBase, ccsIDR, ccsSpread};
+  });
+
+  document.getElementById('tbl-ccs').innerHTML=`
+    <thead><tr>
+      <th>Tenor</th><th style="text-align:right">USD Leg (SOFR)</th>
+      <th style="text-align:right">IDR Fixed</th><th style="text-align:right">CCS Spread</th>
+    </tr></thead>
+    <tbody>
+      ${ccsData.map(r=>`<tr>
+        <td style="font-weight:700">${r.l}</td>
+        <td style="text-align:right;color:var(--blue)">${r.sofrBase.toFixed(2)}%</td>
+        <td style="text-align:right;color:var(--amber)">${r.ccsIDR.toFixed(2)}%</td>
+        <td style="text-align:right;font-weight:700;color:var(--green)">+${Math.round(r.ccsSpread*100)}bps</td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  const tp1Y=ccsData.find(r=>r.l==='1Y'), tp3Y=ccsData.find(r=>r.l==='3Y'), tp5Y=ccsData.find(r=>r.l==='5Y');
+  const idrSpot=spot.toLocaleString('en',{maximumFractionDigits:0});
+  document.getElementById('ccs-talking-points').innerHTML=[
+    {icon:'💬',text:`Corporates with USD bonds: swap USD SOFR to IDR fixed via ${tp3Y?tp3Y.l:'3Y'} CCS at ~${tp3Y?tp3Y.ccsIDR.toFixed(2):'–'}% — locking IDR funding cost vs rolling NDF`},
+    {icon:'🏦',text:`FI / NBFI hedging: ${tp1Y?tp1Y.l:'1Y'} CCS spread of +${tp1Y?Math.round(tp1Y.ccsSpread*100):'–'}bps reflects IDR liquidity premium over USD`},
+    {icon:'⚡',text:`PLN / Pertamina: ${tp5Y?tp5Y.l:'5Y'} CCS at ~${tp5Y?tp5Y.ccsIDR.toFixed(2):'–'}% IDR fixed for USD project debt conversion discussion`},
+    {icon:'📊',text:`At spot Rp ${idrSpot}, hedge cost of ${ndfData.find(r=>r.l==='1Y')?.hedgeCost.toFixed(2)||'–'}% p.a. (1Y NDF) reflects full IDR–USD rate differential`},
+  ].map(t=>`<div style="font-size:11px;color:var(--muted);display:flex;gap:8px;line-height:1.5"><span>${t.icon}</span><span>${t.text}</span></div>`).join('');
 }
 
 // ── IDR panel ─────────────────────────────────────────────────────────────

@@ -1027,11 +1027,16 @@ function newsCardHTML(n, compact=false){
       <span class="news-src">${n.source}</span>
       ${ago?`<span class="news-time">${ago}</span>`:''}
       ${tags}
-      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag(${JSON.stringify(n).replace(/"/g,'&quot;')})">${flagIcon}</button>
+      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag('${n.id}')">${flagIcon}</button>
     </div>
     <div class="news-title"><a href="${n.url}" target="_blank">${n.title}</a></div>
     ${!compact&&n.summary?`<div class="news-summary">${n.summary}</div>`:''}
   </div>`;
+}
+
+function parseDate(str){
+  if(!str) return 0;
+  try{ const d=new Date(str); return isNaN(d)?0:d.getTime(); }catch{return 0;}
 }
 
 function renderNews(){
@@ -1042,6 +1047,12 @@ function renderNews(){
       (newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
     const matchQ=!q||n.title.toLowerCase().includes(q)||(n.summary||'').toLowerCase().includes(q)||(n.source||'').toLowerCase().includes(q);
     return matchFilter&&matchQ;
+  });
+  // Sort latest first — by published date, fallback to created_at
+  filtered.sort((a,b)=>{
+    const da=parseDate(a.published_raw)||parseDate(a.created_at)||0;
+    const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
+    return db-da;
   });
   document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${ALL_NEWS.length} articles`;
   document.getElementById('news-list').innerHTML=filtered.length?filtered.map(n=>newsCardHTML(n)).join(''):'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
@@ -1351,10 +1362,12 @@ function switchTab(id,btn){
 function bySymbol(mkt){ const o={}; (mkt||[]).forEach(r=>o[r.symbol]=r); return o; }
 
 // ── Flagging / Risk Signals ───────────────────────────────────────────────
-async function toggleFlag(n){
+async function toggleFlag(id){
   if(!SB) return;
-  if(FLAGGED_IDS.has(n.id)){
-    await unflagArticle(n.id);
+  const n = ALL_NEWS.find(x=>x.id===id) || ALL_FLAGGED.find(x=>x.id===id);
+  if(!n) return;
+  if(FLAGGED_IDS.has(id)){
+    await unflagArticle(id);
   } else {
     await flagArticle(n);
   }

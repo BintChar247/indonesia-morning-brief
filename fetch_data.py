@@ -651,8 +651,16 @@ def fetch_mufg_research() -> List[Dict]:
                             and href not in [x["url"] for x in articles]):
                         full_url = href if href.startswith("http") else f"https://www.mufgresearch.com{href}"
                         m = re.search(r"\d{1,2}-\w+-\d{4}|\d{4}", href)
+                        # Extract clean title: try heading element first, then derive from URL slug
+                        title_el = a.find(["h2", "h3", "h4"])
+                        if title_el:
+                            clean_title = title_el.get_text(strip=True)
+                        else:
+                            slug = full_url.rstrip("/").split("/")[-1]
+                            slug = re.sub(r"-\d{1,2}-[a-z]+-\d{4}$", "", slug, flags=re.I)
+                            clean_title = slug.replace("-", " ").title()
                         articles.append({
-                            "title":    text,
+                            "title":    clean_title,
                             "url":      full_url,
                             "date_str": m.group(0).replace("-", " ") if m else "",
                             "author":   "MUFG Research",

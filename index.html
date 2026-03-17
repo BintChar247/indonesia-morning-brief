@@ -1697,8 +1697,11 @@ async function recomputeAllInsights(){
   const updated = [];
   for(const f of ALL_FLAGGED){ updated.push(await computeAndSaveInsights(f)); }
   ALL_FLAGGED = updated;
-  renderFlagged();
-  if(btn){ btn.disabled=false; btn.textContent='⚡ Recompute Insights'; }
+  renderFlagged(); // cascades insights to Client Ideas & Overview
+  // After recompute: collapse Risk Signals panel on News — insights now live in Client Ideas & Overview only
+  const panel = document.getElementById('risk-signals-panel');
+  if(panel) panel.style.display = 'none';
+  if(btn){ btn.disabled=false; btn.textContent='✅ Insights applied'; setTimeout(()=>{ btn.textContent='⚡ Recompute Insights'; }, 2500); }
 }
 
 // ── Flagging / Risk Signals ───────────────────────────────────────────────

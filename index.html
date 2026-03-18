@@ -1535,15 +1535,26 @@ function buildUnifiedIdeas(){
     }
   }
 
-  // ③ MUFG Research articles → run insight engine on each title
+  // ③ MUFG Research articles → run insight engine; fall back to category mapping
+  const MUFG_CAT_OPPS = {
+    'fx':        [{segment:'All USD-exposed clients',         idea:'Review FX forward/NDF positioning in light of latest MUFG FX outlook'}],
+    'macro':     [{segment:'All segments',                    idea:'Share MUFG macro perspective — discuss implications for client portfolio/hedging strategy'}],
+    'indonesia': [{segment:'SOEs & Large Local Conglomerates',idea:'MUFG Indonesia note: review IDR, BI rate path, and sovereign credit implications'}],
+    'rates':     [{segment:'FI / Banks & Fixed Income clients',idea:'MUFG rates research: duration positioning and credit spread discussion'}],
+    'chartofday':[{segment:'All segments',                    idea:'Share Chart of the Day — Tom Joyce capital markets strategy perspective'}],
+  };
   for(const a of ALL_MUFG){
-    const ins = generateArticleInsights({title:a.title||'', summary:'', tags:[a.category?a.category.toLowerCase():'global']});
-    if(ins.risk_level==='LOW') continue; // skip generic fallbacks
-    for(const opp of ins.client_opportunities.slice(0,2)){
+    const cat = (a.category||'').toLowerCase();
+    let ins = generateArticleInsights({title:a.title||'', summary:'', tags:[cat]});
+    // If keyword match returns LOW, fall back to category-level mapping
+    const opps = ins.risk_level !== 'LOW'
+      ? ins.client_opportunities.slice(0,2)
+      : (MUFG_CAT_OPPS[cat] || [{segment:'All segments', idea:'Review latest MUFG research — discuss client implications'}]);
+    const priority = ins.risk_level !== 'LOW' ? ins.risk_level : 'MEDIUM';
+    for(const opp of opps){
       all.push({_type:'mufg',_sourceIcon:'🏦',_sourceLabel:'MUFG Research',
         _sourceDetail:a.title,_sourceUrl:a.url||null,
-        priority:ins.risk_level==='CRITICAL'?'CRITICAL':ins.risk_level==='HIGH'?'HIGH':'MEDIUM',
-        icon:'🏦', sector:opp.segment||'General', clients:opp.segment||'',
+        priority, icon:'🏦', sector:opp.segment||'General', clients:opp.segment||'',
         trigger:a.title, topic:opp.idea||'', products:''});
     }
   }

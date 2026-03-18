@@ -205,8 +205,8 @@ RSS_SOURCES = [
     {"name": "Kontan",              "url": "https://rss.kontan.co.id/",                                      "cat": "indonesia"},
 ]
 
-ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas",
-            "corruption","korupsi","kpk","bribery","suap","gratifikasi","fraud","embezzlement","pencucian uang","money laundering","tipikor","penyelidikan","tersangka","ditangkap","arrested"}
+ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas"}
+CORR_KW = {"corruption","korupsi","kpk","bribery","suap","gratifikasi","fraud","embezzlement","pencucian uang","money laundering","tipikor","penyelidikan","tersangka","ditangkap","arrested"}
 EN_KW   = {"oil","crude","brent","wti","lng","lpg","natural gas","opec","hormuz","energy","petroleum","coal","barrel","refinery","gasoline"}
 FX_KW   = {"dollar","usd","currency","fx","forex","exchange rate","federal reserve","interest rate","monetary","inflation","cpi","hawkish","dovish","yield","treasury"}
 COM_KW  = {"nickel","palm oil","cpo","wheat","rice","gold","copper","tin","commodity","metals","agriculture","soybean"}
@@ -215,11 +215,12 @@ MAC_KW  = {"gdp","recession","stagflation","growth","sovereign","rating","moody"
 def tag_article(title: str, summary: str = "") -> List[str]:
     text = (title + " " + summary).lower()
     tags = []
-    if any(k in text for k in ID_KW):  tags.append("indonesia")
-    if any(k in text for k in EN_KW):  tags.append("energy")
-    if any(k in text for k in FX_KW):  tags.append("fx_rates")
-    if any(k in text for k in COM_KW): tags.append("commodities")
-    if any(k in text for k in MAC_KW): tags.append("macro")
+    if any(k in text for k in ID_KW):   tags.append("indonesia")
+    if any(k in text for k in CORR_KW): tags.append("corruption")
+    if any(k in text for k in EN_KW):   tags.append("energy")
+    if any(k in text for k in FX_KW):   tags.append("fx_rates")
+    if any(k in text for k in COM_KW):  tags.append("commodities")
+    if any(k in text for k in MAC_KW):  tags.append("macro")
     return tags if tags else ["global"]
 
 def fetch_user_sources() -> List[Dict]:

@@ -1429,7 +1429,7 @@ function renderNews(){
     if(corrItems.length){
       html+=`<div class="corruption-section-header">🚨 Corruption / Governance Alerts (${corrItems.length})</div>`;
       html+=corrItems.map(n=>newsCardHTML(n)).join('');
-      if(restItems.length) html+=`<div style="height:8px"></div>`;
+      if(restItems.length) html+=`<div class="section-divider" style="height:1px;background:var(--border);margin:12px 0"></div>`;
     }
     html+=restItems.map(n=>newsCardHTML(n)).join('');
   } else {

@@ -87,6 +87,10 @@ body.light .idea-prod{background:var(--bg3);color:var(--muted)}
 /* Sources toggle */
 body.light .toggle{background:var(--bg3)}
 
+/* Sector snapshot — integrated look in both modes */
+.ov-sector-wrap{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:20px}
+body.light .ov-sector-wrap{background:#F3F4F6;border-color:rgba(0,0,0,.08)}
+
 /* Footer */
 body.light .footer{border-top-color:rgba(0,0,0,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -133,7 +137,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .alert-pill{background:rgba(230,0,18,.15);border:1px solid rgba(230,0,18,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#ff8a95}
 
 /* ── Nav tabs ────────────────────────────────────────── */
-.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center;scrollbar-width:none}
+.nav{position:sticky;z-index:99;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center;scrollbar-width:none}
 .nav::-webkit-scrollbar{display:none}
 .nav-btn{background:none;border:none;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;min-height:44px}
 .nav-btn:hover{color:var(--text)}
@@ -542,8 +546,8 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
   </div>
 
-  <!-- Sector snapshot — soft tinted section, no jarring dark band -->
-  <div style="margin-top:20px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px">
+  <!-- Sector snapshot — integrated light grey in light mode, subtle in dark -->
+  <div class="ov-sector-wrap">
     <div class="section-label" style="margin-bottom:10px">Sector Impact Snapshot</div>
     <div id="ov-sectors" class="sector-grid"></div>
   </div>
@@ -1032,17 +1036,32 @@ async function reloadData(){
 }
 
 // ── Theme ───────────────────────────────────────────────────────────────
-function toggleTheme(){
-  const light = document.body.classList.toggle('light');
-  document.getElementById('theme-toggle').textContent = light ? '☀️' : '🌙';
-  LS.set('theme', light ? 'light' : 'dark');
+function setThemeIcon(light){
+  const btn=document.getElementById('theme-toggle');
+  if(!btn) return;
+  const icon=btn.querySelector('span:first-child')||btn;
+  icon.textContent=light?'☀️':'🌙';
 }
+function toggleTheme(){
+  const light=document.body.classList.toggle('light');
+  setThemeIcon(light);
+  LS.set('theme',light?'light':'dark');
+  stickyNavTop(); // header height may change with theme
+}
+// ── Sticky nav — pins below header regardless of header height ────────────
+function stickyNavTop(){
+  const hdr=document.querySelector('.hdr');
+  const nav=document.querySelector('.nav');
+  if(hdr&&nav) nav.style.top=hdr.offsetHeight+'px';
+}
+window.addEventListener('resize',stickyNavTop);
+document.addEventListener('DOMContentLoaded',stickyNavTop);
 (function(){ // apply saved theme immediately
   if(localStorage.getItem('theme')==='light'){
     document.body.classList.add('light');
     document.addEventListener('DOMContentLoaded',()=>{
-      const btn=document.getElementById('theme-toggle');
-      if(btn) btn.textContent='☀️';
+      setThemeIcon(true);
+      stickyNavTop();
     });
   }
 })();

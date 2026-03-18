@@ -7,7 +7,7 @@
 <meta property="og:title" content="Indonesia Morning Brief">
 <meta property="og:description" content="Daily Indonesia corporate coverage dashboard — markets, FX, commodities, news & corporate ideas.">
 <meta property="og:type" content="website">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.2/dist/umd/supabase.min.js" integrity="sha384-zETTH+6IXxKQ6zbGcT6H6EDdnGaae9uhI8uO7doTJoNEmPGeTKVOe5S6/XybS9JH" crossorigin="anonymous"></script>
 <style>
 :root {
   --bg:       #080c14;
@@ -2369,6 +2369,7 @@ async function flagArticle(n){
     ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==n.id), withInsights];
     renderFlagged();
     renderIdeas();
+    renderSegmentNotes(); // refresh live signals on Client Opps tab
     renderOvPriorities();
     renderOvSectors();
     // Update the card's flag button in place
@@ -2387,6 +2388,9 @@ async function unflagArticle(id){
     FLAGGED_IDS.delete(id);
     ALL_FLAGGED = ALL_FLAGGED.filter(f=>f.id!==id);
     renderFlagged();
+    renderIdeas();
+    renderSegmentNotes(); // refresh live signals on Client Opps tab
+    renderOvPriorities();
     const card = document.getElementById('ncard-'+id);
     if(card){
       const btn=card.querySelector('.flag-btn');

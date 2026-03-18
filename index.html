@@ -1849,6 +1849,54 @@ function renderSegmentNotes(activeId){
           <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${esc(detailFn(it))}</div>
         </div>`).join('')}
     </div>`;
+  // ── Live signals ───────────────────────────────────────────────────────
+  const kw = seg.newsKw || [];
+  const matchNews = (n) => {
+    const t = ((n.title||'') + ' ' + (n.summary||'')).toLowerCase();
+    return kw.some(k => t.includes(k));
+  };
+  const liveNews    = ALL_NEWS.filter(matchNews).slice(0,4);
+  const liveMufg    = ALL_MUFG.filter(a => (seg.mufgCats||[]).map(c=>c.toLowerCase()).includes((a.category||'').toLowerCase()) && a.category!=='ChartOfDay').slice(0,3);
+  const liveFlagged = ALL_FLAGGED.filter(f => (f.sector_impacts||[]).some(si => (seg.sectorNames||[]).includes(si.sector))).slice(0,3);
+  const liveIdeas   = buildUnifiedIdeas().filter(x => {
+    const s=(x.sector||'').toLowerCase(), c=(x.clients||'').toLowerCase();
+    return kw.some(k => s.includes(k) || c.includes(k));
+  }).slice(0,2);
+
+  const hasLive = liveNews.length || liveMufg.length || liveFlagged.length;
+  const liveHTML = hasLive ? `
+    <div style="margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+        <div style="width:16px;height:2px;background:var(--amber)"></div>Live Signals — Today's Relevant Data
+      </div>
+      <div style="display:grid;grid-template-columns:${liveMufg.length?'1fr 1fr':'1fr'};gap:12px">
+        ${liveNews.length ? `<div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">📰 News (${liveNews.length})</div>
+          ${liveNews.map(n=>`<div style="margin-bottom:7px">
+            <a href="${safeUrl(n.url)}" target="_blank" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;line-height:1.4;display:block">${esc(n.title)}</a>
+            <span style="font-size:10px;color:var(--muted)">${esc(n.source||'')}${n.is_corruption?' · <span style="color:#c084fc">🚨 Corruption</span>':''}</span>
+          </div>`).join('')}
+          ${liveFlagged.length ? liveFlagged.map(f=>`<div style="margin-bottom:7px;padding:5px 8px;background:rgba(230,0,18,.06);border-radius:6px;border-left:2px solid var(--red)">
+            <span style="font-size:10px;font-weight:700;color:var(--red)">🚩 ${esc(f.risk_level)}</span>
+            <div style="font-size:11px;color:var(--text);margin-top:2px">${esc(f.title)}</div>
+          </div>`).join('') : ''}
+        </div>` : ''}
+        ${liveMufg.length ? `<div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">🏦 Tom Joyce / MUFG Research (${liveMufg.length})</div>
+          ${liveMufg.map(a=>`<div style="margin-bottom:7px">
+            <a href="${safeUrl(a.url)}" target="_blank" style="font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;line-height:1.4;display:block">${esc(a.title)}</a>
+            <span style="font-size:10px;color:var(--muted)">${esc(a.author||'MUFG')} · ${esc(a.date_str||'')}</span>
+          </div>`).join('')}
+          ${liveIdeas.length ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px">💡 Suggested Actions</div>
+            ${liveIdeas.map(x=>`<div style="font-size:11px;margin-bottom:5px;padding:4px 8px;background:rgba(245,158,11,.07);border-radius:5px">
+              <span style="font-weight:700;color:${x.priority==='HIGH'||x.priority==='CRITICAL'?'var(--amber)':'var(--blue)'}">${x.priority}</span> · ${esc(x.topic||x.trigger||'').substring(0,70)}
+            </div>`).join('')}
+          </div>` : ''}
+        </div>` : ''}
+      </div>
+    </div>` : `<div style="margin-top:16px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted)">No live signals matching this segment today — data refreshes at 6am WIB</div>`;
+
   document.getElementById('segment-content').innerHTML = `
     <div style="background:var(--bg2);border:1px solid ${seg.color};border-radius:12px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
       <div style="font-size:32px;line-height:1">${seg.icon}</div>
@@ -1861,7 +1909,8 @@ function renderSegmentNotes(activeId){
       ${col('Key Risks',           'var(--red)',   seg.risks,         r=>r.title, r=>r.detail)}
       ${col('MUFG Opportunities',  'var(--green)', seg.opportunities, o=>o.title, o=>o.detail)}
       ${col('Key Client Entities', 'var(--blue)',  seg.clients,       c=>c.name,  c=>c.detail)}
-    </div>`;
+    </div>
+    ${liveHTML}`;
 }
 
 // ── MUFG Research ─────────────────────────────────────────────────────────

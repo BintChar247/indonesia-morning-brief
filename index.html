@@ -1371,8 +1371,14 @@ function renderNews(){
       published_raw:f.flagged_at, created_at:f.flagged_at,
     }));
   const combined = [...ALL_NEWS, ...flaggedAsNews];
-  // Propagate is_corruption for flaggedAsNews items
-  combined.forEach(n=>{ if(!('is_corruption' in n)) n.is_corruption=(n.tags||[]).includes('corruption'); });
+  // Derive is_corruption from tags OR title scan (covers manually-added articles with no tags)
+  const CORR_TERMS=['corruption','korupsi','kpk','bribery','suap','gratifikasi','fraud','embezzlement','money laundering','tipikor','penyelidikan','tersangka','ditangkap','arrested'];
+  combined.forEach(n=>{
+    if(!n.is_corruption){
+      const txt=((n.title||'')+(n.summary||'')).toLowerCase();
+      n.is_corruption=(n.tags||[]).includes('corruption')||CORR_TERMS.some(k=>txt.includes(k));
+    }
+  });
 
   const q=(document.getElementById('news-search').value||'').toLowerCase();
   const filtered=combined.filter(n=>{
@@ -2120,17 +2126,20 @@ async function toggleFlag(id){
 
 async function flagArticle(n){
   if(!SB) return;
+  const _corrTerms=['corruption','korupsi','kpk','bribery','suap','gratifikasi','fraud','embezzlement','money laundering','tipikor','penyelidikan','tersangka','ditangkap','arrested'];
+  const _txt=((n.title||'')+(n.summary||'')).toLowerCase();
+  const _isCorr=!!n.is_corruption||(n.tags||[]).includes('corruption')||_corrTerms.some(k=>_txt.includes(k));
   const row = {
-    id:          n.id,
-    title:       n.title,
-    url:         n.url||'',
-    source:      n.source||'',
-    source_cat:  n.source_cat||'',
-    summary:     n.summary||'',
-    tags:        n.tags||[],
-    is_indonesia:!!n.is_indonesia,
-    is_energy:   !!n.is_energy,
-    flagged_at:  new Date().toISOString(),
+    id:           n.id,
+    title:        n.title,
+    url:          n.url||'',
+    source:       n.source||'',
+    source_cat:   n.source_cat||'',
+    summary:      n.summary||'',
+    tags:         _isCorr&&!(n.tags||[]).includes('corruption')?[...(n.tags||[]),'corruption']:(n.tags||[]),
+    is_indonesia: !!n.is_indonesia,
+    is_energy:    !!n.is_energy,
+    flagged_at:   new Date().toISOString(),
     risk_level:  'MEDIUM',
     risk_headline: 'Computing insights on next data refresh...',
     client_opportunities: [],

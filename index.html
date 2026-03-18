@@ -195,13 +195,24 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
 /* ── Market table ────────────────────────────────────── */
 .mkt-table{width:100%;border-collapse:collapse}
-.mkt-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
-.mkt-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.mkt-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.mkt-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;white-space:nowrap}
 .mkt-table tr:hover td{background:rgba(255,255,255,.02)}
 .mkt-table tr:last-child td{border-bottom:none}
+.mkt-table td:first-child{white-space:normal;min-width:90px} /* allow name col to wrap */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px} /* scrollable wrapper */
 .chg-up{color:var(--green);font-weight:600}
 .chg-dn{color:#ff6b7a;font-weight:600}
 .chg-flat{color:var(--muted)}
+/* ── Markets panel responsive grids ─────────────────── */
+.markets-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+.ndf-ccs-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+@media(max-width:768px){
+  .markets-grid{grid-template-columns:1fr;margin-bottom:12px}
+  .ndf-ccs-grid{grid-template-columns:1fr}
+  #yield-svg{height:120px}
+  .mkt-table th,.mkt-table td{padding:7px 8px;font-size:12px}
+}
 .bar-wrap{width:60px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;display:inline-block;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
 .bar-up{background:var(--green)}
@@ -543,16 +554,16 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="section-title">Markets — Commodities, FX, Equities & Rates</div>
   <div class="section-sub">Updated each GitHub Actions run · Click Refresh to trigger a new fetch</div>
 
-  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="markets-grid">
 
     <!-- Commodities -->
     <div class="card">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         ⚡ <span>Energy & Commodities</span>
       </div>
-      <table class="mkt-table" id="tbl-commodities"><tbody>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-commodities"><tbody>
         <tr><td colspan="5" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
-      </tbody></table>
+      </tbody></table></div>
     </div>
 
     <!-- FX -->
@@ -560,22 +571,22 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         💱 <span>Foreign Exchange</span>
       </div>
-      <table class="mkt-table" id="tbl-fx"><tbody>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-fx"><tbody>
         <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
-      </tbody></table>
+      </tbody></table></div>
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px">
+  <div class="markets-grid" style="margin-bottom:0">
 
     <!-- Equities -->
     <div class="card">
       <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
         📈 <span>Equity Indices</span>
       </div>
-      <table class="mkt-table" id="tbl-equities"><tbody>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-equities"><tbody>
         <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
-      </tbody></table>
+      </tbody></table></div>
     </div>
 
     <!-- Yield Curve -->
@@ -585,50 +596,50 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       </div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Source: FRED (St. Louis Fed)</div>
       <div style="position:relative">
-        <svg id="yield-svg" viewBox="0 0 420 160"></svg>
+        <svg id="yield-svg" viewBox="0 0 420 160" style="width:100%"></svg>
         <div class="yc-tooltip" id="yc-tip"></div>
       </div>
-      <div id="rates-row" style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap"></div>
+      <div id="rates-row" style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap"></div>
     </div>
   </div>
 
   <!-- IDR NDF & CCS -->
   <div class="card" style="margin-top:16px">
-    <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
-      💱 <span>IDR NDF Implied Forward Curve & Cross-Currency Swap (CCS) — Indicative</span>
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      💱 <span>IDR NDF Forward Curve & Cross-Currency Swap (CCS) <span style="font-weight:400;color:var(--muted)">— Indicative</span></span>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5">
       Derived from USD/IDR spot · BI Rate 4.75% · FRED USD rates · Term structure estimated from BI Rate + market premium · For indicative / discussion purposes only
     </div>
-    <div style="display:grid;grid-template-columns:1.1fr 1fr;gap:20px">
+    <div class="ndf-ccs-grid">
 
       <!-- NDF -->
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          <div style="width:12px;height:2px;background:var(--blue)"></div> NDF Implied Forwards & Hedge Cost
+          <div style="width:12px;height:2px;background:var(--blue);flex-shrink:0"></div> NDF Implied Forwards & Hedge Cost
         </div>
-        <table class="mkt-table" id="tbl-ndf"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table>
+        <div class="tbl-scroll"><table class="mkt-table" id="tbl-ndf"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table></div>
         <div style="position:relative;margin-top:14px">
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Forward Points (IDR pips above spot)</div>
           <svg id="ndf-svg" viewBox="0 0 420 120" style="width:100%;overflow:visible"></svg>
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
-          NDF rate = Spot × (1 + IDR rate × T) / (1 + USD rate × T). Hedge cost = annualised cost of buying USD forward. Higher IDR rates = more expensive hedging for importers.
+          NDF rate = Spot × (1 + IDR rate × T) / (1 + USD rate × T). Hedge cost = annualised cost of buying USD forward.
         </div>
       </div>
 
       <!-- CCS -->
       <div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
-          <div style="width:12px;height:2px;background:var(--green)"></div> Cross-Currency Swap — Pay USD SOFR / Receive IDR Fixed
+          <div style="width:12px;height:2px;background:var(--green);flex-shrink:0"></div> CCS — Pay USD SOFR / Receive IDR Fixed
         </div>
-        <table class="mkt-table" id="tbl-ccs"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table>
+        <div class="tbl-scroll"><table class="mkt-table" id="tbl-ccs"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table></div>
         <div style="margin-top:14px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">RM Talking Points</div>
           <div id="ccs-talking-points" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">
-          CCS spread = IDR fixed leg − USD SOFR. Corporates with USD bonds can swap to IDR fixed via CCS. CCS IDR fixed ≈ NDF implied − ~40bps liquidity premium.
+          CCS spread = IDR fixed leg − USD SOFR. Corporates with USD bonds can swap to IDR fixed via CCS.
         </div>
       </div>
     </div>

@@ -111,6 +111,13 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hdr-meta{font-size:11px;color:var(--muted);text-align:right}
 .hdr-meta strong{color:var(--text)}
+/* Mobile header stacking */
+@media(max-width:600px){
+  .hdr{padding:8px 14px;gap:6px}
+  .hdr-right{margin-left:0;width:100%;justify-content:flex-end;gap:4px}
+  .hdr-meta{display:none}
+  .btn-label{display:none}
+}
 .btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:8px;padding:8px 14px;font-weight:600;transition:opacity .15s}
 .btn-red{background:var(--red);color:#fff}
 .btn-red:hover{opacity:.88}
@@ -126,16 +133,19 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .alert-pill{background:rgba(230,0,18,.15);border:1px solid rgba(230,0,18,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#ff8a95}
 
 /* ── Nav tabs ────────────────────────────────────────── */
-.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center}
-.nav-btn{background:none;border:none;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{background:none;border:none;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;min-height:44px}
 .nav-btn:hover{color:var(--text)}
 .nav-btn.active{color:#fff;border-bottom-color:var(--red)}
 .nav-divider{width:1px;background:var(--border);height:24px;margin:0 6px;flex-shrink:0}
+@media(max-width:768px){.nav{padding:0 12px}.nav-btn{padding:10px 10px;font-size:11px}}
 
 /* ── Content ─────────────────────────────────────────── */
 .content{padding:20px;max-width:1400px;margin:0 auto;min-height:calc(100vh - 110px)}
 .panel{display:none}
 .panel.active{display:block}
+@media(max-width:768px){.content{padding:14px 12px}}
 
 /* ── Cards / grids ───────────────────────────────────── */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px}
@@ -149,6 +159,21 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
 @media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
 
+/* ── Overview 3-col main grid ────────────────────────── */
+.ov-main-grid{display:grid;grid-template-columns:1.2fr 1.6fr 1fr;gap:16px;align-items:start}
+/* Tablet: 2-col, movers spans full width */
+@media(max-width:1024px){
+  .ov-main-grid{grid-template-columns:1fr 1fr}
+  .col-movers{grid-column:1/-1}
+}
+/* Mobile: single column, DOM order = priorities→headlines→movers */
+@media(max-width:768px){
+  .ov-main-grid{grid-template-columns:1fr;gap:12px}
+  .col-priorities{order:1}
+  .col-headlines{order:2}
+  .col-movers{order:3;grid-column:auto}
+}
+
 /* ── KPI card ────────────────────────────────────────── */
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
 .kpi.kpi-accent{border-color:rgba(230,0,18,.35);background:linear-gradient(135deg,var(--bg2) 70%,rgba(230,0,18,.04))}
@@ -159,6 +184,9 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .kpi-change.up{color:var(--green)}
 .kpi-change.down{color:var(--red)}
 .kpi-change.flat{color:var(--muted)}
+/* KPI responsive grid: 2×2 on tablet, 1×4 on phone */
+@media(max-width:768px){#ov-kpis.grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){#ov-kpis.grid-4{grid-template-columns:1fr}}
 /* ── Ticker auto-scroll ──────────────────────────────── */
 .ticker-wrap{overflow:hidden;position:relative}
 .ticker-track{display:flex;gap:10px;animation:ticker-scroll 30s linear infinite;width:max-content}
@@ -428,10 +456,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div id="hdr-status" class="text-muted">–</div>
     </div>
     <div style="display:flex;gap:4px;align-items:center">
-      <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">🌙</span><span style="font-size:8px;color:var(--muted)">Theme</span></button>
-      <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload from database" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">↺</span><span style="font-size:8px;color:var(--muted)">Reload</span></button>
-      <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" style="display:none;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">⚙️</span><span style="font-size:8px;color:var(--muted)">Admin</span></button>
-      <button class="btn btn-ghost btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none;flex-direction:column;align-items:center;padding:4px 10px;gap:1px;border:1px solid rgba(230,0,18,.4);color:var(--red)"><span style="font-size:13px">🔄</span><span style="font-size:8px">Refresh</span></button>
+      <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">🌙</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Theme</span></button>
+      <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload from database" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">↺</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Reload</span></button>
+      <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" style="display:none;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">⚙️</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Admin</span></button>
+      <button class="btn btn-ghost btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none;flex-direction:column;align-items:center;padding:4px 10px;gap:1px;border:1px solid rgba(230,0,18,.4);color:var(--red);min-height:44px;min-width:44px"><span style="font-size:13px">🔄</span><span class="btn-label" style="font-size:8px">Refresh</span></button>
     </div>
   </div>
 </div>
@@ -470,10 +498,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   </div>
 
   <!-- 3-column grid: priorities | headlines | movers — priorities left = most actionable -->
-  <div style="display:grid;grid-template-columns:1.2fr 1.6fr 1fr;gap:16px;align-items:start">
+  <div class="ov-main-grid">
 
     <!-- Today's Priorities — left, most prominent -->
-    <div>
+    <div class="col-priorities">
       <div class="section-label">Today's Priorities</div>
       <div id="ov-priorities" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
         <div class="card skeleton skel-text" style="height:70px"></div>
@@ -482,7 +510,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
 
     <!-- Top headlines — centre -->
-    <div>
+    <div class="col-headlines">
       <div class="section-label">Top Headlines</div>
       <div id="ov-news" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
         <div class="card skeleton skel-text" style="height:60px"></div>
@@ -492,7 +520,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
 
     <!-- Market movers — right -->
-    <div>
+    <div class="col-movers">
       <div class="section-label">Market Movers</div>
       <div id="ov-movers" class="card" style="padding:12px;max-height:420px;overflow-y:auto">
         <div class="skeleton skel-text"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text"></div>
@@ -1172,12 +1200,12 @@ function renderAlerts(mkt){
 
 // ── Market movers ────────────────────────────────────────────────────────
 function renderMovers(mkt){
-  const sorted = [...mkt].filter(r=>r.price>0).sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0)).slice(0,8);
+  const sorted = [...mkt].filter(r=>r.price>0).sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0)).slice(0,10);
   document.getElementById('ov-movers').innerHTML = sorted.map(r=>{
     const pc=r.change_pct||0; const cls=pc>0?'chg-up':'chg-dn';
-    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:12px;font-weight:600">${r.name}</span>
-      <span class="${cls}" style="font-size:12px">${pc>0?'▲ +':'▼ '}${pc.toFixed(2)}%</span>
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);gap:8px;min-height:34px">
+      <span style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%">${r.name}</span>
+      <span class="${cls}" style="font-size:12px;white-space:nowrap;flex-shrink:0">${pc>0?'▲ +':'▼ '}${pc.toFixed(2)}%</span>
     </div>`;
   }).join('');
 }
@@ -1495,12 +1523,13 @@ function renderOvNews(){
     const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
     return db-da;
   });
-  const top=sorted.slice(0,6);
-  if(!top.length){
-    document.getElementById('ov-news').innerHTML='<div style="padding:16px;font-size:12px;color:var(--muted);text-align:center">No headlines yet — data refreshes at 6am WIB. Check GitHub Actions if this persists.</div>';
+  const el=document.getElementById('ov-news');
+  if(!sorted.length){
+    el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--muted);text-align:center">No headlines yet — data refreshes at 6am WIB. Check GitHub Actions if this persists.</div>';
     return;
   }
-  document.getElementById('ov-news').innerHTML=top.map(n=>{
+  const cap=5; // show first 5, toggle rest
+  const makeCard=n=>{
     const pc=n.is_corruption?'border-left:3px solid var(--purple)':n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
     const tag=n.is_corruption?'🚨':n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
     const ago=timeAgo(n.published_raw);
@@ -1508,7 +1537,21 @@ function renderOvNews(){
       <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${esc(n.source)}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
       <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${safeUrl(n.url)}" target="_blank" style="color:var(--text)">${esc(n.title)}</a></div>
     </div>`;
-  }).join('');
+  };
+  const visible=sorted.slice(0,cap);
+  const hidden=sorted.slice(cap);
+  let html=visible.map(makeCard).join('');
+  if(hidden.length){
+    html+=`<div id="ov-news-extra" style="display:none">${hidden.map(makeCard).join('')}</div>`;
+    html+=`<button onclick="toggleOvNewsExtra(this)" style="width:100%;padding:8px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;margin-top:2px" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Show ${hidden.length} more headlines ▾</button>`;
+  }
+  el.innerHTML=html;
+}
+function toggleOvNewsExtra(btn){
+  const ex=document.getElementById('ov-news-extra');
+  const shown=ex.style.display!=='none';
+  ex.style.display=shown?'none':'';
+  btn.textContent=shown?`Show ${ex.children.length} more headlines ▾`:'Show fewer ▴';
 }
 
 // ── Client Ideas — Unified (Market Data + Risk Signals + MUFG Research) ──────

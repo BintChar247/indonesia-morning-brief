@@ -233,7 +233,8 @@ RSS_SOURCES = [
     {"name": "Kontan",              "url": "https://rss.kontan.co.id/",                                      "cat": "indonesia"},
 ]
 
-ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas"}
+ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas",
+           "mind id","antam","freeport","bukit asam","timah","telkom","mitratel","telkomsel","data center","data centre","tower","fiber optic"}
 CORR_KW = {"corruption","korupsi","kpk","bribery","suap","gratifikasi","fraud","embezzlement","pencucian uang","money laundering","tipikor","penyelidikan","tersangka","ditangkap","arrested"}
 EN_KW   = {"oil","crude","brent","wti","lng","lpg","natural gas","opec","hormuz","energy","petroleum","coal","barrel","refinery","gasoline"}
 FX_KW   = {"dollar","usd","currency","fx","forex","exchange rate","federal reserve","interest rate","monetary","inflation","cpi","hawkish","dovish","yield","treasury"}

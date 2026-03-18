@@ -7,7 +7,7 @@
 <meta property="og:title" content="Indonesia Morning Brief">
 <meta property="og:description" content="Daily Indonesia corporate coverage dashboard — markets, FX, commodities, news & corporate ideas.">
 <meta property="og:type" content="website">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.99.2/dist/umd/supabase.min.js" integrity="sha384-zETTH+6IXxKQ6zbGcT6H6EDdnGaae9uhI8uO7doTJoNEmPGeTKVOe5S6/XybS9JH" crossorigin="anonymous"></script>
 <style>
 :root {
   --bg:       #080c14;
@@ -907,10 +907,11 @@ let SB = null;  // Supabase client
 // Use site constants as defaults; localStorage overrides (for admins)
 function getConfig(){
   return {
-    url:   LS.get('sb_url')   || SITE_SB_URL,
-    anon:  LS.get('sb_anon')  || SITE_SB_ANON,
-    repo:  LS.get('gh_repo')  || '',
-    token: LS.get('gh_token') || '',
+    url:    LS.get('sb_url')    || SITE_SB_URL,
+    anon:   LS.get('sb_anon')   || SITE_SB_ANON,
+    repo:   LS.get('gh_repo')   || '',
+    token:  LS.get('gh_token')  || '',
+    branch: LS.get('gh_branch') || 'main',
   };
 }
 function hasSiteCredentials(){
@@ -947,6 +948,17 @@ let ALL_FLAGGED = [];
 let FLAGGED_IDS = new Set();
 let newsFilter = 'all';
 let mufgFilter = 'all';
+
+// ── HTML safety helpers ──────────────────────────────────────────────────
+function esc(str){
+  if(str==null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function safeUrl(url){
+  if(!url) return '#';
+  const u=String(url).trim();
+  return(u.startsWith('http://')||u.startsWith('https://'))?u:'#';
+}
 
 // ── Init ────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -1298,7 +1310,7 @@ const TAG_STYLE = {
 const TAG_EMOJI = {indonesia:'🇮🇩',energy:'⚡',fx_rates:'💱',commodities:'🪨',macro:'📊',global:'🌍'};
 
 function newsCardHTML(n, compact=false){
-  const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${t}</span>`).join('');
+  const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${esc(t)}</span>`).join('');
   const border=n.is_indonesia?'indonesia':n.is_energy?'energy':'';
   const ago=timeAgo(n.published_raw);
   const isFlagged=FLAGGED_IDS.has(n.id);
@@ -1306,13 +1318,13 @@ function newsCardHTML(n, compact=false){
   const flagTip=isFlagged?'Flagged as Risk Signal — click to unflag':'Flag as Risk Signal for franchise';
   return `<div class="news-card ${border}" id="ncard-${n.id}">
     <div class="news-meta">
-      <span class="news-src">${n.source}</span>
+      <span class="news-src">${esc(n.source)}</span>
       ${ago?`<span class="news-time">${ago}</span>`:''}
       ${tags}
       <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag('${n.id}')">${flagIcon}</button>
     </div>
-    <div class="news-title"><a href="${n.url}" target="_blank">${n.title}</a></div>
-    ${!compact&&n.summary?`<div class="news-summary">${n.summary}</div>`:''}
+    <div class="news-title"><a href="${safeUrl(n.url)}" target="_blank">${esc(n.title)}</a></div>
+    ${!compact&&n.summary?`<div class="news-summary">${esc(n.summary)}</div>`:''}
   </div>`;
 }
 

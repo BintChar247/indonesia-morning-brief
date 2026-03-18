@@ -205,7 +205,8 @@ RSS_SOURCES = [
     {"name": "Kontan",              "url": "https://rss.kontan.co.id/",                                      "cat": "indonesia"},
 ]
 
-ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas"}
+ID_KW   = {"indonesia","indonesian","idr","rupiah","pertamina","pln","bri","mandiri","bca","danamon","jakarta","prabowo","bank indonesia","jkse","idx","msci","bulog","pgn","bi rate","bapanas",
+            "corruption","korupsi","kpk","bribery","suap","gratifikasi","fraud","embezzlement","pencucian uang","money laundering","tipikor","penyelidikan","tersangka","ditangkap","arrested"}
 EN_KW   = {"oil","crude","brent","wti","lng","lpg","natural gas","opec","hormuz","energy","petroleum","coal","barrel","refinery","gasoline"}
 FX_KW   = {"dollar","usd","currency","fx","forex","exchange rate","federal reserve","interest rate","monetary","inflation","cpi","hawkish","dovish","yield","treasury"}
 COM_KW  = {"nickel","palm oil","cpo","wheat","rice","gold","copper","tin","commodity","metals","agriculture","soybean"}
@@ -276,7 +277,8 @@ def fetch_all_news() -> List[Dict]:
 # ─── Flagged Article Insights (rules-based) ───────────────────────────────────
 INSIGHT_RULES = [
     {
-        "keywords": ["idr","rupiah","indonesia","jakarta","pertamina","pln","bri","mandiri","jkse","bank indonesia","bi rate","prabowo","bulog"],
+        "keywords": ["idr","rupiah","indonesia","jakarta","pertamina","pln","bri","mandiri","jkse","bank indonesia","bi rate","prabowo","bulog",
+                     "corruption","korupsi","kpk","bribery","suap","fraud","money laundering","tipikor","tersangka","arrested"],
         "risk_level": "HIGH",
         "risk_headline": "Indonesia macro signal — BI policy / IDR / equity market implications",
         "opportunities": [
@@ -594,8 +596,8 @@ def generate_client_ideas(market_rows: List[Dict], news: List[Dict]) -> List[Dic
                 f"Share morning brief Indonesia highlights. Key monitoring: "
                 f"Credit ratings (Moody's Baa2 Neg | Fitch BBB Neg | S&P Watch Neg). "
                 f"MSCI EM→FM reclassification review: May 2026. "
-                f"BI reserve adequacy. Budget deficit (IDR 54.6T vs 23.5T a year ago). "
-                f"5Y CDS above 80bps. Government spending +25.7% YoY."
+                f"BI reserve adequacy. Budget deficit (IDR 135.7T / 0.53% GDP, Feb 2026 vs IDR 30.7T yr ago; full-year ceiling 2.68% GDP). "
+                f"5Y CDS above 80bps. Government spending +41.9% YoY, Revenue +12.8%."
             ),
             "products": "Macro advisory, Liability management, Risk management",
         })

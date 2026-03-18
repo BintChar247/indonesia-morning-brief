@@ -812,9 +812,9 @@ def write_client_ideas(ideas: List[Dict]) -> None:
         print(f"  ✓ client_ideas: {len(ideas)} ideas")
 
 def write_mufg_research(articles: List[Dict]) -> None:
-    # Upsert on title — keeps full history, never duplicates same article
+    # Upsert on url — stable unique identifier; title can vary across scrape runs
     if articles:
-        sb_upsert("mufg_research", articles, on_conflict="title")
+        sb_upsert("mufg_research", articles, on_conflict="url")
         print(f"  ✓ mufg_research: upserted {len(articles)} articles (no duplicates)")
 
 def write_app_meta(status: str, news_count: int, ideas_count: int) -> None:

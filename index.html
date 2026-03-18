@@ -420,7 +420,8 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div id="hdr-status" class="text-muted">–</div>
     </div>
     <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="font-size:15px;padding:4px 9px">🌙</button>
-    <button class="btn btn-ghost btn-sm" onclick="openSetup()" title="Admin Settings">⚙️</button>
+    <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload data from database" style="font-size:13px">↺</button>
+    <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" title="Admin Settings" style="display:none">⚙️</button>
     <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none">🔄 Refresh</button>
   </div>
 </div>
@@ -941,7 +942,7 @@ function getConfig(){
     anon:   LS.get('sb_anon')   || SITE_SB_ANON,
     repo:   LS.get('gh_repo')   || '',
     token:  LS.get('gh_token')  || '',
-    branch: LS.get('gh_branch') || 'main',
+    branch: LS.get('gh_branch') || 'master',
   };
 }
 function hasSiteCredentials(){
@@ -949,9 +950,19 @@ function hasSiteCredentials(){
          SITE_SB_ANON !== 'YOUR_SUPABASE_ANON_KEY';
 }
 function updateRefreshVisibility(){
-  // Refresh button only shown to admins who have stored a GitHub PAT
-  const btn = document.getElementById('refreshBtn');
-  if(btn) btn.style.display = LS.get('gh_token') ? '' : 'none';
+  // Refresh + gear only shown to admins who have stored a GitHub PAT
+  const isAdmin = !!LS.get('gh_token');
+  const btn  = document.getElementById('refreshBtn');
+  const gear = document.getElementById('adminGearBtn');
+  if(btn)  btn.style.display  = isAdmin ? '' : 'none';
+  if(gear) gear.style.display = isAdmin ? '' : 'none';
+}
+async function reloadData(){
+  const btn=document.getElementById('reloadBtn');
+  if(btn){ btn.disabled=true; btn.textContent='↻'; }
+  try{ await loadAll(); } finally {
+    if(btn){ btn.disabled=false; btn.textContent='↺'; }
+  }
 }
 
 // ── Theme ───────────────────────────────────────────────────────────────

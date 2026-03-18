@@ -758,17 +758,32 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     <span style="color:var(--muted)">Loading sources...</span>
   </div>
 
-  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
-    <!-- Ideas list -->
-    <div>
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--red)"></div>Today's Priority Conversations</div>
+  <!-- Collapsible: Priority Conversations -->
+  <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <button onclick="toggleSection('sec-priorities',this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border:none;cursor:pointer;color:var(--text)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:16px;height:2px;background:var(--red)"></div>
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Today's Priority Conversations</span>
+      </div>
+      <span class="collapse-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">▾</span>
+    </button>
+    <div id="sec-priorities" style="padding:12px 16px 16px">
       <div id="ideas-list">
         <div class="text-muted" style="padding:30px;text-align:center">Loading ideas...</div>
       </div>
     </div>
-    <!-- Sector impact -->
-    <div>
-      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--amber)"></div>Sector Direct / Indirect Impact</div>
+  </div>
+
+  <!-- Collapsible: Sector Impact -->
+  <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <button onclick="toggleSection('sec-impact',this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border:none;cursor:pointer;color:var(--text)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:16px;height:2px;background:var(--amber)"></div>
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Sector Direct / Indirect Impact</span>
+      </div>
+      <span class="collapse-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">▾</span>
+    </button>
+    <div id="sec-impact" style="padding:12px 16px 16px">
       <div id="sector-impact" class="sector-grid" style="grid-template-columns:1fr"></div>
     </div>
   </div>
@@ -2137,6 +2152,15 @@ async function triggerRefresh(){
     alert('Request failed: '+e.message);
     btn.disabled=false; btn.innerHTML='🔄 Refresh';
   }
+}
+
+// ── Collapsible sections ───────────────────────────────────────────────────
+function toggleSection(contentId, btn){
+  const el = document.getElementById(contentId);
+  const chevron = btn.querySelector('.collapse-chevron');
+  const collapsed = el.style.display === 'none';
+  el.style.display = collapsed ? '' : 'none';
+  if(chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────

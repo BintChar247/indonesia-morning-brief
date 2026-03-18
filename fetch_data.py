@@ -36,14 +36,17 @@ def sb_post(table: str, payload, method: str = "POST") -> dict:
         print(f"  ⚠ Supabase {method} {table}: {r.status_code} {r.text[:200]}")
     return r
 
-def sb_delete(table: str, filter_col: str, filter_val) -> None:
+def sb_delete(table: str, filter_col: str) -> None:
+    """Delete all rows from table where filter_col IS NOT NULL (effectively all rows)."""
     url     = f"{SUPABASE_URL}/rest/v1/{table}?{filter_col}=not.is.null"
     headers = {
         "apikey":        SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
         "Prefer":        "return=minimal",
     }
-    requests.delete(url, headers=headers, timeout=15)
+    r = requests.delete(url, headers=headers, timeout=15)
+    if r.status_code not in (200, 204):
+        print(f"  ⚠ Supabase DELETE {table}: {r.status_code} {r.text[:200]}")
 
 # ─── Yahoo Finance ────────────────────────────────────────────────────────────
 YAHOO_SYMBOLS: Dict[str, Dict] = {
@@ -112,16 +115,16 @@ def fetch_yahoo_batch(symbols: List[str]) -> Dict:
                 missing = [s for s in symbols if s not in results]
                 if missing:
                     print(f"  → fallback for {len(missing)} missing symbols via v7 API")
-                    v7 = _fetch_yahoo_v7(missing)
+                    v7 = _fetch_yahoo_api(missing)
                     results.update(v7)
                 return results
         except Exception as e:
             print(f"  ⚠ yfinance error: {e} — trying v7 API fallback")
 
     # ── Fallback: Yahoo Finance v7 REST API ────────────────────────────────
-    return _fetch_yahoo_v7(symbols)
+    return _fetch_yahoo_api(symbols)
 
-def _fetch_yahoo_v7(symbols: List[str]) -> Dict:
+def _fetch_yahoo_api(symbols: List[str]) -> Dict:
     """Direct Yahoo Finance v7 API call with rotating user agents."""
     import random
     user_agents = [
@@ -696,7 +699,7 @@ def write_market_data(quotes: Dict) -> List[Dict]:
 
 def write_yield_curve(yields: Dict) -> None:
     # Delete old, insert fresh
-    sb_delete("yield_curve", "tenor", None)
+    sb_delete("yield_curve", "tenor")
     rows = [{"tenor": k, "yield_pct": v, "curve_type": "US_TREASURY",
              "updated_at": datetime.datetime.utcnow().isoformat() + "Z"}
             for k, v in yields.items() if v is not None]
@@ -705,19 +708,19 @@ def write_yield_curve(yields: Dict) -> None:
         print(f"  ✓ yield_curve: {len(rows)} tenors")
 
 def write_news(news: List[Dict]) -> None:
-    sb_delete("news_items", "id", None)
+    sb_delete("news_items", "id")
     if news:
         sb_post("news_items", news[:60])
         print(f"  ✓ news_items: {len(news[:60])} articles")
 
 def write_client_ideas(ideas: List[Dict]) -> None:
-    sb_delete("client_ideas", "priority", None)
+    sb_delete("client_ideas", "priority")
     if ideas:
         sb_post("client_ideas", ideas)
         print(f"  ✓ client_ideas: {len(ideas)} ideas")
 
 def write_mufg_research(articles: List[Dict]) -> None:
-    sb_delete("mufg_research", "title", None)
+    sb_delete("mufg_research", "title")
     if articles:
         sb_post("mufg_research", articles)
         print(f"  ✓ mufg_research: {len(articles)} articles")
@@ -754,19 +757,19 @@ def main():
     print(f"{'='*55}\n")
 
     syms = list(YAHOO_SYMBOLS.keys())
-    print(f"1/5  Fetching {len(syms)} Yahoo Finance quotes...")
+    print(f"1/6  Fetching {len(syms)} Yahoo Finance quotes...")
     quotes = fetch_yahoo_batch(syms)
     market_rows = write_market_data(quotes)
 
-    print("2/5  Fetching FRED US Treasury yield curve...")
+    print("2/6  Fetching FRED US Treasury yield curve...")
     yields = fetch_fred_yields()
     write_yield_curve(yields)
 
-    print("3/5  Fetching RSS news feeds...")
+    print("3/6  Fetching RSS news feeds...")
     news = fetch_all_news()
     write_news(news)
 
-    print("4/5  Generating client ideas...")
+    print("4/6  Generating client ideas...")
     ideas = generate_client_ideas(market_rows, news)
     write_client_ideas(ideas)
 

@@ -1385,8 +1385,8 @@ function renderOvNews(){
     const tag=n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
     const ago=timeAgo(n.published_raw);
     return `<div class="card-sm" style="${pc}padding:10px 12px">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${n.source}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
-      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${n.url}" target="_blank" style="color:var(--text)">${n.title}</a></div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${esc(n.source)}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
+      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${safeUrl(n.url)}" target="_blank" style="color:var(--text)">${esc(n.title)}</a></div>
     </div>`;
   }).join('');
 }
@@ -1482,24 +1482,25 @@ function buildUnifiedIdeas(){
 
 function ideaCardHTML(idea){
   const srcColor = idea._type==='flagged'?'var(--red)':idea._type==='mufg'?'var(--blue)':'var(--amber)';
-  const trunc = idea._sourceDetail?(idea._sourceDetail.length>55?idea._sourceDetail.substring(0,55)+'…':idea._sourceDetail):'';
+  const escapedDetail = esc(idea._sourceDetail||'');
+  const trunc = escapedDetail.length>55?escapedDetail.substring(0,55)+'…':escapedDetail;
   const srcBadge = `<div style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,.05);border-radius:4px;color:${srcColor};display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;max-width:100%;overflow:hidden;white-space:nowrap">
-    ${idea._sourceIcon} <strong>${idea._sourceLabel}</strong>${trunc?` · <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis" title="${idea._sourceDetail}">${trunc}</span>`:''}
+    ${idea._sourceIcon} <strong>${idea._sourceLabel}</strong>${trunc?` · <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis" title="${escapedDetail}">${trunc}</span>`:''}
   </div>`;
-  const readMore = idea._sourceUrl?`<a href="${idea._sourceUrl}" target="_blank" style="font-size:10px;color:var(--muted);margin-top:6px;display:block">→ Read source</a>`:'';
+  const readMore = idea._sourceUrl?`<a href="${safeUrl(idea._sourceUrl)}" target="_blank" style="font-size:10px;color:var(--muted);margin-top:6px;display:block">→ Read source</a>`:'';
   return `<div class="idea-card ${idea.priority}">
     <div class="idea-header">
       <div class="idea-icon">${idea.icon||'💡'}</div>
       <div class="idea-meta">
         <div class="idea-priority ${idea.priority}">${idea.priority} PRIORITY</div>
-        <div class="idea-sector">${idea.sector}</div>
-        <div class="idea-clients">${idea.clients?((/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(idea.clients+idea.sector)?'FI: ':'Corporates: ')+idea.clients):''}</div>
+        <div class="idea-sector">${esc(idea.sector)}</div>
+        <div class="idea-clients">${idea.clients?((/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(idea.clients+idea.sector)?'FI: ':'Corporates: ')+esc(idea.clients)):''}</div>
       </div>
     </div>
     ${srcBadge}
-    <div class="idea-trigger">${idea.trigger}</div>
-    <div class="idea-topic">${idea.topic}</div>
-    ${idea.products?`<div class="idea-products">${idea.products.split(',').map(p=>`<span class="idea-prod">${p.trim()}</span>`).join('')}</div>`:''}
+    <div class="idea-trigger">${esc(idea.trigger)}</div>
+    <div class="idea-topic">${esc(idea.topic)}</div>
+    ${idea.products?`<div class="idea-products">${idea.products.split(',').map(p=>`<span class="idea-prod">${esc(p.trim())}</span>`).join('')}</div>`:''}
     ${readMore}
   </div>`;
 }
@@ -1655,8 +1656,8 @@ function renderMufgArticles(){
     <div class="mufg-article">
       <span class="ma-cat ${catClass[a.category]||'ma-fx'}">${a.category}</span>
       <div>
-        <div class="ma-title"><a href="${a.url}" target="_blank">${a.title}</a></div>
-        <div class="ma-meta">${a.author||''} ${a.date_str?'· '+a.date_str:''}</div>
+        <div class="ma-title"><a href="${safeUrl(a.url)}" target="_blank">${esc(a.title)}</a></div>
+        <div class="ma-meta">${esc(a.author||'')} ${a.date_str?'· '+esc(a.date_str):''}</div>
       </div>
     </div>`).join('')
     :'<div class="text-muted" style="padding:20px">No articles in this category</div>';
@@ -1721,9 +1722,9 @@ async function renderCustomSources(){
     if(!data||!data.length){el.innerHTML='<div class="text-muted">No custom sources added yet.</div>';return;}
     el.innerHTML=data.map(s=>`
       <div class="source-row">
-        <span class="source-name">${s.name}</span>
-        <span class="source-url">${(s.url||'').substring(0,50)}...</span>
-        <span class="source-cat">${s.category||'custom'}</span>
+        <span class="source-name">${esc(s.name)}</span>
+        <span class="source-url">${esc((s.url||'').substring(0,50))}...</span>
+        <span class="source-cat">${esc(s.category||'custom')}</span>
         <div class="toggle ${s.enabled?'on':''}" onclick="toggleSource(${s.id},${!s.enabled})"></div>
         <button class="btn btn-ghost btn-sm" style="color:#ff6b7a" onclick="deleteSource(${s.id})">✕</button>
       </div>`).join('');
@@ -1808,7 +1809,7 @@ async function triggerRefresh(){
     const r=await fetch(`https://api.github.com/repos/${cfg.repo}/actions/workflows/update.yml/dispatches`,{
       method:'POST',
       headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({ref:'master',inputs:{reason:'Manual refresh from dashboard'}})
+      body:JSON.stringify({ref:cfg.branch,inputs:{reason:'Manual refresh from dashboard'}})
     });
     if(r.status===204){
       btn.innerHTML='✅ Triggered!';
@@ -2188,20 +2189,20 @@ function renderFlagged(){
       <div class="risk-opps">
         <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Corporate / FI Opportunities</div>
         ${opps.map(o=>`<div class="risk-opp">
-          <span class="risk-opp-seg">${o.segment||''}</span>
-          <span class="risk-opp-idea">${o.idea||''}</span>
-          ${o.urgency?`<span style="font-size:9px;font-weight:700;color:${o.urgency==='HIGH'?'#ff8c00':o.urgency==='CRITICAL'?'#ff4444':'var(--muted)'};white-space:nowrap">${o.urgency}</span>`:''}
+          <span class="risk-opp-seg">${esc(o.segment||'')}</span>
+          <span class="risk-opp-idea">${esc(o.idea||'')}</span>
+          ${o.urgency?`<span style="font-size:9px;font-weight:700;color:${o.urgency==='HIGH'?'#ff8c00':o.urgency==='CRITICAL'?'#ff4444':'var(--muted)'};white-space:nowrap">${esc(o.urgency)}</span>`:''}
         </div>`).join('')}
       </div>` : '';
     const sectsHTML = sects.length ? `
       <div style="font-size:10px;font-weight:700;color:var(--muted);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.05em">Sector Impact</div>
-      <div class="risk-sectors">${sects.map(s=>`<span class="risk-sector-chip ${s.impact||''}" title="${s.detail||''}">${s.sector} · ${s.impact}</span>`).join('')}</div>` : '';
+      <div class="risk-sectors">${sects.map(s=>`<span class="risk-sector-chip ${esc(s.impact||'')}" title="${esc(s.detail||'')}">${esc(s.sector)} · ${esc(s.impact)}</span>`).join('')}</div>` : '';
     return `<div class="risk-card">
       <div class="risk-card-header">
         <div>
-          <div class="risk-headline">${f.risk_headline||'Analysing...'}</div>
-          <div class="risk-article-title"><a href="${f.url||'#'}" target="_blank" style="color:var(--muted);text-decoration:none">${f.title}</a></div>
-          <div style="font-size:10px;color:var(--muted)">${f.source||''} ${f.flagged_at?'· Flagged '+timeAgo(f.flagged_at):''}</div>
+          <div class="risk-headline">${esc(f.risk_headline||'Analysing...')}</div>
+          <div class="risk-article-title"><a href="${safeUrl(f.url)}" target="_blank" style="color:var(--muted);text-decoration:none">${esc(f.title)}</a></div>
+          <div style="font-size:10px;color:var(--muted)">${esc(f.source||'')} ${f.flagged_at?'· Flagged '+timeAgo(f.flagged_at):''}</div>
         </div>
         <span class="risk-badge ${f.risk_level||'MEDIUM'}">${f.risk_level||'MEDIUM'}</span>
       </div>

@@ -48,6 +48,34 @@ def sb_delete(table: str, filter_col: str) -> None:
     if r.status_code not in (200, 204):
         print(f"  ⚠ Supabase DELETE {table}: {r.status_code} {r.text[:200]}")
 
+def sb_upsert(table: str, rows: list, on_conflict: str) -> None:
+    """Insert rows, updating existing ones on conflict — prevents duplicates across refreshes."""
+    if not rows:
+        return
+    url     = f"{SUPABASE_URL}/rest/v1/{table}?on_conflict={on_conflict}"
+    headers = {
+        "apikey":        SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type":  "application/json",
+        "Prefer":        "resolution=merge-duplicates,return=minimal",
+    }
+    r = requests.post(url, headers=headers, json=rows, timeout=30)
+    if r.status_code not in (200, 201, 204):
+        print(f"  ⚠ Supabase UPSERT {table}: {r.status_code} {r.text[:200]}")
+
+def sb_prune_old(table: str, date_col: str, days: int) -> None:
+    """Delete rows older than `days` days to keep tables lean."""
+    cutoff = (datetime.datetime.utcnow() - datetime.timedelta(days=days)).isoformat() + "Z"
+    url     = f"{SUPABASE_URL}/rest/v1/{table}?{date_col}=lt.{cutoff}"
+    headers = {
+        "apikey":        SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Prefer":        "return=minimal",
+    }
+    r = requests.delete(url, headers=headers, timeout=15)
+    if r.status_code not in (200, 204):
+        print(f"  ⚠ Supabase PRUNE {table}: {r.status_code} {r.text[:200]}")
+
 # ─── Yahoo Finance ────────────────────────────────────────────────────────────
 YAHOO_SYMBOLS: Dict[str, Dict] = {
     # Commodities
@@ -770,22 +798,24 @@ def write_yield_curve(yields: Dict) -> None:
         print(f"  ✓ yield_curve: {len(rows)} tenors")
 
 def write_news(news: List[Dict]) -> None:
-    sb_delete("news_items", "id")
+    # Prune articles older than 7 days, then upsert new ones (dedup on id = md5 of title)
+    sb_prune_old("news_items", "created_at", days=7)
     if news:
-        sb_post("news_items", news[:60])
-        print(f"  ✓ news_items: {len(news[:60])} articles")
+        sb_upsert("news_items", news[:80], on_conflict="id")
+        print(f"  ✓ news_items: upserted {len(news[:80])} articles (7-day rolling window)")
 
 def write_client_ideas(ideas: List[Dict]) -> None:
+    # Client ideas are fully regenerated each run — delete and reinsert
     sb_delete("client_ideas", "priority")
     if ideas:
         sb_post("client_ideas", ideas)
         print(f"  ✓ client_ideas: {len(ideas)} ideas")
 
 def write_mufg_research(articles: List[Dict]) -> None:
-    sb_delete("mufg_research", "title")
+    # Upsert on title — keeps full history, never duplicates same article
     if articles:
-        sb_post("mufg_research", articles)
-        print(f"  ✓ mufg_research: {len(articles)} articles")
+        sb_upsert("mufg_research", articles, on_conflict="title")
+        print(f"  ✓ mufg_research: upserted {len(articles)} articles (no duplicates)")
 
 def write_app_meta(status: str, news_count: int, ideas_count: int) -> None:
     now = now_wib()

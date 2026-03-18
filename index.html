@@ -127,7 +127,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
 /* ── Nav tabs ────────────────────────────────────────── */
 .nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center}
-.nav-btn{background:none;border:none;color:var(--muted);padding:12px 14px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-btn{background:none;border:none;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .nav-btn:hover{color:var(--text)}
 .nav-btn.active{color:#fff;border-bottom-color:var(--red)}
 .nav-divider{width:1px;background:var(--border);height:24px;margin:0 6px;flex-shrink:0}
@@ -500,10 +500,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
   </div>
 
-  <!-- Sector snapshot — light card grid, no jarring dark band -->
-  <div style="margin-top:20px">
+  <!-- Sector snapshot — soft tinted section, no jarring dark band -->
+  <div style="margin-top:20px;background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:16px">
     <div class="section-label" style="margin-bottom:10px">Sector Impact Snapshot</div>
-    <div id="ov-sectors" class="sector-grid" style="background:transparent"></div>
+    <div id="ov-sectors" class="sector-grid"></div>
   </div>
 </div>
 
@@ -1702,13 +1702,22 @@ function showSourceDetail(type){
 function closeSourceModal(){ document.getElementById('sourceModal').classList.remove('show'); }
 
 function renderOvPriorities(){
-  const top=buildUnifiedIdeas().slice(0,3);
-  document.getElementById('ov-priorities').innerHTML=top.map(idea=>`
-    <div class="card-sm idea-card ${idea.priority}" style="padding:10px 12px;margin-bottom:0">
-      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:3px">${idea.icon||'💡'} ${idea.priority} · <span style="opacity:.65;font-weight:500">${idea._sourceIcon} ${idea._sourceLabel}</span></div>
-      <div style="font-size:12px;font-weight:700">${idea.sector}</div>
-      <div style="font-size:11px;color:var(--muted)">${idea.trigger.length>65?idea.trigger.substring(0,65)+'…':idea.trigger}</div>
+  const all=buildUnifiedIdeas();
+  const top=all.slice(0,4);
+  const el=document.getElementById('ov-priorities');
+  el.innerHTML=top.map(idea=>`
+    <div class="card-sm idea-card ${idea.priority}" style="padding:14px 14px;margin-bottom:0">
+      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:4px">${idea.icon||'💡'} ${idea.priority} · <span style="opacity:.65;font-weight:500">${idea._sourceIcon} ${idea._sourceLabel}</span></div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:3px">${idea.sector}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.4">${idea.trigger.length>90?idea.trigger.substring(0,90)+'…':idea.trigger}</div>
     </div>`).join('');
+  // "View all" link at bottom to balance column height
+  if(all.length>4){
+    el.insertAdjacentHTML('beforeend',`
+      <button onclick="switchTab('ideas',document.querySelector('.nav-btn[onclick*=ideas]'))" style="width:100%;padding:10px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+        View all ${all.length} priorities → Client Opps
+      </button>`);
+  }
 }
 
 // ── Sector Impact — Unified (Market Analysis + Risk Signals) ──────────────

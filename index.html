@@ -2319,8 +2319,9 @@ async function recomputeAllInsights(){
   for(const f of ALL_FLAGGED){ updated.push(await computeAndSaveInsights(f)); }
   ALL_FLAGGED = updated;
   renderFlagged();
-  renderIdeas();        // push updated insights to Corporate Ideas tab
-  renderOvPriorities(); // push to Overview priorities
+  renderIdeas();
+  renderSegmentNotes(); // refresh live signals on Client Opps tab
+  renderOvPriorities();
   renderOvSectors();    // push to Overview sector snapshot
   const panel = document.getElementById('risk-signals-panel');
   if(panel) panel.style.display = 'none';

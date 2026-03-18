@@ -35,11 +35,12 @@ CREATE TABLE IF NOT EXISTS news_items (
   source_cat   TEXT,               -- 'markets' | 'energy' | 'indonesia' | 'global'
   published_raw TEXT,
   summary      TEXT,
-  tags         TEXT[],             -- ['indonesia','energy','fx_rates','commodities','macro','global']
-  is_indonesia BOOLEAN DEFAULT FALSE,
-  is_energy    BOOLEAN DEFAULT FALSE,
-  is_fx        BOOLEAN DEFAULT FALSE,
-  is_macro     BOOLEAN DEFAULT FALSE,
+  tags         TEXT[],             -- ['indonesia','energy','corruption','fx_rates','commodities','macro','global']
+  is_indonesia  BOOLEAN DEFAULT FALSE,
+  is_corruption BOOLEAN DEFAULT FALSE,
+  is_energy     BOOLEAN DEFAULT FALSE,
+  is_fx         BOOLEAN DEFAULT FALSE,
+  is_macro      BOOLEAN DEFAULT FALSE,
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 

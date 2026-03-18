@@ -677,6 +677,65 @@ def fetch_mufg_research() -> List[Dict]:
             print(f"  ⚠ MUFG scrape [{section}]: {e}")
     return articles[:15] if articles else MUFG_FALLBACK
 
+# ─── Chart of the Day (mufgamericas.com) ──────────────────────────────────────
+CHART_FALLBACK = [
+    {"title": "Inflation Eroding Safe-Haven Appeal of Long-Duration Bonds",
+     "url": "https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy",
+     "date_str": "03/17/2026", "author": "Tom Joyce / MUFG Americas", "category": "ChartOfDay"},
+    {"title": "Corporate Credit Notably Resilient to Formidable Structural Headwinds",
+     "url": "https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy",
+     "date_str": "03/12/2026", "author": "Tom Joyce / MUFG Americas", "category": "ChartOfDay"},
+    {"title": "February's In-Line Inflation Already Old News",
+     "url": "https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy",
+     "date_str": "03/11/2026", "author": "Tom Joyce / MUFG Americas", "category": "ChartOfDay"},
+    {"title": "Looking for Reliable Safe Havens in an Energy Sector Supply Side Shock",
+     "url": "https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy",
+     "date_str": "03/05/2026", "author": "Tom Joyce / MUFG Americas", "category": "ChartOfDay"},
+]
+
+def fetch_chart_of_day() -> List[Dict]:
+    from bs4 import BeautifulSoup
+    BASE = "https://www.mufgamericas.com"
+    URL  = f"{BASE}/insights-and-experience/capital-markets-strategy"
+    hdrs = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120"}
+    try:
+        r = requests.get(URL, headers=hdrs, timeout=12)
+        if r.status_code != 200:
+            print(f"  ⚠ Chart of Day: HTTP {r.status_code}")
+            return CHART_FALLBACK
+        soup = BeautifulSoup(r.text, "html.parser")
+        items = []
+        date_pat = re.compile(r"^\d{2}/\d{2}/\d{4}$")
+        for table in soup.find_all("table"):
+            for row in table.find_all("tr"):
+                cells = row.find_all(["td", "th"])
+                if len(cells) < 2:
+                    continue
+                date_text  = cells[0].get_text(strip=True)
+                title_text = cells[1].get_text(strip=True) if len(cells) > 1 else ""
+                link_tag   = cells[2].find("a") if len(cells) > 2 else None
+                if not title_text or not date_pat.match(date_text):
+                    continue
+                href = link_tag["href"] if link_tag and link_tag.get("href") else URL
+                if href and not href.startswith("http"):
+                    href = BASE + href
+                items.append({
+                    "id":       hashlib.md5(title_text.encode()).hexdigest()[:12],
+                    "title":    title_text,
+                    "url":      href,
+                    "date_str": date_text,
+                    "author":   "Tom Joyce / MUFG Americas",
+                    "category": "ChartOfDay",
+                })
+        if items:
+            print(f"  ✓ chart_of_day: {len(items)} entries")
+            return items[:20]
+        # Page may be JS-rendered; return fallback silently
+        return CHART_FALLBACK
+    except Exception as e:
+        print(f"  ⚠ Chart of Day scrape: {e}")
+        return CHART_FALLBACK
+
 # ─── Supabase Writers ─────────────────────────────────────────────────────────
 def write_market_data(quotes: Dict) -> List[Dict]:
     rows = []
@@ -777,9 +836,10 @@ def main():
     ideas = generate_client_ideas(market_rows, news)
     write_client_ideas(ideas)
 
-    print("5/6  Fetching MUFG Research articles...")
-    articles = fetch_mufg_research()
-    write_mufg_research(articles)
+    print("5/6  Fetching MUFG Research articles + Chart of the Day...")
+    articles    = fetch_mufg_research()
+    chart_items = fetch_chart_of_day()
+    write_mufg_research(articles + chart_items)
 
     print("6/6  Processing flagged articles — refreshing risk insights...")
     flagged_count = process_flagged_articles()

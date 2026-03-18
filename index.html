@@ -787,6 +787,19 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     </div>
   </div>
 
+  <!-- Chart of the Day -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      📈 Chart of the Day
+      <a href="https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy#chart" target="_blank" style="font-size:11px;color:var(--muted);font-weight:400">mufgamericas.com ↗</a>
+    </div>
+    <div id="chart-of-day-list" style="display:flex;flex-direction:column;gap:6px">
+      <div class="text-muted" style="padding:12px;font-size:12px">Loading...</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
   <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="mufg-filters">
     <button class="filter-btn active" onclick="filterMufg('all',this)">All</button>
     <button class="filter-btn" onclick="filterMufg('FX',this)">FX</button>
@@ -1059,6 +1072,7 @@ async function loadAll(){
     renderIdeas();
     renderSectorImpact();
     renderRMNotes();
+    renderChartOfDay();
     renderMufgArticles();
     renderOvNews();
     renderOvPriorities();
@@ -1408,9 +1422,13 @@ function renderOvNews(){
     return db-da;
   });
   const top=sorted.slice(0,6);
+  if(!top.length){
+    document.getElementById('ov-news').innerHTML='<div style="padding:16px;font-size:12px;color:var(--muted);text-align:center">No headlines yet — data refreshes at 6am WIB. Check GitHub Actions if this persists.</div>';
+    return;
+  }
   document.getElementById('ov-news').innerHTML=top.map(n=>{
-    const pc=n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
-    const tag=n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
+    const pc=n.is_corruption?'border-left:3px solid var(--purple)':n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
+    const tag=n.is_corruption?'🚨':n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
     const ago=timeAgo(n.published_raw);
     return `<div class="card-sm" style="${pc}padding:10px 12px">
       <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${esc(n.source)}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
@@ -1677,8 +1695,27 @@ function renderRMNotes(){
 }
 
 // ── MUFG Research ─────────────────────────────────────────────────────────
+function renderChartOfDay(){
+  const charts=ALL_MUFG.filter(a=>a.category==='ChartOfDay')
+    .sort((a,b)=>{ try{return new Date(b.date_str)-new Date(a.date_str);}catch{return 0;} });
+  const el=document.getElementById('chart-of-day-list');
+  if(!el) return;
+  if(!charts.length){
+    el.innerHTML='<div class="text-muted" style="padding:12px;font-size:12px">No chart data yet — refreshes at 6am WIB</div>';
+    return;
+  }
+  el.innerHTML=charts.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--bg3);border-radius:8px;${i===0?'border:1px solid rgba(230,0,18,.25)':'border:1px solid var(--border)'}">
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap;min-width:72px">${esc(c.date_str)}</span>
+      <span style="flex:1;font-size:12px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--text)':'var(--muted)'};line-height:1.4">${esc(c.title)}</span>
+      <a href="${safeUrl(c.url)}" target="_blank" style="font-size:11px;color:var(--blue);white-space:nowrap;text-decoration:none">Learn More ↗</a>
+    </div>`).join('');
+}
+
 function renderMufgArticles(){
-  const filtered=mufgFilter==='all'?ALL_MUFG:ALL_MUFG.filter(a=>a.category===mufgFilter);
+  // Exclude ChartOfDay — rendered separately above
+  const research=ALL_MUFG.filter(a=>a.category!=='ChartOfDay');
+  const filtered=mufgFilter==='all'?research:research.filter(a=>a.category===mufgFilter);
   const catClass={'FX':'ma-fx','Macro':'ma-macro','Indonesia':'ma-indonesia','RATES':'ma-rates','MACRO':'ma-macro'};
   document.getElementById('mufg-articles').innerHTML=filtered.length?filtered.map(a=>`
     <div class="mufg-article">

@@ -264,13 +264,12 @@ def fetch_all_news() -> List[Dict]:
                     "source_cat":   src["cat"],
                     "published_raw":e.get("published", ""),
                     "summary":      summary,
-                    "tags":         tags,
-                    "is_indonesia": "indonesia" in tags,
-                    "is_energy":    "energy"    in tags,
-                    "is_fx":        "fx_rates"  in tags,
-                    "is_macro":     "macro"     in tags,
-                    # is_corruption omitted — column added via add_corruption_column.sql migration
-                    # Frontend derives it from tags array until migration is run
+                    "tags":          tags,
+                    "is_indonesia":  "indonesia"  in tags,
+                    "is_corruption": "corruption" in tags,
+                    "is_energy":     "energy"     in tags,
+                    "is_fx":         "fx_rates"   in tags,
+                    "is_macro":      "macro"      in tags,
                 })
             time.sleep(0.3)
         except Exception as e:

@@ -720,7 +720,6 @@ def fetch_chart_of_day() -> List[Dict]:
                 if href and not href.startswith("http"):
                     href = BASE + href
                 items.append({
-                    "id":       hashlib.md5(title_text.encode()).hexdigest()[:12],
                     "title":    title_text,
                     "url":      href,
                     "date_str": date_text,

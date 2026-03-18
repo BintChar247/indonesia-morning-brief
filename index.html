@@ -1834,10 +1834,19 @@ async function triggerRefresh(){
   }
   btn.disabled=true; btn.innerHTML='<span class="spin">⏳</span> Triggering...';
   try{
+    // Auto-detect default branch so we never hardcode 'main' vs 'master'
+    let branch = cfg.branch || 'main';
+    try{
+      const repoInfo=await fetch(`https://api.github.com/repos/${cfg.repo}`,{
+        headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(repoInfo.ok){ const rd=await repoInfo.json(); branch=rd.default_branch||branch; }
+    }catch(_){}
+
     const r=await fetch(`https://api.github.com/repos/${cfg.repo}/actions/workflows/update.yml/dispatches`,{
       method:'POST',
       headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
-      body:JSON.stringify({ref:cfg.branch,inputs:{reason:'Manual refresh from dashboard'}})
+      body:JSON.stringify({ref:branch,inputs:{reason:'Manual refresh from dashboard'}})
     });
     if(r.status===204){
       btn.innerHTML='✅ Triggered!';

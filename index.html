@@ -126,10 +126,11 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .alert-pill{background:rgba(230,0,18,.15);border:1px solid rgba(230,0,18,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#ff8a95}
 
 /* ── Nav tabs ────────────────────────────────────────── */
-.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center}
 .nav-btn{background:none;border:none;color:var(--muted);padding:12px 14px;font-size:13px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
 .nav-btn:hover{color:var(--text)}
 .nav-btn.active{color:#fff;border-bottom-color:var(--red)}
+.nav-divider{width:1px;background:var(--border);height:24px;margin:0 6px;flex-shrink:0}
 
 /* ── Content ─────────────────────────────────────────── */
 .content{padding:20px;max-width:1400px;margin:0 auto;min-height:calc(100vh - 110px)}
@@ -150,12 +151,19 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
 /* ── KPI card ────────────────────────────────────────── */
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpi.kpi-accent{border-color:rgba(230,0,18,.35);background:linear-gradient(135deg,var(--bg2) 70%,rgba(230,0,18,.04))}
 .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
 .kpi-value{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
+.kpi-accent .kpi-value{font-size:28px}
 .kpi-change{font-size:12px;font-weight:600}
 .kpi-change.up{color:var(--green)}
 .kpi-change.down{color:var(--red)}
 .kpi-change.flat{color:var(--muted)}
+/* ── Ticker auto-scroll ──────────────────────────────── */
+.ticker-wrap{overflow:hidden;position:relative}
+.ticker-track{display:flex;gap:10px;animation:ticker-scroll 30s linear infinite;width:max-content}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
 /* ── Market table ────────────────────────────────────── */
 .mkt-table{width:100%;border-collapse:collapse}
@@ -419,10 +427,12 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div>Last updated: <strong id="hdr-updated">–</strong></div>
       <div id="hdr-status" class="text-muted">–</div>
     </div>
-    <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="font-size:15px;padding:4px 9px">🌙</button>
-    <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload data from database" style="font-size:13px">↺</button>
-    <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" title="Admin Settings" style="display:none">⚙️</button>
-    <button class="btn btn-red btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none">🔄 Refresh</button>
+    <div style="display:flex;gap:4px;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">🌙</span><span style="font-size:8px;color:var(--muted)">Theme</span></button>
+      <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload from database" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">↺</span><span style="font-size:8px;color:var(--muted)">Reload</span></button>
+      <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" style="display:none;flex-direction:column;align-items:center;padding:4px 8px;gap:1px"><span style="font-size:14px">⚙️</span><span style="font-size:8px;color:var(--muted)">Admin</span></button>
+      <button class="btn btn-ghost btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none;flex-direction:column;align-items:center;padding:4px 10px;gap:1px;border:1px solid rgba(230,0,18,.4);color:var(--red)"><span style="font-size:13px">🔄</span><span style="font-size:8px">Refresh</span></button>
+    </div>
   </div>
 </div>
 
@@ -432,12 +442,15 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <!-- Nav tabs -->
 <div class="nav">
   <button class="nav-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
-  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 Tom Joyce / Research</button>
+  <div class="nav-divider"></div>
+  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 Tom Joyce</button>
   <button class="nav-btn" onclick="switchTab('markets',this)">📈 Markets</button>
   <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
+  <div class="nav-divider"></div>
   <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
   <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Client Opps</button>
   <button class="nav-btn" onclick="switchTab('sector',this)">⚡ Sector</button>
+  <div class="nav-divider"></div>
   <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
 </div>
 
@@ -456,41 +469,41 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     <div class="kpi skeleton skel-kpi"></div>
   </div>
 
-  <!-- 3-column grid: movers | top news | ideas -->
-  <div style="display:grid;grid-template-columns:1fr 1.6fr 1.2fr;gap:16px">
+  <!-- 3-column grid: priorities | headlines | movers — priorities left = most actionable -->
+  <div style="display:grid;grid-template-columns:1.2fr 1.6fr 1fr;gap:16px;align-items:start">
 
-    <!-- Market movers -->
-    <div>
-      <div class="section-label">Market Movers</div>
-      <div id="ov-movers" class="card" style="padding:12px">
-        <div class="skeleton skel-text"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text"></div>
-      </div>
-    </div>
-
-    <!-- Top news -->
-    <div>
-      <div class="section-label">Top Headlines</div>
-      <div id="ov-news" style="display:flex;flex-direction:column;gap:8px">
-        <div class="card skeleton skel-text" style="height:60px"></div>
-        <div class="card skeleton skel-text" style="height:60px"></div>
-        <div class="card skeleton skel-text" style="height:60px"></div>
-      </div>
-    </div>
-
-    <!-- Client priorities -->
+    <!-- Today's Priorities — left, most prominent -->
     <div>
       <div class="section-label">Today's Priorities</div>
-      <div id="ov-priorities" style="display:flex;flex-direction:column;gap:8px">
+      <div id="ov-priorities" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
         <div class="card skeleton skel-text" style="height:70px"></div>
         <div class="card skeleton skel-text" style="height:70px"></div>
+      </div>
+    </div>
+
+    <!-- Top headlines — centre -->
+    <div>
+      <div class="section-label">Top Headlines</div>
+      <div id="ov-news" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+      </div>
+    </div>
+
+    <!-- Market movers — right -->
+    <div>
+      <div class="section-label">Market Movers</div>
+      <div id="ov-movers" class="card" style="padding:12px;max-height:420px;overflow-y:auto">
+        <div class="skeleton skel-text"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text"></div>
       </div>
     </div>
   </div>
 
-  <!-- Sector snapshot -->
+  <!-- Sector snapshot — light card grid, no jarring dark band -->
   <div style="margin-top:20px">
     <div class="section-label" style="margin-bottom:10px">Sector Impact Snapshot</div>
-    <div id="ov-sectors" class="sector-grid"></div>
+    <div id="ov-sectors" class="sector-grid" style="background:transparent"></div>
   </div>
 </div>
 
@@ -1117,18 +1130,20 @@ async function loadAll(){
 // ── Render KPIs ──────────────────────────────────────────────────────────
 function renderKPIs(mkt){
   const q = bySymbol(mkt);
+  // Indonesia-relevant cards get accent treatment; global indicators are standard
   const cards = [
-    { label:'Brent Crude', sym:'BZ=F',  fmt:v=>`$${v.toFixed(2)}`, unit:'USD/bbl' },
-    { label:'USD / IDR',   sym:'IDR=X', fmt:v=>`Rp ${v.toLocaleString('en',{maximumFractionDigits:0})}`, unit:'Indonesian Rupiah' },
-    { label:'S&P 500',     sym:'^GSPC', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'US Equity Index' },
-    { label:'IDX Composite',sym:'^JKSE',fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'Indonesian Stocks' },
+    { label:'USD / IDR',    sym:'IDR=X', fmt:v=>`Rp ${v.toLocaleString('en',{maximumFractionDigits:0})}`, unit:'Indonesian Rupiah', accent:true },
+    { label:'IDX Composite',sym:'^JKSE', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'Indonesian Stocks', accent:true },
+    { label:'Brent Crude',  sym:'BZ=F',  fmt:v=>`$${v.toFixed(2)}`, unit:'USD/bbl' },
+    { label:'S&P 500',      sym:'^GSPC', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'US Equity Index' },
   ];
   document.getElementById('ov-kpis').innerHTML = cards.map(c=>{
-    const d = q[c.sym]; if(!d) return `<div class="kpi"><div class="kpi-label">${c.label}</div><div class="kpi-value text-muted">–</div></div>`;
+    const d = q[c.sym];
+    if(!d) return `<div class="kpi${c.accent?' kpi-accent':''}"><div class="kpi-label">${c.label}</div><div class="kpi-value text-muted">–</div></div>`;
     const pc = d.change_pct||0; const cls = pc>0?'up':pc<0?'down':'flat'; const arr = pc>0?'▲':pc<0?'▼':'–';
-    const alert = c.sym==='IDR=X'&&d.price>=17000 ? 'border-color:rgba(230,0,18,.5)' : '';
-    return `<div class="kpi" style="${alert}">
-      <div class="kpi-label">${c.label}</div>
+    const idrAlert = c.sym==='IDR=X'&&d.price>=17000 ? ';border-color:rgba(230,0,18,.6)' : '';
+    return `<div class="kpi${c.accent?' kpi-accent':''}" style="${idrAlert}">
+      <div class="kpi-label">${c.label}${c.accent?' <span style="font-size:9px;background:rgba(230,0,18,.15);color:var(--red);padding:1px 5px;border-radius:4px;font-weight:700">ID</span>':''}</div>
       <div class="kpi-value">${c.fmt(d.price)}</div>
       <div class="kpi-change ${cls}">${arr} ${pc>0?'+':''}${pc.toFixed(2)}%</div>
       <div style="font-size:10px;color:var(--muted);margin-top:2px">${c.unit}</div>
@@ -1136,17 +1151,23 @@ function renderKPIs(mkt){
   }).join('');
 }
 
-// ── Alerts ───────────────────────────────────────────────────────────────
+// ── Alerts — auto-scroll ticker, top 4 movers ────────────────────────────
 function renderAlerts(mkt){
-  const movers = mkt.filter(r=>Math.abs(r.change_pct||0)>=2);
+  const movers = [...mkt].filter(r=>Math.abs(r.change_pct||0)>=1.5)
+    .sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0))
+    .slice(0,5);
   const bar = document.getElementById('alertBar');
   if(!movers.length){bar.classList.remove('show');return;}
   bar.classList.add('show');
-  bar.innerHTML = '<span style="font-size:11px;font-weight:700;color:#ff8a95;white-space:nowrap">⚡ Market Alerts:</span> ' +
-    movers.map(r=>{
-      const pc=r.change_pct||0;
-      return `<span class="alert-pill">${r.name} ${pc>0?'+':''}${pc.toFixed(1)}%</span>`;
-    }).join('');
+  const pills = movers.map(r=>{
+    const pc=r.change_pct||0;
+    return `<span class="alert-pill">${r.name} <strong>${pc>0?'+':''}${pc.toFixed(1)}%</strong></span>`;
+  }).join('');
+  // Duplicate for seamless loop
+  bar.innerHTML = `<span style="font-size:11px;font-weight:700;color:#ff8a95;white-space:nowrap;margin-right:12px">⚡ Movers:</span>
+    <div class="ticker-wrap" style="flex:1;overflow:hidden">
+      <div class="ticker-track">${pills}${pills}</div>
+    </div>`;
 }
 
 // ── Market movers ────────────────────────────────────────────────────────

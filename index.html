@@ -207,11 +207,14 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 /* ── Markets panel responsive grids ─────────────────── */
 .markets-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
 .ndf-ccs-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+.ndf-card{overflow-x:hidden} /* prevent SVG label bleed causing page scroll */
 @media(max-width:768px){
   .markets-grid{grid-template-columns:1fr;margin-bottom:12px}
-  .ndf-ccs-grid{grid-template-columns:1fr}
-  #yield-svg{height:120px}
+  .ndf-ccs-grid{grid-template-columns:1fr;gap:24px}
+  #yield-svg{height:110px}
+  #ndf-svg-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch} /* scroll SVG if it overflows */
   .mkt-table th,.mkt-table td{padding:7px 8px;font-size:12px}
+  .ndf-card{padding:14px 12px}
 }
 .bar-wrap{width:60px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;display:inline-block;overflow:hidden}
 .bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
@@ -604,7 +607,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   </div>
 
   <!-- IDR NDF & CCS -->
-  <div class="card" style="margin-top:16px">
+  <div class="card ndf-card" style="margin-top:16px">
     <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       💱 <span>IDR NDF Forward Curve & Cross-Currency Swap (CCS) <span style="font-weight:400;color:var(--muted)">— Indicative</span></span>
     </div>
@@ -621,7 +624,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
         <div class="tbl-scroll"><table class="mkt-table" id="tbl-ndf"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table></div>
         <div style="position:relative;margin-top:14px">
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Forward Points (IDR pips above spot)</div>
-          <svg id="ndf-svg" viewBox="0 0 420 120" style="width:100%;overflow:visible"></svg>
+          <div id="ndf-svg-wrap" style="width:100%"><svg id="ndf-svg" viewBox="0 0 420 120" style="width:100%;overflow:visible"></svg></div>
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
           NDF rate = Spot × (1 + IDR rate × T) / (1 + USD rate × T). Hedge cost = annualised cost of buying USD forward.
@@ -1357,7 +1360,10 @@ function renderNDFandCCS(mkt, yields){
     svg+=`<text class="yc-label" x="${x}" y="${y-8}" text-anchor="middle" fill="var(--blue)">${Math.round(r.fwdPts)}</text>`;
   });
   svg+='</svg>';
-  document.getElementById('ndf-svg').outerHTML=svg;
+  // Replace via wrapper innerHTML so width:100% is preserved on the new element
+  const ndfWrap=document.getElementById('ndf-svg-wrap');
+  if(ndfWrap) ndfWrap.innerHTML=svg;
+  else document.getElementById('ndf-svg').outerHTML=svg;
 
   // ── CCS ──────────────────────────────────────────────────────────────────
   const sofrBase = ym['3M'] ?? 4.5;

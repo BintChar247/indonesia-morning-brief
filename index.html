@@ -182,8 +182,9 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
 /* ── News ─────────────────────────────────────────────── */
 .news-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.filter-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--muted);padding:5px 12px;font-size:12px;font-weight:500;transition:all .15s}
+.filter-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--muted);padding:5px 12px;font-size:12px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
 .filter-btn:hover,.filter-btn.active{background:var(--red-dim);border-color:rgba(230,0,18,.4);color:#fff}
+.filter-count{background:rgba(255,255,255,.12);border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;min-width:16px;text-align:center}
 .search-row{display:flex;gap:8px;margin-bottom:16px}
 .search-row input{flex:1}
 .news-list{display:flex;flex-direction:column;gap:10px}
@@ -1378,6 +1379,24 @@ function renderNews(){
       const txt=((n.title||'')+(n.summary||'')).toLowerCase();
       n.is_corruption=(n.tags||[]).includes('corruption')||CORR_TERMS.some(k=>txt.includes(k));
     }
+  });
+
+  // Stamp counts onto filter buttons
+  const counts={
+    all:         combined.length,
+    indonesia:   combined.filter(n=>n.is_indonesia).length,
+    corruption:  combined.filter(n=>n.is_corruption).length,
+    energy:      combined.filter(n=>n.is_energy).length,
+    fx_rates:    combined.filter(n=>n.is_fx).length,
+    macro:       combined.filter(n=>n.is_macro).length,
+    commodities: combined.filter(n=>(n.tags||[]).includes('commodities')).length,
+    global:      combined.filter(n=>(n.tags||[]).includes('global')).length,
+  };
+  document.querySelectorAll('#news-filters .filter-btn').forEach(btn=>{
+    const f=btn.dataset.filter;
+    if(!(f in counts)) return;
+    const label=btn.firstChild.textContent.trim();
+    btn.innerHTML=`${label} <span class="filter-count">${counts[f]}</span>`;
   });
 
   const q=(document.getElementById('news-search').value||'').toLowerCase();

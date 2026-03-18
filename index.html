@@ -436,7 +436,8 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <button class="nav-btn" onclick="switchTab('markets',this)">📈 Markets</button>
   <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
   <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
-  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Corporate Ideas</button>
+  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Client Opps</button>
+  <button class="nav-btn" onclick="switchTab('sector',this)">⚡ Sector</button>
   <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
 </div>
 
@@ -738,15 +739,19 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="panel" id="panel-ideas">
   <div class="section-label">RM Intelligence</div>
-  <div class="section-title">Corporate Ideas & Discussion Topics</div>
+  <div class="section-title">Four Segments — Distinct Exposures &amp; Opportunities</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Click each segment to see risks, opportunities, and key client names</div>
+  <div style="display:flex;gap:0;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden" id="segment-tabs"><!-- rendered by JS --></div>
+  <div id="segment-content"><!-- rendered by JS --></div>
+</div>
 
-  <!-- Segment Briefing Notes — full width at top -->
-  <div style="margin-bottom:20px">
-    <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--green)"></div>Segment Briefing Notes</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px" id="rm-notes">
-      <!-- Rendered from JS -->
-    </div>
-  </div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB: SECTOR -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-sector">
+  <div class="section-label">RM Intelligence</div>
+  <div class="section-title">Sector &amp; Priority Conversations</div>
 
   <!-- Source summary bar -->
   <div id="ideas-source-bar" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--muted)">
@@ -754,7 +759,6 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   </div>
 
   <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
-
     <!-- Ideas list -->
     <div>
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--red)"></div>Today's Priority Conversations</div>
@@ -762,7 +766,6 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
         <div class="text-muted" style="padding:30px;text-align:center">Loading ideas...</div>
       </div>
     </div>
-
     <!-- Sector impact -->
     <div>
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px"><div style="width:16px;height:2px;background:var(--amber)"></div>Sector Direct / Indirect Impact</div>
@@ -1082,7 +1085,7 @@ async function loadAll(){
     renderNews();
     renderIdeas();
     renderSectorImpact();
-    renderRMNotes();
+    renderSegmentNotes();
     renderChartOfDay();
     renderMufgArticles();
     renderOvNews();
@@ -1715,18 +1718,138 @@ function renderOvSectors(){
 }
 
 // ── RM segment notes ──────────────────────────────────────────────────────
-const RM_NOTES = [
-  {seg:'SOEs (Pertamina, PLN, Bulog, PGN)', color:'var(--red)', note:'Focus: Commodity & FX hedging, subsidy impact review, PLN renewable project finance (42.6 GW pipeline), ART energy clause cost analysis. Open question: has CFO modelled Brent at $100+?'},
-  {seg:'FI / NBFI (Banks, Danamon)', color:'var(--blue)', note:'Focus: MSCI reclassification stress test, NPL monitoring in energy/manufacturing books, sustainable finance co-lending (Danamon Rp 32.7T portfolio), BI rate path + capital adequacy.'},
-  {seg:'Corporate MNCs (Manufacturing, FMCG, Chemical)', color:'var(--purple)', note:'Focus: Energy cost hedging, supply chain finance, clean energy procurement (88% consider relocation). N0W platform — schedule follow-up on energy transition advisory.'},
-  {seg:'Large Local Conglomerates (Adaro, Sinar Mas, Salim, Astra)', color:'var(--green)', note:'Focus: USD debt service coverage (IDR at 17,000 risk), coal/nickel transition finance roadmap, CPO export hedging, Indofood wheat import cost review, Sinar Mas geothermal (440 MW JV).'},
+const RM_SEGMENT_NOTES = [
+  {
+    id:'soe', name:'SOEs', icon:'🏛',
+    fullName:'State-Owned Enterprises (SOEs)',
+    subtitle:'Pertamina · PLN · Bulog · PGN — government-linked entities with direct energy/commodity exposure',
+    color:'var(--red)',
+    risks:[
+      {title:'Pertamina import cost spike',    detail:'Higher crude procurement costs while domestic non-subsidised prices were cut Jan 2026'},
+      {title:'PLN PPA squeeze',                detail:'Fixed take-or-pay obligations + higher gas input costs compress margin; government compensates at fiscal cost'},
+      {title:'LPG subsidy blowout',            detail:'~60M households on 3-kg subsidised LPG; landed import cost rising sharply'},
+      {title:'Bulog wheat & rice costs',       detail:'Rice prices +11% Feb 2026; freight surge adds to CIF import costs'},
+    ],
+    opportunities:[
+      {title:'Oil hedging advisory',           detail:'Crude price & FX hedging structures for Pertamina\'s import programme'},
+      {title:'PLN renewable project finance',  detail:'Lead arranger for 42.6 GW RUPTL 2025–2034 pipeline: solar, wind, hydro, geothermal'},
+      {title:'LPG structured trade finance',   detail:'Import financing & supply chain solutions for LPG procurement'},
+      {title:'Bulog trade finance',            detail:'Working capital & letter of credit facilities for food commodity imports'},
+    ],
+    clients:[
+      {name:'Pertamina', detail:'Indonesia\'s national oil & gas company; 605K bpd production; dominant refiner'},
+      {name:'PLN',       detail:'State electricity utility; 73,460 MW capacity; USD PPA obligations'},
+      {name:'Bulog',     detail:'National food logistics & buffer stock agency; major rice & wheat importer'},
+      {name:'PGN',       detail:'State gas transmission & distribution; LNG procurement exposure'},
+    ],
+  },
+  {
+    id:'fig', name:'FIG — Banks', icon:'🏦',
+    fullName:'Financial Institutions (FIG — Banks)',
+    subtitle:'Danamon · BRI · Mandiri · BCA — financial institutions with energy & commodity credit exposure',
+    color:'var(--blue)',
+    risks:[
+      {title:'NPL risk in energy book',        detail:'Higher energy costs squeezing SME borrowers; manufacturing sector stress visible'},
+      {title:'MSCI reclassification stress',   detail:'Foreign ownership thresholds create capital adequacy questions for listed banks'},
+      {title:'BI rate hold pressure',          detail:'BI held 4.75% — elongated cost of funding for retail lending books'},
+      {title:'IDR funding mismatch',           detail:'USD-funded balance sheets face spread widening if IDR weakens further'},
+    ],
+    opportunities:[
+      {title:'Sustainable finance co-lending', detail:'Danamon Rp 32.7T green portfolio — co-lending, ESG structuring advisory'},
+      {title:'Trade finance solutions',        detail:'LC issuance and supply chain finance for commodity import flows'},
+      {title:'Capital adequacy advisory',      detail:'Tier 2 capital and AT1 issuance as RWA increases with stressed book'},
+      {title:'FX hedging programme',           detail:'Cross-currency swaps and NDF hedging for USD-denominated liabilities'},
+    ],
+    clients:[
+      {name:'Bank Danamon',  detail:'Rp 32.7T sustainable finance portfolio; MUFG affiliate; retail & SME focus'},
+      {name:'BRI',           detail:'Indonesia\'s largest bank by assets; dominant micro/SME lender'},
+      {name:'Bank Mandiri',  detail:'State-owned; largest corporate bank; significant energy & infrastructure exposure'},
+      {name:'BCA',           detail:'Largest private bank; transaction banking focus; strong FX flow volumes'},
+    ],
+  },
+  {
+    id:'mnc', name:'MNCs', icon:'🌐',
+    fullName:'Multinational Corporations (MNCs)',
+    subtitle:'Manufacturing · FMCG · Chemical — multinationals with Indonesia supply chain & energy exposure',
+    color:'var(--purple)',
+    risks:[
+      {title:'Energy cost surge',              detail:'Crude & LNG input cost spike compresses manufacturing margins for energy-intensive MNCs'},
+      {title:'Supply chain disruption',        detail:'Hormuz shipping disruption affects MNCs considering relocation of supply chains'},
+      {title:'IDR dividend repatriation risk', detail:'USD/IDR above Rp 17,000 risk reduces repatriated earnings in USD terms'},
+      {title:'Carbon compliance costs',        detail:'EU CBAM and Indonesia carbon tax increasing cost of non-green production'},
+    ],
+    opportunities:[
+      {title:'Energy cost hedging',            detail:'Commodity swap & cap structures for LNG and crude input cost management'},
+      {title:'Supply chain finance',           detail:'N0W platform — working capital finance for local supplier networks'},
+      {title:'Clean energy procurement',       detail:'Renewable PPA structuring and green project finance advisory'},
+      {title:'FX forward programmes',          detail:'NDF and forward hedging for dividend repatriation and USD payables'},
+    ],
+    clients:[
+      {name:'Unilever Indonesia', detail:'FMCG; palm oil & packaging cost exposure; significant IDR cash generation'},
+      {name:'Astra International',detail:'Auto & industrial conglomerate; USD component imports; FX sensitivity'},
+      {name:'Indofood',           detail:'Wheat & palm oil importer; USD-denominated commodity procurement'},
+      {name:'Pupuk Indonesia',    detail:'State fertiliser group; gas feedstock cost directly exposed to LNG price'},
+    ],
+  },
+  {
+    id:'local', name:'Large Local', icon:'🏢',
+    fullName:'Large Local Conglomerates',
+    subtitle:'Adaro · Sinar Mas · Salim · Astra — conglomerates with multi-sector USD debt & commodity exposure',
+    color:'var(--green)',
+    risks:[
+      {title:'USD debt service coverage',      detail:'IDR at 17,000 risk inflates USD bond servicing costs across conglomerate holdcos'},
+      {title:'Coal & nickel revenue swings',   detail:'Commodity price swings affect Adaro coal revenue; nickel oversupply (-21.8%)'},
+      {title:'CPO export margin compression',  detail:'EU deforestation regulation + palm oil price risk affecting Sinar Mas margins'},
+      {title:'Transition finance gap',         detail:'Coal-to-green transition roadmap requires significant refinancing of legacy assets'},
+    ],
+    opportunities:[
+      {title:'USD debt refinancing',           detail:'Offshore bond issuance advisory for conglomerate holdco refinancing'},
+      {title:'CPO export hedging',             detail:'Forward & option structures for palm oil price and FX export proceeds'},
+      {title:'Transition finance',             detail:'Adaro coal-to-geothermal; Sinar Mas 440 MW JV project finance structuring'},
+      {title:'Indofood import cost review',    detail:'Wheat & soybean import cost lock-in via commodity swap structures'},
+    ],
+    clients:[
+      {name:'Adaro Energy',       detail:'Indonesia\'s 2nd largest coal producer; geothermal JV; offshore bonds'},
+      {name:'Sinar Mas',          detail:'Palm oil, paper, property, financial services; 440 MW geothermal JV'},
+      {name:'Salim Group',        detail:'Indofood parent; wheat/soybean import dependency; Indomaret retail chain'},
+      {name:'Astra International',detail:'Auto, agribusiness, financial services; USD import + IDR earnings mix'},
+    ],
+  },
 ];
-function renderRMNotes(){
-  document.getElementById('rm-notes').innerHTML=RM_NOTES.map(r=>`
-    <div class="card-sm" style="border-left:3px solid ${r.color}">
-      <div style="font-size:11px;font-weight:700;color:${r.color};margin-bottom:5px">${r.seg}</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.5">${r.note}</div>
-    </div>`).join('');
+
+function renderSegmentNotes(activeId){
+  activeId = activeId || RM_SEGMENT_NOTES[0].id;
+  const seg = RM_SEGMENT_NOTES.find(s=>s.id===activeId) || RM_SEGMENT_NOTES[0];
+  // Tabs
+  document.getElementById('segment-tabs').innerHTML = RM_SEGMENT_NOTES.map(s=>`
+    <button onclick="renderSegmentNotes('${s.id}')" style="flex:1;padding:12px 8px;background:${s.id===activeId?'var(--bg3, var(--bg))':'transparent'};border:none;border-bottom:${s.id===activeId?'2px solid '+s.color:'2px solid transparent'};color:${s.id===activeId?s.color:'var(--muted)'};font-size:12px;font-weight:${s.id===activeId?'700':'500'};cursor:pointer;transition:all .15s;white-space:nowrap">
+      ${s.icon} ${s.name}
+    </button>`).join('');
+  // Content
+  const col = (label, color, items, keyFn, detailFn) => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${color};margin-bottom:14px;display:flex;align-items:center;gap:6px">
+        <div style="width:16px;height:2px;background:${color}"></div>${label}
+      </div>
+      ${items.map(it=>`
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(keyFn(it))}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${esc(detailFn(it))}</div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('segment-content').innerHTML = `
+    <div style="background:var(--bg2);border:1px solid ${seg.color};border-radius:12px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:32px;line-height:1">${seg.icon}</div>
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--text)">${esc(seg.fullName)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${esc(seg.subtitle)}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+      ${col('Key Risks',           'var(--red)',   seg.risks,         r=>r.title, r=>r.detail)}
+      ${col('MUFG Opportunities',  'var(--green)', seg.opportunities, o=>o.title, o=>o.detail)}
+      ${col('Key Client Entities', 'var(--blue)',  seg.clients,       c=>c.name,  c=>c.detail)}
+    </div>`;
 }
 
 // ── MUFG Research ─────────────────────────────────────────────────────────
@@ -1942,6 +2065,8 @@ function switchTab(id,btn){
   document.getElementById('panel-'+id).classList.add('active');
   btn.classList.add('active');
   if(id==='sources') renderCustomSources();
+  if(id==='sector'){ renderIdeas(); renderSectorImpact(); }
+  if(id==='ideas')  renderSegmentNotes();
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────

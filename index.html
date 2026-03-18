@@ -191,6 +191,8 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 .news-card:hover{border-color:rgba(230,0,18,.3)}
 .news-card.indonesia{border-left:3px solid var(--red)}
 .news-card.energy{border-left:3px solid var(--amber)}
+.news-card.corruption{border-left:3px solid var(--purple)}
+.corruption-section-header{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:8px 14px;margin-bottom:8px;font-size:12px;font-weight:700;color:var(--purple);display:flex;align-items:center;gap:6px}
 .news-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
 .news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .news-time{font-size:11px;color:var(--amber);font-weight:600;margin-left:4px}
@@ -710,6 +712,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
     <button class="filter-btn" data-filter="fx_rates" onclick="filterNews('fx_rates',this)">💱 FX &amp; Rates</button>
     <button class="filter-btn" data-filter="macro" onclick="filterNews('macro',this)">📊 Macro</button>
     <button class="filter-btn" data-filter="commodities" onclick="filterNews('commodities',this)">🪨 Commodities</button>
+    <button class="filter-btn" data-filter="corruption" onclick="filterNews('corruption',this)">🚨 Corruption</button>
     <button class="filter-btn" data-filter="global" onclick="filterNews('global',this)">🌍 Global</button>
   </div>
   <div class="search-row">
@@ -1307,18 +1310,19 @@ function renderIDNews(){
 
 // ── News ──────────────────────────────────────────────────────────────────
 const TAG_STYLE = {
-  indonesia: 'background:var(--red-dim);color:#ff8a95',
-  energy:    'background:rgba(245,158,11,.15);color:var(--amber)',
-  fx_rates:  'background:rgba(96,165,250,.15);color:var(--blue)',
+  indonesia:  'background:var(--red-dim);color:#ff8a95',
+  corruption: 'background:rgba(167,139,250,.2);color:var(--purple)',
+  energy:     'background:rgba(245,158,11,.15);color:var(--amber)',
+  fx_rates:   'background:rgba(96,165,250,.15);color:var(--blue)',
   commodities:'background:rgba(34,197,94,.12);color:var(--green)',
-  macro:     'background:rgba(167,139,250,.15);color:var(--purple)',
-  global:    'background:rgba(255,255,255,.08);color:var(--muted)',
+  macro:      'background:rgba(167,139,250,.15);color:var(--purple)',
+  global:     'background:rgba(255,255,255,.08);color:var(--muted)',
 };
-const TAG_EMOJI = {indonesia:'🇮🇩',energy:'⚡',fx_rates:'💱',commodities:'🪨',macro:'📊',global:'🌍'};
+const TAG_EMOJI = {indonesia:'🇮🇩',corruption:'🚨',energy:'⚡',fx_rates:'💱',commodities:'🪨',macro:'📊',global:'🌍'};
 
 function newsCardHTML(n, compact=false){
   const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${esc(t)}</span>`).join('');
-  const border=n.is_indonesia?'indonesia':n.is_energy?'energy':'';
+  const border=n.is_corruption?'corruption':n.is_indonesia?'indonesia':n.is_energy?'energy':'';
   const ago=timeAgo(n.published_raw);
   const isFlagged=FLAGGED_IDS.has(n.id);
   const flagIcon=isFlagged?'🚩':'🏳';
@@ -1353,12 +1357,14 @@ function renderNews(){
       published_raw:f.flagged_at, created_at:f.flagged_at,
     }));
   const combined = [...ALL_NEWS, ...flaggedAsNews];
+  // Propagate is_corruption for flaggedAsNews items
+  combined.forEach(n=>{ if(!('is_corruption' in n)) n.is_corruption=(n.tags||[]).includes('corruption'); });
 
   const q=(document.getElementById('news-search').value||'').toLowerCase();
   const filtered=combined.filter(n=>{
     const matchFilter=newsFilter==='all'||(n.tags||[]).includes(newsFilter)||
-      (newsFilter==='indonesia'&&n.is_indonesia)||(newsFilter==='energy'&&n.is_energy)||
-      (newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
+      (newsFilter==='indonesia'&&n.is_indonesia)||(newsFilter==='corruption'&&n.is_corruption)||
+      (newsFilter==='energy'&&n.is_energy)||(newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
     const matchQ=!q||n.title.toLowerCase().includes(q)||(n.summary||'').toLowerCase().includes(q)||(n.source||'').toLowerCase().includes(q);
     return matchFilter&&matchQ;
   });
@@ -1369,7 +1375,22 @@ function renderNews(){
     return db-da;
   });
   document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${combined.length} articles`;
-  document.getElementById('news-list').innerHTML=filtered.length?filtered.map(n=>newsCardHTML(n)).join(''):'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
+
+  // When viewing "all" — pin corruption alerts at the top in a separate block
+  let html='';
+  if(newsFilter==='all'&&!q){
+    const corrItems=filtered.filter(n=>n.is_corruption);
+    const restItems=filtered.filter(n=>!n.is_corruption);
+    if(corrItems.length){
+      html+=`<div class="corruption-section-header">🚨 Corruption / Governance Alerts (${corrItems.length})</div>`;
+      html+=corrItems.map(n=>newsCardHTML(n)).join('');
+      if(restItems.length) html+=`<div style="height:8px"></div>`;
+    }
+    html+=restItems.map(n=>newsCardHTML(n)).join('');
+  } else {
+    html=filtered.map(n=>newsCardHTML(n)).join('');
+  }
+  document.getElementById('news-list').innerHTML=html||'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
 }
 
 function filterNews(f,btn){

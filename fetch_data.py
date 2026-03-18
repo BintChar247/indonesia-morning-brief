@@ -265,10 +265,11 @@ def fetch_all_news() -> List[Dict]:
                     "published_raw":e.get("published", ""),
                     "summary":      summary,
                     "tags":         tags,
-                    "is_indonesia": "indonesia" in tags,
-                    "is_energy":    "energy"    in tags,
-                    "is_fx":        "fx_rates"  in tags,
-                    "is_macro":     "macro"     in tags,
+                    "is_indonesia":  "indonesia"  in tags,
+                    "is_corruption": "corruption" in tags,
+                    "is_energy":     "energy"     in tags,
+                    "is_fx":         "fx_rates"   in tags,
+                    "is_macro":      "macro"       in tags,
                 })
             time.sleep(0.3)
         except Exception as e:

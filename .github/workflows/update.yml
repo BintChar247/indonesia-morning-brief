@@ -2,8 +2,12 @@ name: Update Morning Brief Data
 
 on:
   schedule:
-    # 6:00am WIB = 23:00 UTC (previous day)
-    - cron: '0 23 * * *'
+    - cron: '0 23 * * *'   #  6:00am WIB (23:00 UTC prev day)
+    - cron: '0 3 * * *'    # 10:00am WIB
+    - cron: '0 5 * * *'    # 12:00pm WIB
+    - cron: '0 7 * * *'    #  2:00pm WIB
+    - cron: '0 10 * * *'   #  5:00pm WIB
+    - cron: '0 13 * * *'   #  8:00pm WIB
   workflow_dispatch:   # ← enables the "Refresh" button in the dashboard
     inputs:
       reason:

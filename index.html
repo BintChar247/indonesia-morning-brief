@@ -470,7 +470,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   </div>
   <div class="hdr-right">
     <div class="hdr-meta">
-      <div>Last updated: <strong id="hdr-updated">–</strong></div>
+      <div>Last updated: <strong id="hdr-updated">–</strong> <span id="hdr-ago" style="font-size:10px;color:var(--muted);font-weight:400"></span></div>
       <div id="hdr-status" class="text-muted">–</div>
     </div>
     <div style="display:flex;gap:4px;align-items:center">
@@ -1048,6 +1048,23 @@ function toggleTheme(){
   LS.set('theme',light?'light':'dark');
   stickyNavTop(); // header height may change with theme
 }
+// ── Live "X minutes ago" counter ─────────────────────────────────────────
+function updateAgo(){
+  const el = document.getElementById('hdr-ago');
+  if(!el) return;
+  if(!window._lastFetchedISO){ el.textContent=''; return; }
+  const diffMs  = Date.now() - new Date(window._lastFetchedISO).getTime();
+  const diffMin = Math.round(diffMs / 60000);
+  if(diffMin < 1)        el.textContent = '(just now)';
+  else if(diffMin < 60)  el.textContent = `(${diffMin} min ago)`;
+  else {
+    const h = Math.floor(diffMin/60), m = diffMin%60;
+    el.textContent = m>0 ? `(${h}h ${m}m ago)` : `(${h}h ago)`;
+  }
+}
+// Update the counter every minute
+setInterval(updateAgo, 60000);
+
 // ── Sticky nav — pins below header regardless of header height ────────────
 function stickyNavTop(){
   const hdr=document.querySelector('.hdr');
@@ -1153,6 +1170,10 @@ async function loadAll(){
     const status = metaMap['fetch_status']||'unknown';
     document.getElementById('hdr-status').textContent = status === 'ok' ? '✓ Fetch OK' : '⚠ '+status;
     document.getElementById('hdr-status').className   = status==='ok'?'text-green':'text-amber';
+
+    // Store ISO timestamp for live "X min ago" counter
+    window._lastFetchedISO = metaMap['last_updated_at'] || null;
+    updateAgo();
 
     const mkt  = market.data||[];
     const ylds = yields.data||[];

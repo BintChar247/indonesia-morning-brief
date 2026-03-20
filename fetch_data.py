@@ -784,8 +784,8 @@ def write_market_data(quotes: Dict) -> List[Dict]:
             "updated_at": datetime.datetime.utcnow().isoformat() + "Z",
         })
     if rows:
-        sb_post("market_data", rows)
-        print(f"  ✓ market_data: {len(rows)} rows upserted")
+        sb_upsert("market_data", rows, on_conflict="symbol")
+        print(f"  ✓ market_data: {len(rows)} rows upserted on symbol")
     return rows
 
 def write_yield_curve(yields: Dict) -> None:

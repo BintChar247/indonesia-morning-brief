@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://api.github.com https://api.allorigins.win; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'">
 <title>Indonesia Morning Brief</title>
 <meta property="og:title" content="Indonesia Morning Brief">
 <meta property="og:description" content="Daily Indonesia corporate coverage dashboard — markets, FX, commodities, news & corporate ideas.">
@@ -431,9 +432,15 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 
     <label>GitHub Repo (for Refresh button)</label>
     <input type="text" id="inp-repo" placeholder="yourusername/indonesia-morning-brief">
-    <label style="margin-top:12px">GitHub Personal Access Token</label>
-    <input type="password" id="inp-token" placeholder="ghp_xxxxxxxxxxxx">
-    <small>Create at GitHub → Settings → Developer settings → Personal Access Tokens → workflow scope. Stored only in this browser — never shared publicly.</small>
+    <label style="margin-top:12px">GitHub Personal Access Token (fine-grained)</label>
+    <input type="password" id="inp-token" placeholder="github_pat_...">
+    <small>
+      Create a <strong>fine-grained</strong> PAT at GitHub → Settings → Developer settings → Personal Access Tokens → Fine-grained tokens. Scope it to:<br>
+      • <strong>Repository access:</strong> only this repo<br>
+      • <strong>Repository permissions:</strong> <em>Actions: Read and write</em> (nothing else)<br>
+      • <strong>Expiration:</strong> 30 days, set a calendar reminder to rotate<br>
+      Stored only in this browser's localStorage. Do not paste a classic PAT with <code>repo</code> scope — if this browser is ever compromised, that broader token grants the attacker full write access to the repo.
+    </small>
 
     <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Override Supabase connection (optional — only needed if you change databases)</div>
@@ -855,13 +862,13 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="mufg-hero">
     <div class="tj-name">Tom Joyce — Head of Capital Markets Strategy, Americas</div>
     <div class="tj-title">Research Intelligence</div>
-    <div class="tj-bio">Tom Joyce leads MUFG's Capital Markets Strategy Group, providing in-depth analysis on the impact of economic, political, public policy and regulatory dynamics on credit, FX, rates and commodities markets for S&amp;P 500 corporate clients. He publishes daily/weekly updates on <a href="https://www.linkedin.com/in/tom-joyce-07055314a/" target="_blank">LinkedIn</a> and at <a href="https://www.mufgresearch.com/macro/" target="_blank">mufgresearch.com</a>.</div>
+    <div class="tj-bio">Tom Joyce leads MUFG's Capital Markets Strategy Group, providing in-depth analysis on the impact of economic, political, public policy and regulatory dynamics on credit, FX, rates and commodities markets for S&amp;P 500 corporate clients. He publishes daily/weekly updates on <a href="https://www.linkedin.com/in/tom-joyce-07055314a/" target="_blank" rel="noopener noreferrer">LinkedIn</a> and at <a href="https://www.mufgresearch.com/macro/" target="_blank" rel="noopener noreferrer">mufgresearch.com</a>.</div>
     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-      <a href="https://www.linkedin.com/search/results/content/?keywords=Tom%20Joyce%20MUFG&sortBy=date" target="_blank" class="btn btn-ghost btn-sm">🔗 Search Tom Joyce on LinkedIn</a>
-      <a href="https://www.mufgresearch.com/macro/" target="_blank" class="btn btn-ghost btn-sm">📄 MUFG Macro Research</a>
-      <a href="https://www.mufgresearch.com/fx/" target="_blank" class="btn btn-ghost btn-sm">💱 MUFG FX Research</a>
-      <a href="https://www.mufgresearch.com/rates/" target="_blank" class="btn btn-ghost btn-sm">📉 MUFG Rates Research</a>
-      <a href="https://www.mufgresearch.com/fx/?s=indonesia" target="_blank" class="btn btn-ghost btn-sm">🇮🇩 Indonesia Research</a>
+      <a href="https://www.linkedin.com/search/results/content/?keywords=Tom%20Joyce%20MUFG&sortBy=date" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">🔗 Search Tom Joyce on LinkedIn</a>
+      <a href="https://www.mufgresearch.com/macro/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">📄 MUFG Macro Research</a>
+      <a href="https://www.mufgresearch.com/fx/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">💱 MUFG FX Research</a>
+      <a href="https://www.mufgresearch.com/rates/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">📉 MUFG Rates Research</a>
+      <a href="https://www.mufgresearch.com/fx/?s=indonesia" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">🇮🇩 Indonesia Research</a>
     </div>
   </div>
 
@@ -869,7 +876,7 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div style="margin-bottom:20px">
     <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
       📈 Chart of the Day
-      <a href="https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy#chart" target="_blank" style="font-size:11px;color:var(--muted);font-weight:400">mufgamericas.com ↗</a>
+      <a href="https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy#chart" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:var(--muted);font-weight:400">mufgamericas.com ↗</a>
     </div>
     <div id="chart-of-day-list" style="display:flex;flex-direction:column;gap:6px">
       <div class="text-muted" style="padding:12px;font-size:12px">Loading...</div>
@@ -971,8 +978,9 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
       <div style="font-size:12px;font-weight:600;margin-bottom:6px">GitHub Actions Refresh</div>
       <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Repository (username/repo)</label>
       <input type="text" id="set-gh-repo" placeholder="yourusername/indonesia-morning-brief" style="width:100%;margin-bottom:8px">
-      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Personal Access Token (workflow scope)</label>
-      <input type="password" id="set-gh-token" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Fine-grained PAT (Actions: RW on this repo, 30-day expiry)</label>
+      <input type="password" id="set-gh-token" placeholder="github_pat_..." style="width:100%;margin-bottom:8px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.4">Use a <strong>fine-grained</strong> PAT scoped to this one repo with only <em>Actions: Read and write</em>. Classic PATs with <code>repo</code>/<code>workflow</code> scope grant far more access than needed — if this browser ever executes hostile JS, the token can be stolen.</div>
     </div>
   </div>
   <button class="btn btn-red btn-sm" onclick="saveSettingsFromTab()">💾 Save Settings</button>
@@ -1014,10 +1022,6 @@ function getConfig(){
     token:  LS.get('gh_token')  || '',
     branch: LS.get('gh_branch') || 'master',
   };
-}
-function hasSiteCredentials(){
-  return SITE_SB_URL  !== 'YOUR_SUPABASE_URL' &&
-         SITE_SB_ANON !== 'YOUR_SUPABASE_ANON_KEY';
 }
 function updateRefreshVisibility(){
   // Refresh + gear only shown to admins who have stored a GitHub PAT
@@ -1088,6 +1092,7 @@ let ALL_NEWS   = [];
 let ALL_MUFG   = [];
 let ALL_IDEAS  = [];
 let ALL_FLAGGED = [];
+let ALL_MARKET = [];
 let FLAGGED_IDS = new Set();
 let newsFilter = 'all';
 let mufgFilter = 'all';
@@ -1101,6 +1106,11 @@ function safeUrl(url){
   if(!url) return '#';
   const u=String(url).trim();
   return(u.startsWith('http://')||u.startsWith('https://'))?u:'#';
+}
+function safeId(id){
+  // IDs must be MD5 hex[:12] (from Python hashlib or browser urlHash).
+  // Strips anything else to prevent JS-string breakout via onclick handlers.
+  return String(id||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,32);
 }
 
 // ── Init ────────────────────────────────────────────────────────────────
@@ -1177,6 +1187,7 @@ async function loadAll(){
 
     const mkt  = market.data||[];
     const ylds = yields.data||[];
+    ALL_MARKET  = mkt;
     ALL_NEWS    = news.data||[];
     ALL_IDEAS   = ideas.data||[];
     ALL_MUFG    = mufg.data||[];
@@ -1476,14 +1487,14 @@ function newsCardHTML(n, compact=false){
   const isFlagged=FLAGGED_IDS.has(n.id);
   const flagIcon=isFlagged?'🚩':'🏳';
   const flagTip=isFlagged?'Flagged as Risk Signal — click to unflag':'Flag as Risk Signal for franchise';
-  return `<div class="news-card ${border}" id="ncard-${n.id}">
+  return `<div class="news-card ${border}" id="ncard-${safeId(n.id)}">
     <div class="news-meta">
       <span class="news-src">${esc(n.source)}</span>
       ${ago?`<span class="news-time">${ago}</span>`:''}
       ${tags}
-      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag('${n.id}')">${flagIcon}</button>
+      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag('${safeId(n.id)}')">${flagIcon}</button>
     </div>
-    <div class="news-title"><a href="${safeUrl(n.url)}" target="_blank">${esc(n.title)}</a></div>
+    <div class="news-title"><a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer">${esc(n.title)}</a></div>
     ${!compact&&n.summary?`<div class="news-summary">${esc(n.summary)}</div>`:''}
   </div>`;
 }
@@ -1592,7 +1603,7 @@ function renderOvNews(){
     const ago=timeAgo(n.published_raw);
     return `<div class="card-sm" style="${pc}padding:10px 12px">
       <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${esc(n.source)}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
-      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${safeUrl(n.url)}" target="_blank" style="color:var(--text)">${esc(n.title)}</a></div>
+      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(n.title)}</a></div>
     </div>`;
   };
   const visible=sorted.slice(0,cap);
@@ -1719,14 +1730,14 @@ function ideaCardHTML(idea){
   const escapedDetail = esc(idea._sourceDetail||'');
   const trunc = escapedDetail.length>55?escapedDetail.substring(0,55)+'…':escapedDetail;
   const srcBadge = `<div style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,.05);border-radius:4px;color:${srcColor};display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;max-width:100%;overflow:hidden;white-space:nowrap">
-    ${idea._sourceIcon} <strong>${idea._sourceLabel}</strong>${trunc?` · <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis" title="${escapedDetail}">${trunc}</span>`:''}
+    ${esc(idea._sourceIcon)} <strong>${esc(idea._sourceLabel)}</strong>${trunc?` · <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis" title="${escapedDetail}">${trunc}</span>`:''}
   </div>`;
-  const readMore = idea._sourceUrl?`<a href="${safeUrl(idea._sourceUrl)}" target="_blank" style="font-size:10px;color:var(--muted);margin-top:6px;display:block">→ Read source</a>`:'';
-  return `<div class="idea-card ${idea.priority}">
+  const readMore = idea._sourceUrl?`<a href="${safeUrl(idea._sourceUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:var(--muted);margin-top:6px;display:block">→ Read source</a>`:'';
+  return `<div class="idea-card ${esc(idea.priority)}">
     <div class="idea-header">
-      <div class="idea-icon">${idea.icon||'💡'}</div>
+      <div class="idea-icon">${esc(idea.icon||'💡')}</div>
       <div class="idea-meta">
-        <div class="idea-priority ${idea.priority}">${idea.priority} PRIORITY</div>
+        <div class="idea-priority ${esc(idea.priority)}">${esc(idea.priority)} PRIORITY</div>
         <div class="idea-sector">${esc(idea.sector)}</div>
         <div class="idea-clients">${idea.clients?((/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(idea.clients+idea.sector)?'FI: ':'Corporates: ')+esc(idea.clients)):''}</div>
       </div>
@@ -1734,7 +1745,7 @@ function ideaCardHTML(idea){
     ${srcBadge}
     <div class="idea-trigger">${esc(idea.trigger)}</div>
     <div class="idea-topic">${esc(idea.topic)}</div>
-    ${idea.products?`<div class="idea-products">${idea.products.split(',').map(p=>`<span class="idea-prod">${esc(p.trim())}</span>`).join('')}</div>`:''}
+    ${idea.products?`<div class="idea-products">${String(idea.products).split(',').map(p=>`<span class="idea-prod">${esc(p.trim())}</span>`).join('')}</div>`:''}
     ${readMore}
   </div>`;
 }
@@ -1765,10 +1776,10 @@ function showSourceDetail(type){
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
       <div style="font-size:18px;line-height:1;padding-top:2px">${icon}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:3px">${url?`<a href="${url}" target="_blank" style="color:var(--text)">${label}</a>`:label}</div>
-        ${sub?`<div style="font-size:11px;color:var(--muted)">${sub}</div>`:''}
+        <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:3px">${url?`<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(label)}</a>`:esc(label)}</div>
+        ${sub?`<div style="font-size:11px;color:var(--muted)">${esc(sub)}</div>`:''}
       </div>
-      ${badge?`<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;background:${badgeColor}22;color:${badgeColor}">${badge}</span>`:''}
+      ${badge?`<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;background:${badgeColor}22;color:${badgeColor}">${esc(badge)}</span>`:''}
     </div>`;
 
   if(type==='market'){
@@ -1805,12 +1816,15 @@ function renderOvPriorities(){
   const all=buildUnifiedIdeas();
   const top=all.slice(0,4);
   const el=document.getElementById('ov-priorities');
-  el.innerHTML=top.map(idea=>`
-    <div class="card-sm idea-card ${idea.priority}" style="padding:14px 14px;margin-bottom:0">
-      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:4px">${idea.icon||'💡'} ${idea.priority} · <span style="opacity:.65;font-weight:500">${idea._sourceIcon} ${idea._sourceLabel}</span></div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:3px">${idea.sector}</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.4">${idea.trigger.length>90?idea.trigger.substring(0,90)+'…':idea.trigger}</div>
-    </div>`).join('');
+  el.innerHTML=top.map(idea=>{
+    const trig = String(idea.trigger||'');
+    return `
+    <div class="card-sm idea-card ${esc(idea.priority)}" style="padding:14px 14px;margin-bottom:0">
+      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:4px">${esc(idea.icon||'💡')} ${esc(idea.priority)} · <span style="opacity:.65;font-weight:500">${esc(idea._sourceIcon)} ${esc(idea._sourceLabel)}</span></div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:3px">${esc(idea.sector)}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.4">${esc(trig.length>90?trig.substring(0,90)+'…':trig)}</div>
+    </div>`;
+  }).join('');
   // "View all" link at bottom to balance column height
   if(all.length>4){
     el.insertAdjacentHTML('beforeend',`
@@ -1829,7 +1843,6 @@ function buildUnifiedSectorImpacts(){
     for(const si of f.sector_impacts||[]){
       const sn=si.sector;
       const artObj={id:f.id,title:f.title,url:f.url||'',risk_level:f.risk_level,risk_headline:f.risk_headline,client_opportunities:f.client_opportunities||[]};
-      const label=`🚩 ${f.title.length>45?f.title.substring(0,45)+'…':f.title}`;
       if(byName[sn]){
         const curSev=byName[sn].sev; const newSev=si.impact||'MEDIUM';
         if((SORDER[newSev]||0)>(SORDER[curSev]||0)) byName[sn].sev=newSev;
@@ -1852,20 +1865,20 @@ function renderSectorImpact(){
       <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(230,0,18,.15)">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.06em;margin-bottom:8px">🚩 Risk Signals Contributing (${arts.length})</div>
         ${arts.map(a=>`
-          <div onclick="showFlaggedDetail('${a.id}')" style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:rgba(230,0,18,.05);border:1px solid rgba(230,0,18,.12);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(230,0,18,.1)'" onmouseout="this.style.background='rgba(230,0,18,.05)'">
+          <div onclick="showFlaggedDetail('${safeId(a.id)}')" style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:rgba(230,0,18,.05);border:1px solid rgba(230,0,18,.12);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(230,0,18,.1)'" onmouseout="this.style.background='rgba(230,0,18,.05)'">
             <div style="display:flex;align-items:flex-start;gap:6px">
               <span style="color:var(--red);margin-top:1px;flex-shrink:0">🚩</span>
               <div>
                 <div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4">${esc(a.title)}</div>
                 ${a.risk_headline?`<div style="font-size:11px;color:var(--amber);margin-top:3px;line-height:1.3">${esc(a.risk_headline)}</div>`:''}
                 <div style="font-size:10px;color:var(--muted);margin-top:2px">
-                  <span class="sev-badge sev-${(a.risk_level||'medium').toLowerCase()}" style="font-size:9px">${a.risk_level||'MEDIUM'}</span>
+                  <span class="sev-badge sev-${esc((a.risk_level||'medium').toLowerCase())}" style="font-size:9px">${esc(a.risk_level||'MEDIUM')}</span>
                   · click to view opportunities
                 </div>
               </div>
             </div>
           </div>`).join('')}
-        ${s._flaggedDetails.length?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.06);border-radius:6px;font-size:11px;color:var(--amber);line-height:1.4">${s._flaggedDetails.join(' · ')}</div>`:''}
+        ${s._flaggedDetails.length?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.06);border-radius:6px;font-size:11px;color:var(--amber);line-height:1.4">${s._flaggedDetails.map(d=>esc(d)).join(' · ')}</div>`:''}
       </div>`:'';
     return `<div class="sector-card" style="${arts.length?'border-color:rgba(230,0,18,.25)':''}">
       <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
@@ -1889,6 +1902,116 @@ function renderOvSectors(){
     </div>`).join('');
 }
 
+// ── Segment-item heat scoring ─────────────────────────────────────────────
+// Mix today's market moves, news, flagged articles, and MUFG research into
+// a 0–100 "heat" per segment risk/opportunity so the cards re-rank daily
+// around whatever the market is actually doing.
+function computeItemHeat(item){
+  const kws = (item.kw||[]).map(k=>String(k).toLowerCase());
+  const syms = item.sym||[];
+  const out = {score:0, news:[], flagged:[], mufg:[], market:[]};
+
+  // Market: up to 35 pts — 1% move = 12 pts, capped around 3%+
+  const byS = bySymbol(ALL_MARKET);
+  for(const s of syms){
+    const d = byS[s]; if(!d) continue;
+    const pct = +d.change_pct||0;
+    const mag = Math.abs(pct);
+    if(mag >= 0.15){
+      out.market.push({sym:s, name:d.name||s, pct, price:d.price});
+      out.score += Math.min(35, mag*12);
+    }
+  }
+
+  const textMatches = (arr, getText) => {
+    if(!kws.length) return [];
+    return arr.filter(x=>{
+      const t = getText(x).toLowerCase();
+      return kws.some(k=>t.includes(k));
+    });
+  };
+
+  // News: up to 35 pts — first hit gets 12 pts so a single headline lands in "warm"
+  const newsHits = textMatches(ALL_NEWS, n=>(n.title||'')+' '+(n.summary||''));
+  out.news = newsHits.slice(0,6);
+  if(newsHits.length) out.score += Math.min(35, 12 + (newsHits.length-1)*6);
+
+  // Flagged: up to 40 pts — any flagged article that matches keywords is a strong signal
+  const flagHits = textMatches(ALL_FLAGGED, f=>(f.title||'')+' '+(f.risk_headline||''));
+  out.flagged = flagHits;
+  const levelPts = {CRITICAL:40, HIGH:30, MEDIUM:22, LOW:14};
+  out.score += flagHits.reduce((acc,f)=>Math.max(acc, levelPts[f.risk_level]||0), 0);
+
+  // MUFG research: up to 20 pts — curated content, each match is meaningful
+  const mufgHits = textMatches(ALL_MUFG, a=>(a.title||'')+' '+(a.author||''));
+  out.mufg = mufgHits.slice(0,4);
+  if(mufgHits.length) out.score += Math.min(20, 8 + (mufgHits.length-1)*4);
+
+  out.score = Math.min(100, Math.round(out.score));
+  out.hasEvidence = !!(out.market.length || out.news.length || out.flagged.length || out.mufg.length);
+  out.band = out.score >= 65 ? 'critical' : out.score >= 35 ? 'hot' : out.score >= 15 ? 'warm' : 'cold';
+  return out;
+}
+
+function heatBadge(heat){
+  if(heat.band === 'cold') return '';
+  const cfg = {
+    warm:     {bg:'rgba(96,165,250,.15)',  fg:'#60a5fa',  icon:'●', label:'LIVE'},
+    hot:      {bg:'rgba(245,158,11,.18)',  fg:'#f59e0b',  icon:'▲', label:`HOT ${heat.score}`},
+    critical: {bg:'rgba(230,0,18,.18)',    fg:'#ff4d5e',  icon:'🔥', label:`${heat.score}`}
+  }[heat.band];
+  const ev = [];
+  if(heat.market.length) ev.push(heat.market.map(m=>`${m.name} ${m.pct>0?'+':''}${(+m.pct).toFixed(1)}%`).join(', '));
+  if(heat.news.length)    ev.push(`${heat.news.length} news`);
+  if(heat.flagged.length) ev.push(`${heat.flagged.length} flagged`);
+  if(heat.mufg.length)    ev.push(`${heat.mufg.length} research`);
+  const tip = ev.join(' · ') || 'No live drivers';
+  return `<span title="${esc(tip)}" style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${cfg.bg};color:${cfg.fg};white-space:nowrap;margin-left:6px;letter-spacing:.03em">${cfg.icon} ${esc(cfg.label)}</span>`;
+}
+
+// Render the "Today:" evidence row for an item — actual chips for market moves,
+// the top news headline as a link, flagged count, and top MUFG title.
+// Always renders if there's any evidence (even in cold band) — that's what
+// makes the page feel alive day-to-day instead of static.
+function heatDriverRow(heat){
+  if(!heat.hasEvidence) return '';
+  const chips = [];
+  // Market chips: colored by direction
+  for(const m of heat.market.slice(0,3)){
+    const up = m.pct > 0;
+    const color = up ? '#22c55e' : '#ff4d5e';
+    const sign = up ? '+' : '';
+    chips.push(`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${color}22;color:${color};white-space:nowrap">📊 ${esc(m.name)} ${sign}${(+m.pct).toFixed(2)}%</span>`);
+  }
+  // Top flagged article — strongest signal first
+  if(heat.flagged.length){
+    const f = heat.flagged[0];
+    const lvlColor = {CRITICAL:'#ff4d5e',HIGH:'#ff4d5e',MEDIUM:'#f59e0b',LOW:'#60a5fa'}[f.risk_level]||'#60a5fa';
+    const title = (f.title||'').length > 48 ? f.title.substring(0,48)+'…' : (f.title||'');
+    chips.push(`<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:${lvlColor}22;color:${lvlColor};white-space:nowrap" title="${esc(f.title||'')}">🚩 ${esc(f.risk_level||'')} · ${esc(title)}</span>`);
+  }
+  // Top news headline — clickable
+  if(heat.news.length){
+    const n = heat.news[0];
+    const title = (n.title||'').length > 60 ? n.title.substring(0,60)+'…' : (n.title||'');
+    chips.push(`<a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,.12);color:#f59e0b;white-space:nowrap;text-decoration:none;max-width:320px;overflow:hidden;text-overflow:ellipsis" title="${esc(n.title||'')}">📰 ${esc(title)}</a>`);
+    if(heat.news.length > 1){
+      chips.push(`<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.08);color:#f59e0b;white-space:nowrap">+${heat.news.length-1} more</span>`);
+    }
+  }
+  // Top MUFG research — clickable
+  if(heat.mufg.length){
+    const a = heat.mufg[0];
+    const title = (a.title||'').length > 55 ? a.title.substring(0,55)+'…' : (a.title||'');
+    chips.push(`<a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(96,165,250,.12);color:#60a5fa;white-space:nowrap;text-decoration:none" title="${esc(a.title||'')}">🏦 ${esc(title)}</a>`);
+  }
+  if(!chips.length) return '';
+  return `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+    <span style="font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.06em">TODAY</span>
+    ${chips.join('')}
+  </div>`;
+}
+
 // ── RM segment notes ──────────────────────────────────────────────────────
 const RM_SEGMENT_NOTES = [
   {
@@ -1899,20 +2022,32 @@ const RM_SEGMENT_NOTES = [
     newsKw:['pertamina','pln','bulog','pgn','bumn','subsidi','lpg','listrik','mind id','antam','freeport','telkom','mitratel','telkomsel','data center','tower','fiber','nikel','bauksit','corruption','korupsi','kpk','bribery','tipikor'],
     mufgCats:['Indonesia','INDONESIA'],
     sectorNames:['Energy & Utilities','Petrochemicals & Agriculture','Mining & Extractives','TMT / Digital Infrastructure'],
+    trackSyms:['BZ=F','NG=F','HG=F','IDR=X','FKPO.KLS','^JKSE'],
     risks:[
-      {title:'Pertamina import cost spike',        detail:'Higher crude procurement costs while domestic non-subsidised prices were cut Jan 2026'},
-      {title:'PLN PPA squeeze',                    detail:'Fixed take-or-pay obligations + higher gas input costs compress margin; government compensates at fiscal cost'},
-      {title:'LPG subsidy blowout',                detail:'~60M households on 3-kg subsidised LPG; landed import cost rising sharply'},
-      {title:'MIND ID commodity price exposure',   detail:'Antam (nickel/bauxite) and Bukit Asam (coal) revenues volatile; Freeport Indonesia copper concentrate export dependency'},
-      {title:'Telkom capex pressure',              detail:'Heavy data center & fiber rollout capex cycle; Mitratel tower monetisation ongoing; USD-denominated equipment imports'},
-      {title:'Governance & corruption risk',       detail:'SOE sector exposed to KPK scrutiny; procurement irregularities can freeze capex and disrupt banking relationships'},
+      {title:'Pertamina import cost spike',        detail:'Higher crude procurement costs while domestic non-subsidised prices were cut Jan 2026',
+        sym:['BZ=F','CL=F'], kw:['pertamina','crude','brent','wti','opec','oil price','barrel','petroleum']},
+      {title:'PLN PPA squeeze',                    detail:'Fixed take-or-pay obligations + higher gas input costs compress margin; government compensates at fiscal cost',
+        sym:['NG=F'], kw:['pln','ppa','gas','lng','electricity','power','pltu','pltgu']},
+      {title:'LPG subsidy blowout',                detail:'~60M households on 3-kg subsidised LPG; landed import cost rising sharply',
+        sym:['NG=F','BZ=F'], kw:['lpg','subsid','propane','cooking fuel','bbm']},
+      {title:'MIND ID commodity price exposure',   detail:'Antam (nickel/bauxite) and Bukit Asam (coal) revenues volatile; Freeport Indonesia copper concentrate export dependency',
+        sym:['HG=F','GC=F','SI=F'], kw:['nickel','copper','bauxite','antam','freeport','bukit asam','timah','mind id','mining','smelter']},
+      {title:'Telkom capex pressure',              detail:'Heavy data center & fiber rollout capex cycle; Mitratel tower monetisation ongoing; USD-denominated equipment imports',
+        sym:['IDR=X'], kw:['telkom','telkomsel','mitratel','data center','data centre','fiber','tower','hyperscaler']},
+      {title:'Governance & corruption risk',       detail:'SOE sector exposed to KPK scrutiny; procurement irregularities can freeze capex and disrupt banking relationships',
+        kw:['kpk','korupsi','bribery','suap','fraud','tipikor','corruption','embezzlement','tersangka','ditangkap','arrested','money laundering','pencucian uang','gratifikasi']},
     ],
     opportunities:[
-      {title:'Oil & commodity hedging',            detail:'Crude price & FX hedging for Pertamina; nickel/copper price hedging for MIND ID export revenues'},
-      {title:'PLN renewable project finance',      detail:'Lead arranger for 42.6 GW RUPTL 2025–2034 pipeline: solar, wind, hydro, geothermal'},
-      {title:'MIND ID trade & export finance',     detail:'Pre-export financing, offtake structures and commodity swap for Antam, Bukit Asam, Timah'},
-      {title:'Telkom digital infra financing',     detail:'Project finance for data center build-out; USD bond advisory for Mitratel tower portfolio monetisation; fiber optic capex facilities'},
-      {title:'LPG & Bulog trade finance',          detail:'Import LCs, working capital and supply chain facilities for Bulog food commodity imports and Pertamina LPG procurement'},
+      {title:'Oil & commodity hedging',            detail:'Crude price & FX hedging for Pertamina; nickel/copper price hedging for MIND ID export revenues',
+        sym:['BZ=F','HG=F','IDR=X'], kw:['oil','crude','brent','nickel','copper','hedg','commodity swap']},
+      {title:'PLN renewable project finance',      detail:'Lead arranger for 42.6 GW RUPTL 2025–2034 pipeline: solar, wind, hydro, geothermal',
+        kw:['pln','ruptl','renewable','solar','geothermal','hydro','wind','clean energy','green project']},
+      {title:'MIND ID trade & export finance',     detail:'Pre-export financing, offtake structures and commodity swap for Antam, Bukit Asam, Timah',
+        sym:['HG=F'], kw:['antam','bukit asam','timah','mind id','export finance','offtake','pre-export']},
+      {title:'Telkom digital infra financing',     detail:'Project finance for data center build-out; USD bond advisory for Mitratel tower portfolio monetisation; fiber optic capex facilities',
+        kw:['telkom','mitratel','data center','data centre','fiber','tower','digital infra']},
+      {title:'LPG & Bulog trade finance',          detail:'Import LCs, working capital and supply chain facilities for Bulog food commodity imports and Pertamina LPG procurement',
+        sym:['ZW=F','ZS=F'], kw:['bulog','lpg','rice','wheat','soybean','import lc','trade finance','pupuk','bapanas']},
     ],
     clients:[
       {name:'Pertamina',  detail:'National oil & gas company; 605K bpd production; dominant refiner; LPG distributor'},
@@ -1932,17 +2067,26 @@ const RM_SEGMENT_NOTES = [
     newsKw:['bank','bri','mandiri','bca','danamon','banking','nbfi','bi rate','interest rate','npl','kredit','perbankan','ojk'],
     mufgCats:['Rates','RATES','Macro','MACRO'],
     sectorNames:['Banking & FI','Financial Services'],
+    trackSyms:['IDR=X','^TNX','^JKSE','^GSPC','DX-Y.NYB','EURUSD=X'],
     risks:[
-      {title:'NPL risk in energy book',        detail:'Higher energy costs squeezing SME borrowers; manufacturing sector stress visible'},
-      {title:'MSCI reclassification stress',   detail:'Foreign ownership thresholds create capital adequacy questions for listed banks'},
-      {title:'BI rate hold pressure',          detail:'BI held 4.75% — elongated cost of funding for retail lending books'},
-      {title:'IDR funding mismatch',           detail:'USD-funded balance sheets face spread widening if IDR weakens further'},
+      {title:'NPL risk in energy book',        detail:'Higher energy costs squeezing SME borrowers; manufacturing sector stress visible',
+        sym:['BZ=F','NG=F'], kw:['npl','non-performing','bad loan','sme','manufacturing','credit quality','energy cost']},
+      {title:'MSCI reclassification stress',   detail:'Foreign ownership thresholds create capital adequacy questions for listed banks',
+        kw:['msci','reclassif','foreign ownership','em to fm','capital adequacy','listed bank']},
+      {title:'BI rate hold pressure',          detail:'BI held 4.75% — elongated cost of funding for retail lending books',
+        sym:['IDR=X','^TNX'], kw:['bi rate','bank indonesia','rate cut','rate hold','interest rate','policy rate','fed']},
+      {title:'IDR funding mismatch',           detail:'USD-funded balance sheets face spread widening if IDR weakens further',
+        sym:['IDR=X','^TNX','DX-Y.NYB'], kw:['idr','rupiah','usd funding','dollar','currency','spread']},
     ],
     opportunities:[
-      {title:'Sustainable finance co-lending', detail:'Danamon Rp 32.7T green portfolio — co-lending, ESG structuring advisory'},
-      {title:'Trade finance solutions',        detail:'LC issuance and supply chain finance for commodity import flows'},
-      {title:'Capital adequacy advisory',      detail:'Tier 2 capital and AT1 issuance as RWA increases with stressed book'},
-      {title:'FX hedging programme',           detail:'Cross-currency swaps and NDF hedging for USD-denominated liabilities'},
+      {title:'Sustainable finance co-lending', detail:'Danamon Rp 32.7T green portfolio — co-lending, ESG structuring advisory',
+        kw:['sustainable','green finance','esg','danamon','co-lending']},
+      {title:'Trade finance solutions',        detail:'LC issuance and supply chain finance for commodity import flows',
+        kw:['trade finance','lc issuance','letter of credit','supply chain','import financing']},
+      {title:'Capital adequacy advisory',      detail:'Tier 2 capital and AT1 issuance as RWA increases with stressed book',
+        kw:['tier 2','tier ii','at1','capital adequacy','rwa','basel']},
+      {title:'FX hedging programme',           detail:'Cross-currency swaps and NDF hedging for USD-denominated liabilities',
+        sym:['IDR=X','EURUSD=X','JPY=X'], kw:['fx forward','ndf','cross-currency','hedg','usd liabilit']},
     ],
     clients:[
       {name:'Bank Danamon',  detail:'Rp 32.7T sustainable finance portfolio; MUFG affiliate; retail & SME focus'},
@@ -1959,17 +2103,26 @@ const RM_SEGMENT_NOTES = [
     newsKw:['manufacturing','fmcg','supply chain','unilever','astra','indofood','pupuk','chemical','carbon','cbam','relocation','repatriation'],
     mufgCats:['FX','Macro','MACRO'],
     sectorNames:['Manufacturing / Industrial','Petrochemicals & Agriculture','Consumer / Retail'],
+    trackSyms:['IDR=X','BZ=F','NG=F','HG=F','^GSPC','DX-Y.NYB'],
     risks:[
-      {title:'Energy cost surge',              detail:'Crude & LNG input cost spike compresses manufacturing margins for energy-intensive MNCs'},
-      {title:'Supply chain disruption',        detail:'Hormuz shipping disruption affects MNCs considering relocation of supply chains'},
-      {title:'IDR dividend repatriation risk', detail:'USD/IDR above Rp 17,000 risk reduces repatriated earnings in USD terms'},
-      {title:'Carbon compliance costs',        detail:'EU CBAM and Indonesia carbon tax increasing cost of non-green production'},
+      {title:'Energy cost surge',              detail:'Crude & LNG input cost spike compresses manufacturing margins for energy-intensive MNCs',
+        sym:['BZ=F','NG=F','CL=F'], kw:['crude','brent','lng','natural gas','oil price','energy cost','opec']},
+      {title:'Supply chain disruption',        detail:'Hormuz shipping disruption affects MNCs considering relocation of supply chains',
+        kw:['supply chain','hormuz','shipping','red sea','freight','relocation','tariff','trade war']},
+      {title:'IDR dividend repatriation risk', detail:'USD/IDR above Rp 17,000 risk reduces repatriated earnings in USD terms',
+        sym:['IDR=X','DX-Y.NYB'], kw:['idr','rupiah','repatriation','dividend','usd']},
+      {title:'Carbon compliance costs',        detail:'EU CBAM and Indonesia carbon tax increasing cost of non-green production',
+        kw:['cbam','carbon tax','emission','carbon border','green tariff','deforestation']},
     ],
     opportunities:[
-      {title:'Energy cost hedging',            detail:'Commodity swap & cap structures for LNG and crude input cost management'},
-      {title:'Supply chain finance',           detail:'N0W platform — working capital finance for local supplier networks'},
-      {title:'Clean energy procurement',       detail:'Renewable PPA structuring and green project finance advisory'},
-      {title:'FX forward programmes',          detail:'NDF and forward hedging for dividend repatriation and USD payables'},
+      {title:'Energy cost hedging',            detail:'Commodity swap & cap structures for LNG and crude input cost management',
+        sym:['BZ=F','NG=F'], kw:['commodity swap','energy hedg','crude cap','lng hedg']},
+      {title:'Supply chain finance',           detail:'N0W platform — working capital finance for local supplier networks',
+        kw:['supply chain','working capital','scf','supplier finance','n0w']},
+      {title:'Clean energy procurement',       detail:'Renewable PPA structuring and green project finance advisory',
+        kw:['renewable','ppa','power purchase','geothermal','solar','green project','clean energy']},
+      {title:'FX forward programmes',          detail:'NDF and forward hedging for dividend repatriation and USD payables',
+        sym:['IDR=X','JPY=X','EURUSD=X'], kw:['ndf','fx forward','forward hedg','repatriation','usd payable']},
     ],
     clients:[
       {name:'Unilever Indonesia', detail:'FMCG; palm oil & packaging cost exposure; significant IDR cash generation'},
@@ -1986,17 +2139,26 @@ const RM_SEGMENT_NOTES = [
     newsKw:['coal','nickel','palm oil','adaro','sinar mas','salim','cpo','mining','conglomerate','batubara','nikel','sawit','tambang','geothermal'],
     mufgCats:['FX','Indonesia','INDONESIA'],
     sectorNames:['Mining & Extractives','Energy & Utilities','Agriculture / Commodities'],
+    trackSyms:['FKPO.KLS','HG=F','IDR=X','^TNX','BZ=F','ZW=F'],
     risks:[
-      {title:'USD debt service coverage',      detail:'IDR at 17,000 risk inflates USD bond servicing costs across conglomerate holdcos'},
-      {title:'Coal & nickel revenue swings',   detail:'Commodity price swings affect Adaro coal revenue; nickel oversupply (-21.8%)'},
-      {title:'CPO export margin compression',  detail:'EU deforestation regulation + palm oil price risk affecting Sinar Mas margins'},
-      {title:'Transition finance gap',         detail:'Coal-to-green transition roadmap requires significant refinancing of legacy assets'},
+      {title:'USD debt service coverage',      detail:'IDR at 17,000 risk inflates USD bond servicing costs across conglomerate holdcos',
+        sym:['IDR=X','^TNX','DX-Y.NYB'], kw:['usd debt','offshore bond','conglomerate','holdco','refinanc','debt service','dollar bond']},
+      {title:'Coal & nickel revenue swings',   detail:'Commodity price swings affect Adaro coal revenue; nickel oversupply (-21.8%)',
+        sym:['HG=F','GC=F'], kw:['coal','nickel','adaro','bayan','mining','commodity price','batubara','nikel']},
+      {title:'CPO export margin compression',  detail:'EU deforestation regulation + palm oil price risk affecting Sinar Mas margins',
+        sym:['FKPO.KLS'], kw:['cpo','palm oil','sawit','sinar mas','astra agro','wilmar','deforestation','eudr']},
+      {title:'Transition finance gap',         detail:'Coal-to-green transition roadmap requires significant refinancing of legacy assets',
+        kw:['transition','coal to green','geothermal','climate','decarbon','esg','refinanc legacy']},
     ],
     opportunities:[
-      {title:'USD debt refinancing',           detail:'Offshore bond issuance advisory for conglomerate holdco refinancing'},
-      {title:'CPO export hedging',             detail:'Forward & option structures for palm oil price and FX export proceeds'},
-      {title:'Transition finance',             detail:'Adaro coal-to-geothermal; Sinar Mas 440 MW JV project finance structuring'},
-      {title:'Indofood import cost review',    detail:'Wheat & soybean import cost lock-in via commodity swap structures'},
+      {title:'USD debt refinancing',           detail:'Offshore bond issuance advisory for conglomerate holdco refinancing',
+        sym:['IDR=X','^TNX'], kw:['usd bond','offshore bond','refinanc','holdco','conglomerate']},
+      {title:'CPO export hedging',             detail:'Forward & option structures for palm oil price and FX export proceeds',
+        sym:['FKPO.KLS','IDR=X'], kw:['cpo','palm oil','sawit','export hedg','b35','b40','biodiesel']},
+      {title:'Transition finance',             detail:'Adaro coal-to-geothermal; Sinar Mas 440 MW JV project finance structuring',
+        kw:['adaro','geothermal','sinar mas','transition','440 mw','project finance']},
+      {title:'Indofood import cost review',    detail:'Wheat & soybean import cost lock-in via commodity swap structures',
+        sym:['ZW=F','ZS=F'], kw:['indofood','salim','wheat','soybean','commodity swap','import lock']},
     ],
     clients:[
       {name:'Adaro Energy',       detail:'Indonesia\'s 2nd largest coal producer; geothermal JV; offshore bonds'},
@@ -2015,18 +2177,62 @@ function renderSegmentNotes(activeId){
     <button onclick="renderSegmentNotes('${s.id}')" style="flex:1;padding:12px 8px;background:${s.id===activeId?'var(--bg3, var(--bg))':'transparent'};border:none;border-bottom:${s.id===activeId?'2px solid '+s.color:'2px solid transparent'};color:${s.id===activeId?s.color:'var(--muted)'};font-size:12px;font-weight:${s.id===activeId?'700':'500'};cursor:pointer;transition:all .15s;white-space:nowrap">
       ${s.icon} ${s.name}
     </button>`).join('');
-  // Content
-  const col = (label, color, items, keyFn, detailFn) => `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${color};margin-bottom:14px;display:flex;align-items:center;gap:6px">
-        <div style="width:16px;height:2px;background:${color}"></div>${label}
-      </div>
-      ${items.map(it=>`
-        <div style="margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(keyFn(it))}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${esc(detailFn(it))}</div>
-        </div>`).join('')}
-    </div>`;
+  // Content — rank risks/opps by today's heat (market + news + flagged + research).
+  // Tie-breaker: preserve the editorial order so cold items stay in their canonical sequence.
+  const rankedCol = (label, color, items, keyFn, detailFn, live) => {
+    const withHeat = items.map((it,i) => ({it, i, heat: live ? computeItemHeat(it) : {score:0,band:'cold',market:[],news:[],flagged:[],mufg:[],hasEvidence:false}}));
+    withHeat.sort((a,b)=> b.heat.score - a.heat.score || a.i - b.i);
+    const borderFor = b => b==='critical'?'border-left:3px solid #ff4d5e;padding-left:8px'
+                        : b==='hot'     ?'border-left:3px solid #f59e0b;padding-left:8px'
+                        : b==='warm'    ?'border-left:3px solid #60a5fa;padding-left:8px'
+                        : '';
+    const hotCount = withHeat.filter(w=>['hot','critical'].includes(w.heat.band)).length;
+    const liveCount = withHeat.filter(w=>w.heat.hasEvidence).length;
+    const countBadge = live
+      ? (hotCount ? `<span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.18);color:#f59e0b;margin-left:6px">${hotCount} HOT</span>`
+        : liveCount ? `<span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(96,165,250,.15);color:#60a5fa;margin-left:6px">${liveCount} LIVE</span>`
+        : '')
+      : '';
+    return `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${color};margin-bottom:14px;display:flex;align-items:center;gap:6px">
+          <div style="width:16px;height:2px;background:${color}"></div>${label}${countBadge}
+        </div>
+        ${withHeat.map(({it, heat})=>`
+          <div style="margin-bottom:14px;${borderFor(heat.band)}">
+            <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap">
+              <span>${esc(keyFn(it))}</span>${heatBadge(heat)}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${esc(detailFn(it))}</div>
+            ${heatDriverRow(heat)}
+          </div>`).join('')}
+      </div>`;
+  };
+  // Key Client Entities aren't ranked — they're identity, not signal.
+  const col = (label, color, items, keyFn, detailFn) => rankedCol(label, color, items, keyFn, detailFn, false);
+
+  // Segment-level market ticker: quick pulse of the symbols that matter for this segment.
+  const trackSyms = seg.trackSyms || [];
+  const byS = bySymbol(ALL_MARKET);
+  const tickerChips = trackSyms.map(s=>{
+    const d = byS[s]; if(!d) return '';
+    const pct = +d.change_pct || 0;
+    const up = pct > 0, flat = Math.abs(pct) < 0.05;
+    const color = flat ? 'var(--muted)' : up ? '#22c55e' : '#ff4d5e';
+    const arrow = flat ? '→' : up ? '▲' : '▼';
+    const price = d.price != null ? (+d.price).toLocaleString('en',{maximumFractionDigits: d.price<10 ? 4 : d.price<1000 ? 2 : 0}) : '–';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:11px">
+      <span style="color:var(--muted);font-weight:600">${esc(d.name||s)}</span>
+      <span style="color:var(--text);font-weight:700">${esc(price)}</span>
+      <span style="color:${color};font-weight:700;font-size:10px">${arrow} ${up?'+':''}${pct.toFixed(2)}%</span>
+    </span>`;
+  }).filter(Boolean).join('');
+  const tickerHTML = tickerChips
+    ? `<div style="margin-bottom:14px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;flex-wrap:wrap;gap:7px;align-items:center">
+         <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px">Live Pulse</span>
+         ${tickerChips}
+       </div>`
+    : '';
   // ── Live signals ───────────────────────────────────────────────────────
   const kw = seg.newsKw || [];
   const matchNews = (n) => {
@@ -2051,7 +2257,7 @@ function renderSegmentNotes(activeId){
         ${liveNews.length ? `<div>
           <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">📰 News (${liveNews.length})</div>
           ${liveNews.map(n=>`<div style="margin-bottom:7px">
-            <a href="${safeUrl(n.url)}" target="_blank" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;line-height:1.4;display:block">${esc(n.title)}</a>
+            <a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;line-height:1.4;display:block">${esc(n.title)}</a>
             <span style="font-size:10px;color:var(--muted)">${esc(n.source||'')}${n.is_corruption?' · <span style="color:#c084fc">🚨 Corruption</span>':''}</span>
           </div>`).join('')}
           ${liveFlagged.length ? liveFlagged.map(f=>`<div style="margin-bottom:7px;padding:5px 8px;background:rgba(230,0,18,.06);border-radius:6px;border-left:2px solid var(--red)">
@@ -2062,13 +2268,13 @@ function renderSegmentNotes(activeId){
         ${liveMufg.length ? `<div>
           <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">🏦 Tom Joyce / MUFG Research (${liveMufg.length})</div>
           ${liveMufg.map(a=>`<div style="margin-bottom:7px">
-            <a href="${safeUrl(a.url)}" target="_blank" style="font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;line-height:1.4;display:block">${esc(a.title)}</a>
+            <a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;line-height:1.4;display:block">${esc(a.title)}</a>
             <span style="font-size:10px;color:var(--muted)">${esc(a.author||'MUFG')} · ${esc(a.date_str||'')}</span>
           </div>`).join('')}
           ${liveIdeas.length ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
             <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px">💡 Suggested Actions</div>
             ${liveIdeas.map(x=>`<div style="font-size:11px;margin-bottom:5px;padding:4px 8px;background:rgba(245,158,11,.07);border-radius:5px">
-              <span style="font-weight:700;color:${x.priority==='HIGH'||x.priority==='CRITICAL'?'var(--amber)':'var(--blue)'}">${x.priority}</span> · ${esc(x.topic||x.trigger||'').substring(0,70)}
+              <span style="font-weight:700;color:${x.priority==='HIGH'||x.priority==='CRITICAL'?'var(--amber)':'var(--blue)'}">${esc(x.priority)}</span> · ${esc((x.topic||x.trigger||'').substring(0,70))}
             </div>`).join('')}
           </div>` : ''}
         </div>` : ''}
@@ -2083,10 +2289,11 @@ function renderSegmentNotes(activeId){
         <div style="font-size:12px;color:var(--muted);margin-top:3px">${esc(seg.subtitle)}</div>
       </div>
     </div>
+    ${tickerHTML}
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-      ${col('Key Risks',           'var(--red)',   seg.risks,         r=>r.title, r=>r.detail)}
-      ${col('MUFG Opportunities',  'var(--green)', seg.opportunities, o=>o.title, o=>o.detail)}
-      ${col('Key Client Entities', 'var(--blue)',  seg.clients,       c=>c.name,  c=>c.detail)}
+      ${rankedCol('Key Risks',           'var(--red)',   seg.risks,         r=>r.title, r=>r.detail, true)}
+      ${rankedCol('MUFG Opportunities',  'var(--green)', seg.opportunities, o=>o.title, o=>o.detail, true)}
+      ${col('Key Client Entities',       'var(--blue)',  seg.clients,       c=>c.name,  c=>c.detail)}
     </div>
     ${liveHTML}`;
 }
@@ -2105,7 +2312,7 @@ function renderChartOfDay(){
     <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--bg3);border-radius:8px;${i===0?'border:1px solid rgba(230,0,18,.25)':'border:1px solid var(--border)'}">
       <span style="font-size:11px;color:var(--muted);white-space:nowrap;min-width:72px">${esc(c.date_str)}</span>
       <span style="flex:1;font-size:12px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--text)':'var(--muted)'};line-height:1.4">${esc(c.title)}</span>
-      <a href="${safeUrl(c.url)}" target="_blank" style="font-size:11px;color:var(--blue);white-space:nowrap;text-decoration:none">Learn More ↗</a>
+      <a href="${safeUrl(c.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:var(--blue);white-space:nowrap;text-decoration:none">Learn More ↗</a>
     </div>`).join('');
 }
 
@@ -2116,9 +2323,9 @@ function renderMufgArticles(){
   const catClass={'FX':'ma-fx','Macro':'ma-macro','Indonesia':'ma-indonesia','RATES':'ma-rates','MACRO':'ma-macro'};
   document.getElementById('mufg-articles').innerHTML=filtered.length?filtered.map(a=>`
     <div class="mufg-article">
-      <span class="ma-cat ${catClass[a.category]||'ma-fx'}">${a.category}</span>
+      <span class="ma-cat ${catClass[a.category]||'ma-fx'}">${esc(a.category)}</span>
       <div>
-        <div class="ma-title"><a href="${safeUrl(a.url)}" target="_blank">${esc(a.title)}</a></div>
+        <div class="ma-title"><a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.title)}</a></div>
         <div class="ma-meta">${esc(a.author||'')} ${a.date_str?'· '+esc(a.date_str):''}</div>
       </div>
     </div>`).join('')
@@ -2153,9 +2360,9 @@ function renderDefaultSources(){
   if(!el) return;
   el.innerHTML=DEFAULT_SOURCES.map(s=>`
     <div class="source-row">
-      <span class="source-name">${s.name}</span>
-      <span class="source-url">${s.url.substring(0,60)}...</span>
-      <span class="source-cat">${s.cat}</span>
+      <span class="source-name">${esc(s.name)}</span>
+      <span class="source-url">${esc(s.url.substring(0,60))}...</span>
+      <span class="source-cat">${esc(s.cat)}</span>
       <span style="font-size:11px;color:var(--green)">✓ active</span>
     </div>`).join('');
 }
@@ -2165,6 +2372,14 @@ async function addCustomSource(){
   const url=document.getElementById('new-src-url').value.trim();
   const cat=document.getElementById('new-src-cat').value;
   if(!name||!url){alert('Please enter both a name and URL');return;}
+  // Pre-flight validation so the user gets a friendly error instead of an RLS rejection.
+  // Server-side tighten_rls.sql also enforces https:// + length caps.
+  try{
+    const u = new URL(url);
+    if(u.protocol!=='https:'){ alert('RSS URL must start with https://'); return; }
+    if(url.length>=500){ alert('URL is too long (max 500 chars)'); return; }
+    if(name.length>=200){ alert('Name is too long (max 200 chars)'); return; }
+  }catch{ alert('Invalid URL — please enter a full https:// address'); return; }
   if(!SB){alert('Connect to Supabase first');return;}
   try{
     const {error}=await SB.from('user_sources').insert([{name,url,category:cat,enabled:true}]);
@@ -2657,7 +2872,7 @@ async function addManualURL(){
   renderOvSectors();
 
   urlInput.value=''; titleInput.value='';
-  status.innerHTML=`✅ "<strong>${title.substring(0,60)}${title.length>60?'…':''}</strong>" added as Risk Signal · Corporate Ideas updated`;
+  status.innerHTML=`✅ "<strong>${esc(title.substring(0,60))}${title.length>60?'…':''}</strong>" added as Risk Signal · Corporate Ideas updated`;
   status.style.color='var(--green)';
   btn.disabled=false; btn.textContent='🔗 Add & Analyse';
   setTimeout(()=>{ status.textContent=''; }, 6000);
@@ -2693,13 +2908,13 @@ function renderFlagged(){
       <div class="risk-card-header">
         <div>
           <div class="risk-headline">${esc(f.risk_headline||'Analysing...')}</div>
-          <div class="risk-article-title"><a href="${safeUrl(f.url)}" target="_blank" style="color:var(--muted);text-decoration:none">${esc(f.title)}</a></div>
+          <div class="risk-article-title"><a href="${safeUrl(f.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--muted);text-decoration:none">${esc(f.title)}</a></div>
           <div style="font-size:10px;color:var(--muted)">${esc(f.source||'')} ${f.flagged_at?'· Flagged '+timeAgo(f.flagged_at):''}</div>
         </div>
-        <span class="risk-badge ${f.risk_level||'MEDIUM'}">${f.risk_level||'MEDIUM'}</span>
+        <span class="risk-badge ${esc(f.risk_level||'MEDIUM')}">${esc(f.risk_level||'MEDIUM')}</span>
       </div>
       ${oppsHTML}${sectsHTML}
-      <button class="unflag-btn" onclick="unflagArticle('${f.id}')">✕ Remove from Risk Signals</button>
+      <button class="unflag-btn" onclick="unflagArticle('${safeId(f.id)}')">✕ Remove from Risk Signals</button>
     </div>`;
   }).join('');
   // Cascade: re-render Client Ideas and Sector Impact to reflect latest flags
@@ -2740,24 +2955,24 @@ function showFlaggedDetail(id){
   const lvlColor = {CRITICAL:'var(--red)',HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--green)'}[f.risk_level]||'var(--muted)';
   const opps = (f.client_opportunities||[]).map(o=>`
     <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:var(--amber);white-space:nowrap;margin-top:1px">${o.urgency||'MED'}</span>
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:var(--amber);white-space:nowrap;margin-top:1px">${esc(o.urgency||'MED')}</span>
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${o.idea||''}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${o.segment||''}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(o.idea||'')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(o.segment||'')}</div>
       </div>
     </div>`).join('');
   const sects = (f.sector_impacts||[]).map(s=>`
     <div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(230,0,18,.12);color:var(--red);white-space:nowrap;margin-top:1px">${s.impact||''}</span>
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(230,0,18,.12);color:var(--red);white-space:nowrap;margin-top:1px">${esc(s.impact||'')}</span>
       <div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${s.sector||''}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${s.detail||''}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(s.sector||'')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(s.detail||'')}</div>
       </div>
     </div>`).join('');
   document.getElementById('fda-title').innerHTML = f.url
-    ? `<a href="${f.url}" target="_blank" style="color:var(--text)">${f.title}</a>`
-    : f.title;
-  document.getElementById('fda-meta').innerHTML = `<span style="color:${lvlColor};font-weight:700">${f.risk_level}</span> &nbsp;·&nbsp; ${f.risk_headline||''}`;
+    ? `<a href="${safeUrl(f.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(f.title)}</a>`
+    : esc(f.title);
+  document.getElementById('fda-meta').innerHTML = `<span style="color:${lvlColor};font-weight:700">${esc(f.risk_level||'')}</span> &nbsp;·&nbsp; ${esc(f.risk_headline||'')}`;
   document.getElementById('fda-opps').innerHTML = opps || '<div style="color:var(--muted);font-size:12px">No client opportunities computed</div>';
   document.getElementById('fda-sects').innerHTML = sects || '<div style="color:var(--muted);font-size:12px">No sector impacts computed</div>';
   document.getElementById('flagged-detail-overlay').style.display='flex';

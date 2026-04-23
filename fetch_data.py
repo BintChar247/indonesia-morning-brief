@@ -6,8 +6,9 @@ Fetches: Yahoo Finance quotes, FRED yield curves, RSS news, generates client ide
          scrapes MUFG Research articles — then writes everything to Supabase.
 """
 
-import json, os, re, time, hashlib, datetime, requests, feedparser
+import json, os, re, time, hashlib, datetime, socket, ipaddress, requests, feedparser
 from typing import Dict, List, Optional
+from urllib.parse import urlparse, quote
 try:
     import yfinance as yf
     YFINANCE_AVAILABLE = True
@@ -21,6 +22,45 @@ WIB_OFFSET   = 7                                             # UTC+7
 
 def now_wib() -> datetime.datetime:
     return datetime.datetime.utcnow() + datetime.timedelta(hours=WIB_OFFSET)
+
+# Cap on RSS feed response size — rejects 100MB blobs that would hang feedparser.
+MAX_FEED_BYTES = 4_000_000
+
+def safe_fetch_feed(url: str, timeout: int = 12) -> bytes:
+    """Fetch a feed URL with SSRF guards — used for anon-writable user_sources entries.
+
+    Rejects non-https, private/loopback/link-local/metadata IPs, server-side
+    redirects (can re-point at private IPs post-check), and oversized responses.
+    Raises ValueError on any violation so the caller can log+skip.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise ValueError(f"non-https scheme {parsed.scheme!r}")
+    host = parsed.hostname
+    if not host:
+        raise ValueError("missing hostname")
+    try:
+        addrinfo = socket.getaddrinfo(host, None)
+    except socket.gaierror as e:
+        raise ValueError(f"dns failure: {e}")
+    for _, _, _, _, sockaddr in addrinfo:
+        ip = ipaddress.ip_address(sockaddr[0])
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved or ip.is_unspecified:
+            raise ValueError(f"host {host} resolves to non-public IP {ip}")
+    r = requests.get(
+        url, timeout=timeout, allow_redirects=False, stream=True,
+        headers={"User-Agent": "MUFG-MorningBrief/1.0 (+github-actions)"}
+    )
+    if 300 <= r.status_code < 400:
+        raise ValueError(f"redirect blocked ({r.status_code} → {r.headers.get('Location','?')})")
+    r.raise_for_status()
+    buf = bytearray()
+    for chunk in r.iter_content(65536):
+        buf.extend(chunk)
+        if len(buf) > MAX_FEED_BYTES:
+            r.close()
+            raise ValueError(f"response exceeded {MAX_FEED_BYTES} bytes")
+    return bytes(buf)
 
 def sb_post(table: str, payload, method: str = "POST") -> dict:
     """Raw Supabase REST call — avoids supabase-py version conflicts."""
@@ -264,7 +304,8 @@ def fetch_user_sources() -> List[Dict]:
         r = requests.get(url, headers=headers, timeout=10)
         if r.status_code == 200:
             rows = r.json()
-            sources = [{"name": row.get("name") or row["url"][:40], "url": row["url"], "cat": row.get("category","global")} for row in rows]
+            # Flag user-contributed feeds so fetch_all_news can apply SSRF guard.
+            sources = [{"name": row.get("name") or row["url"][:40], "url": row["url"], "cat": row.get("category","global"), "_untrusted": True} for row in rows]
             print(f"  ✓ user_sources: {len(sources)} custom feeds loaded")
             return sources
     except Exception as e:
@@ -276,7 +317,12 @@ def fetch_all_news() -> List[Dict]:
     items, seen = [], set()
     for src in all_sources:
         try:
-            feed = feedparser.parse(src["url"])
+            if src.get("_untrusted"):
+                # anon-writable — guard against SSRF / internal-IP redirects / size-bomb
+                content = safe_fetch_feed(src["url"])
+                feed = feedparser.parse(content)
+            else:
+                feed = feedparser.parse(src["url"])
             for e in feed.entries[:10]:
                 title = (e.get("title") or "").strip()
                 if not title or title in seen:
@@ -502,7 +548,9 @@ def process_flagged_articles() -> int:
                 "sector_impacts":       insights["sector_impacts"],
                 "last_computed":        now_str,
             }
-            patch_url = f"{SUPABASE_URL}/rest/v1/flagged_articles?id=eq.{article['id']}"
+            # URL-encode the id — defense-in-depth even though tighten_rls enforces MD5-12 hex.
+            safe_id = quote(str(article.get("id","")), safe="")
+            patch_url = f"{SUPABASE_URL}/rest/v1/flagged_articles?id=eq.{safe_id}"
             ph = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}",
                   "Content-Type": "application/json", "Prefer": "return=minimal"}
             requests.patch(patch_url, headers=ph, json=patch, timeout=10)

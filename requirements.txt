@@ -1,5 +1,10 @@
-requests>=2.31.0
-feedparser>=6.0.10
-beautifulsoup4>=4.12.0
-lxml>=5.0.0
-yfinance>=0.2.36
+# Exact-version pins so scheduled runs are reproducible and a malicious
+# upstream release can't be pulled in silently on the next cron tick.
+# For production-grade supply-chain hardness, regenerate with:
+#   pip-compile --generate-hashes requirements.in
+# then install via `pip install --require-hashes -r requirements.txt`.
+requests==2.32.3
+feedparser==6.0.11
+beautifulsoup4==4.12.3
+lxml==5.3.0
+yfinance==0.2.48

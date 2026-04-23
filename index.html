@@ -512,7 +512,13 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
 <!-- ═══════════════════════════════════════════════════════════ -->
 <div class="content">
 <div class="panel active" id="panel-overview">
-  <div id="ov-greeting" style="font-size:20px;font-weight:800;margin-bottom:16px;color:var(--text)">Good morning, Michael ☀️</div>
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div id="ov-greeting" style="font-size:20px;font-weight:800;color:var(--text)">Good morning, Michael ☀️</div>
+    <div id="ov-refreshed" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+      <span>Last refresh: <strong id="ov-refreshed-time" style="color:var(--text)">–</strong> <span id="ov-refreshed-ago" style="color:var(--muted)"></span></span>
+    </div>
+  </div>
 
   <!-- Hero KPIs -->
   <div class="grid-4 mb-2" id="ov-kpis" style="margin-bottom:16px">
@@ -567,6 +573,10 @@ button{cursor:pointer;font-family:var(--font);font-size:13px}
   <div class="section-label">Live Market Data</div>
   <div class="section-title">Markets — Commodities, FX, Equities & Rates</div>
   <div class="section-sub">Updated each GitHub Actions run · Click Refresh to trigger a new fetch</div>
+  <div id="mkt-refreshed" style="margin-top:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+    <span>Last refresh: <strong id="mkt-refreshed-time" style="color:var(--text)">–</strong> <span id="mkt-refreshed-ago" style="color:var(--muted)"></span></span>
+  </div>
 
   <div class="markets-grid">
 
@@ -1055,10 +1065,23 @@ function toggleTheme(){
 // ── Live "X minutes ago" counter ─────────────────────────────────────────
 function updateAgo(){
   const el = document.getElementById('hdr-ago');
-  if(!el) return;
-  if(!window._lastFetchedISO){ el.textContent=''; return; }
+  if(!window._lastFetchedISO){
+    if(el) el.textContent='';
+    ['ov-refreshed-ago','mkt-refreshed-ago'].forEach(id=>{const e=document.getElementById(id); if(e) e.textContent='';});
+    return;
+  }
   const diffMs  = Date.now() - new Date(window._lastFetchedISO).getTime();
   const diffMin = Math.round(diffMs / 60000);
+  let agoLabel;
+  if(diffMin < 1)        agoLabel = '(just now)';
+  else if(diffMin < 60)  agoLabel = `(${diffMin} min ago)`;
+  else {
+    const h = Math.floor(diffMin/60), m = diffMin%60;
+    agoLabel = m>0 ? `(${h}h ${m}m ago)` : `(${h}h ago)`;
+  }
+  ['ov-refreshed-ago','mkt-refreshed-ago'].forEach(id=>{const e=document.getElementById(id); if(e) e.textContent=agoLabel;});
+  if(!el) return;
+  // legacy branch for the header "hdr-ago" formatting (kept identical to before)
   if(diffMin < 1)        el.textContent = '(just now)';
   else if(diffMin < 60)  el.textContent = `(${diffMin} min ago)`;
   else {
@@ -1174,6 +1197,9 @@ async function loadAll(){
     (meta.data||[]).forEach(r => metaMap[r.key]=r.value);
 
     document.getElementById('hdr-updated').textContent = metaMap['last_updated_display'] || '–';
+    const refreshedDisplay = metaMap['last_updated_display'] || '–';
+    const elOvTime = document.getElementById('ov-refreshed-time'); if(elOvTime) elOvTime.textContent = refreshedDisplay;
+    const elMktTime = document.getElementById('mkt-refreshed-time'); if(elMktTime) elMktTime.textContent = refreshedDisplay;
     document.getElementById('ft-updated').textContent  = 'Last updated: ' + (metaMap['last_updated_display']||'–');
     document.getElementById('src-last-fetch').textContent = metaMap['last_updated_display']||'–';
     document.getElementById('src-news-count').textContent = metaMap['news_count']||'0';

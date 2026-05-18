@@ -16,9 +16,10 @@ except ImportError:
     YFINANCE_AVAILABLE = False
 
 # ─── Config ──────────────────────────────────────────────────────────────────
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")   # service-role key (write access)
-WIB_OFFSET   = 7                                             # UTC+7
+SUPABASE_URL      = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY      = os.environ.get("SUPABASE_SERVICE_KEY", "")   # service-role key (write access)
+TWELVE_DATA_KEY   = os.environ.get("TWELVE_DATA_KEY", "")         # optional free key — twelvedata.com
+WIB_OFFSET        = 7                                              # UTC+7
 
 def now_wib() -> datetime.datetime:
     return datetime.datetime.utcnow() + datetime.timedelta(hours=WIB_OFFSET)
@@ -116,12 +117,23 @@ def sb_prune_old(table: str, date_col: str, days: int) -> None:
     if r.status_code not in (200, 204):
         print(f"  ⚠ Supabase PRUNE {table}: {r.status_code} {r.text[:200]}")
 
-# ─── FRED commodity series (free, no API key, works from CI/CD IPs) ───────────
+# ─── FRED series (free, no API key, works from CI/CD IPs) ────────────────────
+# Verified working from GitHub Actions: no Cloudflare JS challenge on these series.
 FRED_COMMODITY_SERIES: Dict[str, str] = {
+    # Energy / commodities
     "BZ=F":      "DCOILBRENTEU",  # Brent crude USD/bbl, daily (1-day lag)
     "CL=F":      "DCOILWTICO",    # WTI crude USD/bbl, daily (1-day lag)
     "NG=F":      "DHHNGSP",       # Henry Hub nat gas USD/MMBtu, weekly
     "DX-Y.NYB":  "DTWEXBGS",      # Broad Dollar Index (proxy for DXY), daily
+    # Major equity indices — FRED carries these as daily series
+    "^GSPC":     "SP500",         # S&P 500 (FRED daily)
+    "^IXIC":     "NASDAQCOM",     # Nasdaq Composite (FRED daily)
+    "^DJI":      "DJIA",          # Dow Jones Industrial Average (FRED daily)
+    "^N225":     "NIKKEI225",     # Nikkei 225 (FRED daily)
+    # US Treasury yields
+    "^TNX":      "DGS10",         # US 10-year yield (FRED daily)
+    "^FVX":      "DGS5",          # US 5-year yield (FRED daily)
+    "^TYX":      "DGS30",         # US 30-year yield (FRED daily)
 }
 
 def _fetch_fred_commodity(series_id: str) -> Optional[tuple]:
@@ -228,6 +240,72 @@ def _fetch_er_api_fx(yahoo_symbols: List[str], prev_closes: Dict[str, float]) ->
         print(f"  ⚠ open.er-api: {e}")
         return {}
 
+# ─── Twelve Data (optional free API key) ──────────────────────────────────────
+# Register free at twelvedata.com — 800 credits/day, no credit card needed.
+# Add TWELVE_DATA_KEY to GitHub Secrets to enable this source.
+# Covers: metals (XAU/USD, XAG/USD), equity indices (JKSE, HSI, SX5E, STI),
+#         commodity futures, and more.
+TWELVE_DATA_SYMBOL_MAP: Dict[str, str] = {
+    # Metals as FX pairs
+    "GC=F":      "XAU/USD",      # Gold
+    "SI=F":      "XAG/USD",      # Silver
+    # Equity indices (exchange qualifier avoids ambiguity)
+    "^JKSE":     "JKSE:IDX",     # Jakarta Composite
+    "^HSI":      "HSI:HKEX",     # Hang Seng
+    "^STOXX50E": "SX5E:XEUR",    # Euro Stoxx 50
+    "^STI":      "STI:SGX",      # Singapore STI
+    # Commodity futures (Twelve Data uses exchange-qualified format)
+    "HG=F":      "HG1!:CME",     # Copper
+    "ZW=F":      "ZW1!:CBOT",    # Wheat
+    "ZS=F":      "ZS1!:CBOT",    # Soybeans
+}
+
+def _fetch_twelve_data(yahoo_symbols: List[str]) -> Dict:
+    """Fetch quotes from Twelve Data — free 800-credit/day plan, no card needed."""
+    if not TWELVE_DATA_KEY:
+        return {}
+    wanted = {ys: TWELVE_DATA_SYMBOL_MAP[ys] for ys in yahoo_symbols if ys in TWELVE_DATA_SYMBOL_MAP}
+    if not wanted:
+        return {}
+    syms_param = ",".join(wanted.values())
+    try:
+        r = requests.get(
+            f"https://api.twelvedata.com/quote?symbol={syms_param}&apikey={TWELVE_DATA_KEY}",
+            timeout=20,
+        )
+        r.raise_for_status()
+        data = r.json()
+        # Single-symbol response is a flat dict; multi-symbol is keyed by requested symbol.
+        if "symbol" in data:
+            data = {syms_param: data}
+        results = {}
+        td_to_yahoo = {v: k for k, v in wanted.items()}
+        for td_sym, payload in data.items():
+            if payload.get("status") == "error" or not payload.get("close"):
+                continue
+            yahoo_sym = td_to_yahoo.get(td_sym)
+            if not yahoo_sym:
+                continue
+            price      = float(payload["close"])
+            prev_close = float(payload.get("previous_close") or price)
+            change     = float(payload.get("change") or price - prev_close)
+            change_pct = float(payload.get("percent_change") or
+                               ((change / prev_close * 100) if prev_close else 0))
+            results[yahoo_sym] = {
+                "symbol":                     yahoo_sym,
+                "regularMarketPrice":         price,
+                "regularMarketChange":        change,
+                "regularMarketChangePercent": change_pct,
+                "regularMarketPreviousClose": prev_close,
+                "shortName": YAHOO_SYMBOLS.get(yahoo_sym, {}).get("name", yahoo_sym),
+            }
+        if results:
+            print(f"  ✓ Twelve Data: {len(results)}/{len(wanted)} symbols")
+        return results
+    except Exception as e:
+        print(f"  ⚠ Twelve Data: {e}")
+        return {}
+
 def _fetch_yahoo_with_session(symbols: List[str]) -> Dict:
     """Yahoo Finance with cookie/crumb session — for metals, agriculture, equities."""
     if not symbols:
@@ -296,25 +374,32 @@ YAHOO_SYMBOLS: Dict[str, Dict] = {
 }
 
 def fetch_yahoo_batch(symbols: List[str]) -> Dict:
-    """Fetch quotes from multiple free sources:
-    1. FRED (Brent, WTI, Nat Gas, Broad Dollar) — proven CI/CD-safe
-    2. open.er-api.com (FX: IDR, SGD, JPY, CNY, MYR, EUR) — proven CI/CD-safe
-    3. Yahoo Finance with cookie/crumb session (metals, agriculture, equities)
+    """Fetch quotes from multiple free sources (in priority order):
+    1. FRED — Brent, WTI, Nat Gas, Broad Dollar, S&P500, Nasdaq, DJIA, Nikkei, yields
+    2. open.er-api.com — IDR, SGD, JPY, CNY, MYR, EUR/USD
+    3. Twelve Data — Gold, Silver, JKSE, HSI, SX5E, STI, metals/agri (needs free API key)
+    4. Yahoo Finance crumb session — last-resort for anything still missing
     """
     results = {}
 
-    # ── 1. FRED commodities ────────────────────────────────────────────────
+    # ── 1. FRED (indices + commodities + yields) ───────────────────────────
     fred_results = _fetch_fred_commodities(symbols)
     results.update(fred_results)
     if fred_results:
-        print(f"  ✓ FRED commodities: {len(fred_results)} symbols ({', '.join(fred_results)})")
+        print(f"  ✓ FRED: {len(fred_results)} symbols ({', '.join(sorted(fred_results))})")
 
     # ── 2. open.er-api FX rates ────────────────────────────────────────────
     prev_closes = _read_prev_closes_from_db()
     er_results  = _fetch_er_api_fx(symbols, prev_closes)
     results.update(er_results)
 
-    # ── 3. Yahoo Finance (remaining: metals, agriculture, equity indices) ──
+    # ── 3. Twelve Data (optional — add TWELVE_DATA_KEY to GitHub Secrets) ─
+    missing = [s for s in symbols if s not in results]
+    if missing and TWELVE_DATA_KEY:
+        td_results = _fetch_twelve_data(missing)
+        results.update(td_results)
+
+    # ── 4. Yahoo Finance crumb session (last resort) ───────────────────────
     missing = [s for s in symbols if s not in results]
     if missing:
         yf_results = _fetch_yahoo_with_session(missing)

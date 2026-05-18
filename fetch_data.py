@@ -116,6 +116,84 @@ def sb_prune_old(table: str, date_col: str, days: int) -> None:
     if r.status_code not in (200, 204):
         print(f"  ⚠ Supabase PRUNE {table}: {r.status_code} {r.text[:200]}")
 
+# ─── stooq.com symbol mapping ─────────────────────────────────────────────────
+# stooq provides free daily data with no API key — works reliably from CI/CD IPs.
+# Yahoo Finance rate-limits GitHub Actions IPs aggressively; stooq does not.
+STOOQ_SYMBOL_MAP: Dict[str, str] = {
+    # Commodities (futures — stooq uses .F suffix)
+    "BZ=F":      "BZ.F",
+    "CL=F":      "CL.F",
+    "NG=F":      "NG.F",
+    "GC=F":      "GC.F",
+    "SI=F":      "SI.F",
+    "HG=F":      "HG.F",
+    "ZW=F":      "ZW.F",
+    "ZS=F":      "ZS.F",
+    # FKPO.KLS (CPO Malaysia) — not on stooq; left to Yahoo fallback
+    # FX (stooq format: BASEQUOTE, e.g. USDIDR)
+    "IDR=X":     "USDIDR",
+    "SGD=X":     "USDSGD",
+    "EURUSD=X":  "EURUSD",
+    "JPY=X":     "USDJPY",
+    "CNY=X":     "USDCNY",
+    "MYR=X":     "USDMYR",
+    "DX-Y.NYB":  "DXY",
+    # Equity indices
+    "^GSPC":     "^SPX",
+    "^IXIC":     "^NDX",    # Nasdaq 100 — proxy for Composite
+    "^DJI":      "^DJI",
+    "^STI":      "^STI",
+    "^JKSE":     "^JCI",
+    "^STOXX50E": "^SX5E",
+    "^N225":     "^NKX",
+    "^HSI":      "^HSI",
+    # US Treasury yields (stooq bond format)
+    "^TNX":      "10USY.B",
+    "^FVX":      "5USY.B",
+    "^TYX":      "30USY.B",
+}
+
+def _fetch_stooq_batch(yahoo_symbols: List[str]) -> Dict:
+    """Fetch daily quotes from stooq.com CSV API — free, no key, CI/CD-safe."""
+    results = {}
+    for yahoo_sym in yahoo_symbols:
+        stooq_sym = STOOQ_SYMBOL_MAP.get(yahoo_sym)
+        if not stooq_sym:
+            continue
+        try:
+            url = f"https://stooq.com/q/d/l/?s={stooq_sym.lower()}&i=d"
+            r = requests.get(url, timeout=15, headers={
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0",
+                "Accept": "text/csv,text/plain,*/*",
+            })
+            if r.status_code != 200 or not r.text.strip():
+                continue
+            lines = [l.strip() for l in r.text.strip().split("\n")
+                     if l.strip() and not l.startswith("Date")]
+            if not lines:
+                continue
+            # stooq returns ascending date — last row is most recent
+            current = lines[-1].split(",")
+            prev    = lines[-2].split(",") if len(lines) >= 2 else current
+            if len(current) < 5:
+                continue
+            price      = float(current[4])   # Close
+            prev_close = float(prev[4]) if len(prev) >= 5 else price
+            change     = price - prev_close
+            change_pct = (change / prev_close * 100) if prev_close else 0
+            results[yahoo_sym] = {
+                "symbol":                     yahoo_sym,
+                "regularMarketPrice":         price,
+                "regularMarketChange":        change,
+                "regularMarketChangePercent": change_pct,
+                "regularMarketPreviousClose": prev_close,
+                "shortName": YAHOO_SYMBOLS.get(yahoo_sym, {}).get("name", yahoo_sym),
+            }
+            time.sleep(0.2)
+        except Exception as e:
+            print(f"  ⚠ stooq [{stooq_sym}]: {e}")
+    return results
+
 # ─── Yahoo Finance ────────────────────────────────────────────────────────────
 YAHOO_SYMBOLS: Dict[str, Dict] = {
     # Commodities
@@ -152,17 +230,27 @@ YAHOO_SYMBOLS: Dict[str, Dict] = {
 }
 
 def fetch_yahoo_batch(symbols: List[str]) -> Dict:
-    """Fetch quotes using yfinance (primary) with v7 API fallback."""
+    """Fetch quotes: stooq (primary) → yfinance → Yahoo v7/v8 API (fallbacks)."""
     results = {}
 
-    # ── Primary: yfinance library ──────────────────────────────────────────
-    if YFINANCE_AVAILABLE:
+    # ── Primary: stooq.com — free, no API key, reliable from CI/CD IPs ────
+    stooq_results = _fetch_stooq_batch(symbols)
+    results.update(stooq_results)
+    print(f"  ✓ stooq: {len(stooq_results)}/{len(symbols)} symbols")
+
+    missing = [s for s in symbols if s not in results]
+    if not missing:
+        return results
+
+    # ── Secondary: yfinance library (for symbols without a stooq mapping) ─
+    if YFINANCE_AVAILABLE and missing:
         try:
-            tickers = yf.Tickers(" ".join(symbols))
-            for sym in symbols:
+            tickers = yf.Tickers(" ".join(missing))
+            yf_hits = []
+            for sym in missing:
                 try:
                     info = tickers.tickers[sym].fast_info
-                    prev = getattr(info, "previous_close", None) or getattr(info, "regularMarketPreviousClose", None)
+                    prev  = getattr(info, "previous_close", None) or getattr(info, "regularMarketPreviousClose", None)
                     price = getattr(info, "last_price", None) or getattr(info, "regularMarketPrice", None)
                     if price:
                         change = (price - prev) if prev else 0
@@ -175,22 +263,23 @@ def fetch_yahoo_batch(symbols: List[str]) -> Dict:
                             "regularMarketPreviousClose": prev,
                             "shortName": YAHOO_SYMBOLS.get(sym, {}).get("name", sym),
                         }
+                        yf_hits.append(sym)
                 except Exception:
                     pass
-            if results:
-                print(f"  ✓ yfinance: {len(results)}/{len(symbols)} symbols")
-                # fill missing via v7 fallback below
-                missing = [s for s in symbols if s not in results]
-                if missing:
-                    print(f"  → fallback for {len(missing)} missing symbols via v7 API")
-                    v7 = _fetch_yahoo_api(missing)
-                    results.update(v7)
-                return results
+            if yf_hits:
+                print(f"  ✓ yfinance: {len(yf_hits)} additional symbols")
         except Exception as e:
-            print(f"  ⚠ yfinance error: {e} — trying v7 API fallback")
+            print(f"  ⚠ yfinance error: {e}")
 
-    # ── Fallback: Yahoo Finance v7 REST API ────────────────────────────────
-    return _fetch_yahoo_api(symbols)
+    # ── Tertiary: Yahoo Finance REST API ───────────────────────────────────
+    missing = [s for s in symbols if s not in results]
+    if missing:
+        yf_api = _fetch_yahoo_api(missing)
+        results.update(yf_api)
+        if yf_api:
+            print(f"  ✓ Yahoo API: {len(yf_api)} additional symbols")
+
+    return results
 
 def _fetch_yahoo_api(symbols: List[str]) -> Dict:
     """Direct Yahoo Finance v7 API call with rotating user agents."""

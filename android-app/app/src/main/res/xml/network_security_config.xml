@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  All traffic is HTTPS. Cleartext is disabled.
+  appassets.androidplatform.net is served locally by WebViewAssetLoader (no network call).
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+        <domain includeSubdomains="true">api.github.com</domain>
+        <domain includeSubdomains="true">api.allorigins.win</domain>
+        <domain includeSubdomains="true">fred.stlouisfed.org</domain>
+        <domain includeSubdomains="true">finance.yahoo.com</domain>
+        <domain includeSubdomains="true">query1.finance.yahoo.com</domain>
+    </domain-config>
+</network-security-config>

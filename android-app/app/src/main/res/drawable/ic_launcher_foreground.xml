@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- MUFG-inspired red square with white "MB" initials -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Red background circle -->
+    <path
+        android:fillColor="#E60012"
+        android:pathData="M54,54m-46,0a46,46 0,1 1,92 0a46,46 0,1 1,-92 0" />
+    <!-- "M" letter -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,38 L36,38 L44,52 L52,38 L60,38 L60,70 L52,70 L52,54 L44,64 L36,54 L36,70 L28,70 Z" />
+    <!-- "B" letter -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M64,38 L64,70 L78,70 Q86,70 86,63 Q86,58 82,56.5 Q86,55 86,50 Q86,38 78,38 Z
+                         M72,44 L78,44 Q80,44 80,49 Q80,54 78,54 L72,54 Z
+                         M72,60 L78,60 Q80,60 80,65 Q80,64 78,64 L72,64 Z" />
+</vector>

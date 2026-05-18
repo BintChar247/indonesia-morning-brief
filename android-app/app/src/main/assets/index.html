@@ -1,0 +1,3175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://appassets.androidplatform.net; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://appassets.androidplatform.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://appassets.androidplatform.net https://api.allorigins.win https://fred.stlouisfed.org https://query1.finance.yahoo.com https://finance.yahoo.com https://*.supabase.co https://api.github.com; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'">
+<title>Indonesia Morning Brief</title>
+<meta property="og:title" content="Indonesia Morning Brief">
+<meta property="og:description" content="Daily Indonesia corporate coverage dashboard — markets, FX, commodities, news & corporate ideas.">
+<meta property="og:type" content="website">
+<!-- Supabase SDK removed: standalone mode fetches directly -->
+<style>
+:root {
+  --bg:       #080c14;
+  --bg2:      #0d1421;
+  --bg3:      #111928;
+  --bg4:      #161f30;
+  --red:      #E60012;
+  --red-dim:  rgba(230,0,18,.12);
+  --text:     #e2e8f0;
+  --muted:    #8892a4;
+  --border:   rgba(255,255,255,.07);
+  --green:    #22c55e;
+  --amber:    #f59e0b;
+  --blue:     #60a5fa;
+  --purple:   #a78bfa;
+  --font:     'Inter', system-ui, -apple-system, sans-serif;
+}
+body.light {
+  --bg:       #f0f4f8;
+  --bg2:      #ffffff;
+  --bg3:      #e8edf4;
+  --bg4:      #dde3ec;
+  --red:      #C8000F;
+  --red-dim:  rgba(200,0,15,.1);
+  --text:     #0f172a;
+  --muted:    #64748b;
+  --border:   rgba(0,0,0,.1);
+  --green:    #16a34a;
+  --amber:    #d97706;
+  --blue:     #2563eb;
+  --purple:   #7c3aed;
+}
+/* Header & nav */
+body.light .hdr{background:rgba(240,244,248,.97)}
+body.light .nav-btn.active{color:var(--red)}
+body.light .filter-btn:hover,body.light .filter-btn.active{color:var(--red);background:var(--red-dim)}
+
+/* Buttons */
+body.light .btn-ghost{background:rgba(0,0,0,.05);color:var(--text);border-color:rgba(0,0,0,.12)}
+body.light .btn-ghost:hover{background:rgba(0,0,0,.1)}
+
+/* Scrollbar */
+body.light ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18)}
+
+/* Market table */
+body.light .mkt-table td{border-bottom:1px solid rgba(0,0,0,.06)}
+body.light .mkt-table tr:hover td{background:rgba(0,0,0,.03)}
+body.light .bar-wrap{background:rgba(0,0,0,.1)}
+body.light .chg-dn{color:#c8000f}
+
+/* News */
+body.light .flag-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1)}
+body.light .flag-btn:hover{background:rgba(245,158,11,.1)}
+body.light .news-title a{color:var(--text)}
+body.light .news-card{background:#ffffff;border-color:rgba(0,0,0,.1)}
+body.light .news-card:hover{border-color:rgba(200,0,15,.3)}
+body.light .news-src{color:var(--muted)}
+body.light .news-summary{color:var(--muted)}
+body.light .corruption-section-header{background:rgba(124,58,237,.07);border-color:rgba(124,58,237,.2)}
+body.light .filter-count{background:rgba(0,0,0,.1);color:var(--muted)}
+
+/* Yield curve SVG */
+body.light .yc-grid{stroke:rgba(0,0,0,.08)}
+body.light .yc-axis{fill:var(--muted)}
+body.light .yc-label{fill:var(--text)}
+body.light .yc-tooltip{background:var(--bg2)}
+
+/* Risk signal panel */
+body.light .risk-sector-chip{background:var(--bg3);color:var(--muted)}
+
+/* Sector & idea cards */
+body.light .idea-card.HIGH{background:rgba(245,158,11,.04)}
+body.light .idea-card.MEDIUM{background:rgba(37,99,235,.04)}
+body.light .idea-card.CRITICAL{background:rgba(200,0,15,.04)}
+body.light .idea-prod{background:var(--bg3);color:var(--muted)}
+
+/* Sources toggle */
+body.light .toggle{background:var(--bg3)}
+
+/* Sector snapshot — integrated look in both modes */
+.ov-sector-wrap{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:20px}
+body.light .ov-sector-wrap{background:#F3F4F6;border-color:rgba(0,0,0,.08)}
+
+/* Footer */
+body.light .footer{border-top-color:rgba(0,0,0,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+input,select,textarea{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:13px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:rgba(230,0,18,.5)}
+button{cursor:pointer;font-family:var(--font);font-size:13px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px}
+
+/* ── Header ─────────────────────────────────────────── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(8,12,20,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:10px 20px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hdr-logo{display:flex;align-items:center;gap:10px}
+.hdr-badge{background:var(--red);color:#fff;font-size:10px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px}
+.hdr-title{font-size:15px;font-weight:700;color:var(--text)}
+.hdr-sub{font-size:11px;color:var(--muted)}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr-meta{font-size:11px;color:var(--muted);text-align:right}
+.hdr-meta strong{color:var(--text)}
+/* Mobile header stacking */
+@media(max-width:600px){
+  .hdr{padding:8px 14px;gap:6px}
+  .hdr-right{margin-left:0;width:100%;justify-content:flex-end;gap:4px}
+  .hdr-meta{display:none}
+  .btn-label{display:none}
+}
+.btn{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:8px;padding:8px 14px;font-weight:600;transition:opacity .15s}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{opacity:.88}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,.1)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.spin{animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Alert bar ───────────────────────────────────────── */
+.alert-bar{padding:6px 20px;display:flex;gap:8px;overflow-x:auto;white-space:nowrap;background:rgba(230,0,18,.06);border-bottom:1px solid rgba(230,0,18,.2);display:none}
+.alert-bar.show{display:flex}
+.alert-pill{background:rgba(230,0,18,.15);border:1px solid rgba(230,0,18,.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#ff8a95}
+
+/* ── Nav tabs ────────────────────────────────────────── */
+.nav{position:sticky;z-index:99;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;align-items:center;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{background:none;border:none;color:var(--muted);padding:10px 11px;font-size:12px;font-weight:500;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;min-height:44px}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:#fff;border-bottom-color:var(--red)}
+.nav-divider{width:1px;background:var(--border);height:24px;margin:0 6px;flex-shrink:0}
+@media(max-width:768px){.nav{padding:0 12px}.nav-btn{padding:10px 10px;font-size:11px}}
+
+/* ── Content ─────────────────────────────────────────── */
+.content{padding:20px;max-width:1400px;margin:0 auto;min-height:calc(100vh - 110px)}
+.panel{display:none}
+.panel.active{display:block}
+@media(max-width:768px){.content{padding:14px 12px}}
+
+/* ── Cards / grids ───────────────────────────────────── */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:18px}
+.card-sm{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px}
+.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px}
+.section-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.section-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* ── Overview 3-col main grid ────────────────────────── */
+.ov-main-grid{display:grid;grid-template-columns:1.2fr 1.6fr 1fr;gap:16px;align-items:start}
+/* Tablet: 2-col, movers spans full width */
+@media(max-width:1024px){
+  .ov-main-grid{grid-template-columns:1fr 1fr}
+  .col-movers{grid-column:1/-1}
+}
+/* Mobile: single column, DOM order = priorities→headlines→movers */
+@media(max-width:768px){
+  .ov-main-grid{grid-template-columns:1fr;gap:12px}
+  .col-priorities{order:1}
+  .col-headlines{order:2}
+  .col-movers{order:3;grid-column:auto}
+}
+
+/* ── KPI card ────────────────────────────────────────── */
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpi.kpi-accent{border-color:rgba(230,0,18,.35);background:linear-gradient(135deg,var(--bg2) 70%,rgba(230,0,18,.04))}
+.kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+.kpi-value{font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px}
+.kpi-accent .kpi-value{font-size:28px}
+.kpi-change{font-size:12px;font-weight:600}
+.kpi-change.up{color:var(--green)}
+.kpi-change.down{color:var(--red)}
+.kpi-change.flat{color:var(--muted)}
+/* KPI responsive grid: 2×2 on tablet, 1×4 on phone */
+@media(max-width:768px){#ov-kpis.grid-4{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){#ov-kpis.grid-4{grid-template-columns:1fr}}
+/* ── Ticker auto-scroll ──────────────────────────────── */
+.ticker-wrap{overflow:hidden;position:relative}
+.ticker-track{display:flex;gap:10px;animation:ticker-scroll 30s linear infinite;width:max-content}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ── Market table ────────────────────────────────────── */
+.mkt-table{width:100%;border-collapse:collapse}
+.mkt-table th{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.mkt-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;white-space:nowrap}
+.mkt-table tr:hover td{background:rgba(255,255,255,.02)}
+.mkt-table tr:last-child td{border-bottom:none}
+.mkt-table td:first-child{white-space:normal;min-width:90px} /* allow name col to wrap */
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px} /* scrollable wrapper */
+.chg-up{color:var(--green);font-weight:600}
+.chg-dn{color:#ff6b7a;font-weight:600}
+.chg-flat{color:var(--muted)}
+/* ── Markets panel responsive grids ─────────────────── */
+.markets-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+.ndf-ccs-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:20px}
+.ndf-card{overflow-x:hidden} /* prevent SVG label bleed causing page scroll */
+@media(max-width:768px){
+  .markets-grid{grid-template-columns:1fr;margin-bottom:12px}
+  .ndf-ccs-grid{grid-template-columns:1fr;gap:24px}
+  #yield-svg{height:110px}
+  #ndf-svg-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch} /* scroll SVG if it overflows */
+  .mkt-table th,.mkt-table td{padding:7px 8px;font-size:12px}
+  .ndf-card{padding:14px 12px}
+}
+.bar-wrap{width:60px;height:6px;background:rgba(255,255,255,.06);border-radius:3px;display:inline-block;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.bar-up{background:var(--green)}
+.bar-dn{background:#ff6b7a}
+.mkt-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px}
+.tag-energy{background:rgba(245,158,11,.15);color:var(--amber)}
+.tag-fx{background:rgba(96,165,250,.15);color:var(--blue)}
+.tag-eq{background:rgba(167,139,250,.15);color:var(--purple)}
+.tag-metal{background:rgba(255,255,255,.1);color:var(--muted)}
+.tag-agri{background:rgba(34,197,94,.12);color:var(--green)}
+
+/* ── Yield curve SVG ─────────────────────────────────── */
+#yield-svg{width:100%;overflow:visible}
+.yc-line{fill:none;stroke:var(--red);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.yc-dot{fill:var(--red)}
+.yc-grid{stroke:rgba(255,255,255,.06);stroke-width:1}
+.yc-axis{fill:var(--muted);font-size:10px;font-family:var(--font)}
+.yc-label{fill:var(--text);font-size:11px;font-family:var(--font);font-weight:600}
+.yc-tooltip{position:absolute;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;pointer-events:none;display:none;font-size:12px;z-index:50}
+
+/* ── News ─────────────────────────────────────────────── */
+.news-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filter-btn{background:var(--bg3);border:1px solid var(--border);border-radius:20px;color:var(--muted);padding:5px 12px;font-size:12px;font-weight:500;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.filter-btn:hover,.filter-btn.active{background:var(--red-dim);border-color:rgba(230,0,18,.4);color:#fff}
+.filter-count{background:rgba(255,255,255,.12);border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;min-width:16px;text-align:center}
+.search-row{display:flex;gap:8px;margin-bottom:16px}
+.search-row input{flex:1}
+.news-list{display:flex;flex-direction:column;gap:10px}
+.news-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;transition:border-color .15s}
+.news-card:hover{border-color:rgba(230,0,18,.3)}
+.news-card.indonesia{border-left:3px solid var(--red)}
+.news-card.energy{border-left:3px solid var(--amber)}
+.news-card.corruption{border-left:3px solid var(--purple)}
+.corruption-section-header{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:8px 14px;margin-bottom:8px;font-size:12px;font-weight:700;color:var(--purple);display:flex;align-items:center;gap:6px}
+.news-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.news-src{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.news-time{font-size:11px;color:var(--amber);font-weight:600;margin-left:4px}
+.flag-btn{background:rgba(255,255,255,.06);border:1px solid var(--border);cursor:pointer;font-size:13px;padding:3px 7px;border-radius:6px;opacity:0.75;transition:all .15s;margin-left:auto;color:var(--muted);display:flex;align-items:center;gap:3px}
+.flag-btn::after{content:'Flag';font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.flag-btn:hover{opacity:1;background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:var(--amber);transform:scale(1.05)}
+.flag-btn.flagged{opacity:1;background:rgba(230,0,18,.12);border-color:rgba(230,0,18,.4);color:#ff6b7a;filter:drop-shadow(0 0 4px rgba(230,0,18,.3))}
+.flag-btn.flagged::after{content:'Flagged'}
+.risk-signals-panel{background:rgba(230,0,18,.06);border:1px solid rgba(230,0,18,.25);border-radius:12px;padding:16px;margin-bottom:20px}
+.risk-signals-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.risk-card{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:10px;padding:14px;margin-bottom:10px}
+.risk-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.risk-badge{font-size:9px;font-weight:800;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.risk-badge.CRITICAL{background:rgba(230,0,18,.2);color:#ff4444}
+.risk-badge.HIGH{background:rgba(255,140,0,.2);color:#ff8c00}
+.risk-badge.MEDIUM{background:rgba(59,130,246,.2);color:#60a5fa}
+.risk-badge.LOW{background:rgba(100,100,100,.2);color:var(--muted)}
+.risk-headline{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px}
+.risk-article-title{font-size:13px;color:var(--muted);margin-bottom:8px}
+.risk-opps{margin-top:8px}
+.risk-opp{display:flex;gap:8px;margin-bottom:5px;font-size:12px}
+.risk-opp-seg{color:var(--amber);font-weight:600;min-width:140px;flex-shrink:0}
+.risk-opp-idea{color:var(--text-sub)}
+.risk-sectors{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.risk-sector-chip{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--muted)}
+.risk-sector-chip.Direct{background:rgba(230,0,18,.12);color:#ff6666}
+.risk-sector-chip.High{background:rgba(255,140,0,.12);color:#ffaa44}
+.unflag-btn{font-size:10px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:4px;padding:2px 6px;cursor:pointer;margin-top:6px}
+.unflag-btn:hover{color:var(--red);border-color:var(--red)}
+.news-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px}
+.news-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px}
+.news-title a:hover{color:var(--red)}
+.news-title a{color:var(--text)}
+.news-summary{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* ── Client Ideas ────────────────────────────────────── */
+.idea-card{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.idea-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.idea-card.CRITICAL::before{background:#ff2d55}
+.idea-card.HIGH::before{background:var(--amber)}
+.idea-card.MEDIUM::before{background:var(--blue)}
+.idea-card.LOW::before{background:var(--muted)}
+.idea-card.CRITICAL{background:rgba(255,45,85,.05)}
+.idea-card.HIGH{background:rgba(245,158,11,.05)}
+.idea-card.MEDIUM{background:rgba(96,165,250,.05)}
+.idea-card.LOW{background:var(--bg2)}
+.idea-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.idea-icon{font-size:22px;line-height:1}
+.idea-meta{flex:1}
+.idea-priority{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px}
+.idea-priority.CRITICAL{color:#ff2d55}
+.idea-priority.HIGH{color:var(--amber)}
+.idea-priority.MEDIUM{color:var(--blue)}
+.idea-sector{font-size:15px;font-weight:700;color:var(--text)}
+.idea-clients{font-size:11px;color:var(--muted);margin-top:2px}
+.idea-trigger{font-size:11px;font-weight:600;color:var(--amber);background:rgba(245,158,11,.1);padding:4px 10px;border-radius:6px;display:inline-block;margin-bottom:8px}
+.idea-topic{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px}
+.idea-products{display:flex;flex-wrap:wrap;gap:6px}
+.idea-prod{font-size:10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:3px 8px;color:var(--muted);font-weight:500}
+
+/* ── Sector impact ───────────────────────────────────── */
+.sector-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.sector-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.sector-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.sev-badge{font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:4px;letter-spacing:.05em}
+.sev-critical{background:rgba(255,45,85,.2);color:#ff2d55}
+.sev-high{background:rgba(245,158,11,.2);color:var(--amber)}
+.sev-medium{background:rgba(96,165,250,.2);color:var(--blue)}
+.sev-low{background:rgba(255,255,255,.1);color:var(--muted)}
+.impact-row{font-size:11px;line-height:1.5;margin-bottom:4px;color:var(--muted)}
+.impact-row strong{color:var(--text)}
+
+/* ── MUFG Research ───────────────────────────────────── */
+.mufg-hero{background:linear-gradient(135deg,rgba(230,0,18,.1),rgba(230,0,18,.04));
+  border:1px solid rgba(230,0,18,.3);border-radius:16px;padding:24px;margin-bottom:20px}
+.tj-name{font-size:13px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tj-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+.tj-bio{font-size:12px;color:var(--muted);line-height:1.6}
+.mufg-articles{display:flex;flex-direction:column;gap:8px}
+.mufg-article{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:flex-start;gap:12px;transition:border-color .15s}
+.mufg-article:hover{border-color:rgba(230,0,18,.3)}
+.ma-cat{font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.ma-fx{background:rgba(96,165,250,.15);color:var(--blue)}
+.ma-macro{background:rgba(245,158,11,.15);color:var(--amber)}
+.ma-indonesia{background:var(--red-dim);color:#ff8a95}
+.ma-rates{background:rgba(167,139,250,.15);color:var(--purple)}
+.ma-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;flex:1}
+.ma-title a{color:var(--text)}
+.ma-title a:hover{color:var(--red)}
+.ma-meta{font-size:10px;color:var(--muted);margin-top:3px}
+.notes-area{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;min-height:120px;font-size:13px;color:var(--text);line-height:1.6;resize:vertical;width:100%;font-family:var(--font)}
+
+/* ── Indonesia panel ─────────────────────────────────── */
+.idr-gauge{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px}
+.idr-val{font-size:48px;font-weight:900;letter-spacing:-.02em;margin-bottom:4px}
+.idr-change{font-size:14px;font-weight:600;margin-bottom:12px}
+.idr-bar-wrap{height:10px;background:var(--bg3);border-radius:5px;position:relative;margin-bottom:8px}
+.idr-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),var(--amber),#ff6b7a);transition:width 1s ease}
+.idr-markers{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+.rating-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.rating-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.rating-agency{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px}
+.rating-grade{font-size:18px;font-weight:800;color:var(--text)}
+.rating-outlook{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin-top:4px;display:inline-block}
+.neg{background:rgba(255,107,122,.15);color:#ff6b7a}
+.watch{background:rgba(245,158,11,.15);color:var(--amber)}
+
+/* ── Sources ─────────────────────────────────────────── */
+.source-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.source-name{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.source-url{font-size:11px;color:var(--muted);flex:2}
+.source-cat{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--bg3);color:var(--muted)}
+.toggle{width:36px;height:20px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;position:relative;cursor:pointer;transition:background .2s}
+.toggle.on{background:var(--red)}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:7px;top:2px;left:2px;transition:left .2s}
+.toggle.on::after{left:18px}
+.add-source-form{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.form-row input,.form-row select{flex:1;min-width:150px}
+.conn-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:4px 10px;border-radius:6px;font-weight:600}
+.conn-ok{background:rgba(34,197,94,.12);color:var(--green)}
+.conn-err{background:rgba(255,107,122,.12);color:#ff6b7a}
+.conn-dot{width:7px;height:7px;border-radius:50%}
+.conn-dot.ok{background:var(--green)}
+.conn-dot.err{background:#ff6b7a}
+
+/* ── Setup modal ─────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:200;display:flex;align-items:center;justify-content:center;display:none}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:8px}
+.modal p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.modal label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;margin-top:14px}
+.modal input{width:100%;margin-bottom:4px}
+.modal-footer{margin-top:20px;display:flex;gap:10px}
+.modal small{font-size:11px;color:var(--muted);margin-top:4px;display:block}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:800;margin-right:6px}
+
+/* ── Footer ──────────────────────────────────────────── */
+.footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);text-align:center}
+
+/* ── Loading skeleton ────────────────────────────────── */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-text{height:14px;margin-bottom:8px}
+.skel-kpi{height:80px}
+
+/* ── Misc utils ──────────────────────────────────────── */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0}
+.mt-4{margin-top:16px}
+.mb-2{margin-bottom:8px}
+.flex{display:flex}
+.flex-center{display:flex;align-items:center}
+.gap-2{gap:8px}
+.gap-3{gap:12px}
+.text-muted{color:var(--muted)}
+.text-red{color:var(--red)}
+.text-green{color:var(--green)}
+.text-amber{color:var(--amber)}
+.fw-700{font-weight:700}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<!-- Admin Settings modal (public visitors never see this) -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal">
+    <h2>Admin Settings ⚙️</h2>
+    <p style="margin-bottom:12px">Configure your GitHub Actions trigger. Supabase credentials are pre-configured site-wide — no action needed.</p>
+
+    <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--green)">
+      ✓ Site database connected — public visitors load data automatically
+    </div>
+
+    <label>GitHub Repo (for Refresh button)</label>
+    <input type="text" id="inp-repo" placeholder="yourusername/indonesia-morning-brief">
+    <label style="margin-top:12px">GitHub Personal Access Token (fine-grained)</label>
+    <input type="password" id="inp-token" placeholder="github_pat_...">
+    <small>
+      Create a <strong>fine-grained</strong> PAT at GitHub → Settings → Developer settings → Personal Access Tokens → Fine-grained tokens. Scope it to:<br>
+      • <strong>Repository access:</strong> only this repo<br>
+      • <strong>Repository permissions:</strong> <em>Actions: Read and write</em> (nothing else)<br>
+      • <strong>Expiration:</strong> 30 days, set a calendar reminder to rotate<br>
+      Stored only in this browser's localStorage. Do not paste a classic PAT with <code>repo</code> scope — if this browser is ever compromised, that broader token grants the attacker full write access to the repo.
+    </small>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Override Supabase connection (optional — only needed if you change databases)</div>
+    <label>Supabase Project URL</label>
+    <input type="url" id="inp-url" placeholder="Leave blank to use site default">
+    <label style="margin-top:8px">Supabase Anon Key</label>
+    <input type="text" id="inp-anon" placeholder="Leave blank to use site default">
+
+    <div class="modal-footer">
+      <button class="btn btn-red" onclick="saveConfig()">💾 Save Admin Settings</button>
+      <button class="btn btn-ghost" onclick="closeSetup()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Source Detail Modal -->
+<div class="modal-overlay" id="sourceModal" onclick="if(event.target===this)closeSourceModal()">
+  <div class="modal" style="max-width:660px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 id="srcModal-title" style="font-size:16px"></h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeSourceModal()">✕ Close</button>
+    </div>
+    <div id="srcModal-body" style="display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+</div>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <div>
+      <div class="hdr-title">Indonesia Morning Brief</div>
+      <div class="hdr-sub" id="hdr-date">Loading...</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-meta">
+      <div>Last updated: <strong id="hdr-updated">–</strong> <span id="hdr-ago" style="font-size:10px;color:var(--muted);font-weight:400"></span></div>
+      <div id="hdr-status" class="text-muted">–</div>
+    </div>
+    <div style="display:flex;gap:4px;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">🌙</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Theme</span></button>
+      <button class="btn btn-ghost btn-sm" id="reloadBtn" onclick="reloadData()" title="Reload from database" style="display:flex;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">↺</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Reload</span></button>
+      <button class="btn btn-ghost btn-sm" id="adminGearBtn" onclick="openSetup()" style="display:none;flex-direction:column;align-items:center;padding:4px 8px;gap:1px;min-height:44px;min-width:44px"><span style="font-size:14px">⚙️</span><span class="btn-label" style="font-size:8px;color:var(--muted)">Admin</span></button>
+      <button class="btn btn-ghost btn-sm" onclick="triggerRefresh()" id="refreshBtn" style="display:none;flex-direction:column;align-items:center;padding:4px 10px;gap:1px;border:1px solid rgba(230,0,18,.4);color:var(--red);min-height:44px;min-width:44px"><span style="font-size:13px">🔄</span><span class="btn-label" style="font-size:8px">Refresh</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Alert bar -->
+<div class="alert-bar" id="alertBar"></div>
+
+<!-- Nav tabs -->
+<div class="nav">
+  <button class="nav-btn active" onclick="switchTab('overview',this)">📊 Overview</button>
+  <div class="nav-divider"></div>
+  <button class="nav-btn" onclick="switchTab('mufg',this)">🏦 Tom Joyce</button>
+  <button class="nav-btn" onclick="switchTab('markets',this)">📈 Markets</button>
+  <button class="nav-btn" onclick="switchTab('indonesia',this)">🇮🇩 Indonesia</button>
+  <div class="nav-divider"></div>
+  <button class="nav-btn" onclick="switchTab('news',this)">📰 News</button>
+  <button class="nav-btn" onclick="switchTab('ideas',this)">💡 Client Opps</button>
+  <button class="nav-btn" onclick="switchTab('sector',this)">⚡ Sector</button>
+  <div class="nav-divider"></div>
+  <button class="nav-btn" onclick="switchTab('sources',this)">⚙️ Sources</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 1: OVERVIEW -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="content">
+<div class="panel active" id="panel-overview">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div id="ov-greeting" style="font-size:20px;font-weight:800;color:var(--text)">Good morning, Michael ☀️</div>
+    <div id="ov-refreshed" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+      <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+      <span>Last refresh: <strong id="ov-refreshed-time" style="color:var(--text)">–</strong> <span id="ov-refreshed-ago" style="color:var(--muted)"></span></span>
+    </div>
+  </div>
+
+  <!-- Hero KPIs -->
+  <div class="grid-4 mb-2" id="ov-kpis" style="margin-bottom:16px">
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+    <div class="kpi skeleton skel-kpi"></div>
+  </div>
+
+  <!-- 3-column grid: priorities | headlines | movers — priorities left = most actionable -->
+  <div class="ov-main-grid">
+
+    <!-- Today's Priorities — left, most prominent -->
+    <div class="col-priorities">
+      <div class="section-label">Today's Priorities</div>
+      <div id="ov-priorities" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
+        <div class="card skeleton skel-text" style="height:70px"></div>
+        <div class="card skeleton skel-text" style="height:70px"></div>
+      </div>
+    </div>
+
+    <!-- Top headlines — centre -->
+    <div class="col-headlines">
+      <div class="section-label">Top Headlines</div>
+      <div id="ov-news" style="display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;padding-right:4px">
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+        <div class="card skeleton skel-text" style="height:60px"></div>
+      </div>
+    </div>
+
+    <!-- Market movers — right -->
+    <div class="col-movers">
+      <div class="section-label">Market Movers</div>
+      <div id="ov-movers" class="card" style="padding:12px;max-height:420px;overflow-y:auto">
+        <div class="skeleton skel-text"></div><div class="skeleton skel-text"></div><div class="skeleton skel-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sector snapshot — integrated light grey in light mode, subtle in dark -->
+  <div class="ov-sector-wrap">
+    <div class="section-label" style="margin-bottom:10px">Sector Impact Snapshot</div>
+    <div id="ov-sectors" class="sector-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 2: MARKETS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-markets">
+  <div class="section-label">Live Market Data</div>
+  <div class="section-title">Markets — Commodities, FX, Equities & Rates</div>
+  <div class="section-sub">Updated each GitHub Actions run · Click Refresh to trigger a new fetch</div>
+  <div id="mkt-refreshed" style="margin-top:6px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">
+    <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></span>
+    <span>Last refresh: <strong id="mkt-refreshed-time" style="color:var(--text)">–</strong> <span id="mkt-refreshed-ago" style="color:var(--muted)"></span></span>
+  </div>
+
+  <div class="markets-grid">
+
+    <!-- Commodities -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        ⚡ <span>Energy & Commodities</span>
+      </div>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-commodities"><tbody>
+        <tr><td colspan="5" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table></div>
+    </div>
+
+    <!-- FX -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        💱 <span>Foreign Exchange</span>
+      </div>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-fx"><tbody>
+        <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <div class="markets-grid" style="margin-bottom:0">
+
+    <!-- Equities -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        📈 <span>Equity Indices</span>
+      </div>
+      <div class="tbl-scroll"><table class="mkt-table" id="tbl-equities"><tbody>
+        <tr><td colspan="4" class="text-muted" style="padding:20px;text-align:center">Loading...</td></tr>
+      </tbody></table></div>
+    </div>
+
+    <!-- Yield Curve -->
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+        📉 <span>US Treasury Yield Curve</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Source: FRED (St. Louis Fed)</div>
+      <div style="position:relative">
+        <svg id="yield-svg" viewBox="0 0 420 160" style="width:100%"></svg>
+        <div class="yc-tooltip" id="yc-tip"></div>
+      </div>
+      <div id="rates-row" style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap"></div>
+    </div>
+  </div>
+
+  <!-- IDR NDF & CCS -->
+  <div class="card ndf-card" style="margin-top:16px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      💱 <span>IDR NDF Forward Curve & Cross-Currency Swap (CCS) <span style="font-weight:400;color:var(--muted)">— Indicative</span></span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5">
+      Derived from USD/IDR spot · BI Rate 4.75% · FRED USD rates · Term structure estimated from BI Rate + market premium · For indicative / discussion purposes only
+    </div>
+    <div class="ndf-ccs-grid">
+
+      <!-- NDF -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <div style="width:12px;height:2px;background:var(--blue);flex-shrink:0"></div> NDF Implied Forwards & Hedge Cost
+        </div>
+        <div class="tbl-scroll"><table class="mkt-table" id="tbl-ndf"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table></div>
+        <div style="position:relative;margin-top:14px">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Forward Points (IDR pips above spot)</div>
+          <div id="ndf-svg-wrap" style="width:100%"><svg id="ndf-svg" viewBox="0 0 420 120" style="width:100%;overflow:visible"></svg></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">
+          NDF rate = Spot × (1 + IDR rate × T) / (1 + USD rate × T). Hedge cost = annualised cost of buying USD forward.
+        </div>
+      </div>
+
+      <!-- CCS -->
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px">
+          <div style="width:12px;height:2px;background:var(--green);flex-shrink:0"></div> CCS — Pay USD SOFR / Receive IDR Fixed
+        </div>
+        <div class="tbl-scroll"><table class="mkt-table" id="tbl-ccs"><tbody><tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">Loading...</td></tr></tbody></table></div>
+        <div style="margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px">RM Talking Points</div>
+          <div id="ccs-talking-points" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">
+          CCS spread = IDR fixed leg − USD SOFR. Corporates with USD bonds can swap to IDR fixed via CCS.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 3: INDONESIA -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-indonesia">
+  <div class="section-label">Indonesia Macro Dashboard</div>
+  <div class="section-title">Sovereign Risk, Currency & Macro Indicators</div>
+  <div class="section-sub">Target: USDIDR 17,000 · 5Y CDS >80bps · MSCI review: May 2026</div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+
+    <!-- IDR Panel -->
+    <div>
+      <div class="idr-gauge" id="idr-panel">
+        <div class="section-label">USD / IDR</div>
+        <div class="idr-val text-red" id="idr-val">—</div>
+        <div class="idr-change" id="idr-change">–</div>
+        <div class="idr-bar-wrap"><div class="idr-fill" id="idr-fill" style="width:50%"></div></div>
+        <div class="idr-markers">
+          <span>Rp 15,000</span><span>Base 17,000</span><span>Tail 17,400</span><span>Crisis</span>
+        </div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="card-sm">
+            <div class="section-label">Oil Sensitivity</div>
+            <div style="font-size:13px;font-weight:700">+$10/bbl → <span style="color:var(--red)">+0.4pp CPI</span></div>
+            <div style="font-size:11px;color:var(--muted)">& −0.2% GDP trade balance</div>
+          </div>
+          <div class="card-sm">
+            <div class="section-label">BI Rate (held 6 months)</div>
+            <div style="font-size:20px;font-weight:800">4.75%</div>
+            <div style="font-size:11px;color:var(--muted)">Forecast: 2×25bp cuts → Q2+ 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Budget & CDS -->
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Fiscal & Sovereign Risk</div>
+        <div class="grid-2" style="gap:10px">
+          <div class="card-sm"><div class="section-label">5Y CDS</div><div style="font-size:20px;font-weight:800;color:var(--amber)">&gt;80bps</div><div style="font-size:11px;color:var(--muted)">March 2026</div></div>
+          <div class="card-sm"><div class="section-label">Budget Deficit (Feb 2026)</div><div style="font-size:18px;font-weight:800;color:#ff6b7a">IDR 135.7T</div><div style="font-size:11px;color:var(--muted)">0.53% of GDP · vs IDR 30.7T yr ago (+342% YoY)</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Full-year ceiling: 2.68% of GDP</div></div>
+          <div class="card-sm"><div class="section-label">Gov't Spending YoY</div><div style="font-size:20px;font-weight:800;color:var(--amber)">+41.9%</div><div style="font-size:11px;color:var(--muted)">Revenue +12.8% · IDR 358T realised</div></div>
+          <div class="card-sm"><div class="section-label">MSCI Deadline</div><div style="font-size:16px;font-weight:800;color:var(--red)">May 2026</div><div style="font-size:11px;color:var(--muted)">EM→FM reclassification risk</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Ratings + Indonesia news -->
+    <div>
+      <div class="section-label" style="margin-bottom:8px">Sovereign Credit Ratings</div>
+      <div class="rating-grid" style="margin-bottom:14px">
+        <div class="rating-card">
+          <div class="rating-agency">Moody's</div>
+          <div class="rating-grade">Baa2</div>
+          <div class="rating-outlook neg">Negative</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">5 Feb 2026</div>
+        </div>
+        <div class="rating-card">
+          <div class="rating-agency">Fitch</div>
+          <div class="rating-grade">BBB</div>
+          <div class="rating-outlook neg">Negative</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">4 Mar 2026</div>
+        </div>
+        <div class="rating-card">
+          <div class="rating-agency">S&P</div>
+          <div class="rating-grade">BBB</div>
+          <div class="rating-outlook watch">Watch Neg</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">26 Feb 2026</div>
+        </div>
+      </div>
+
+      <!-- MSCI status -->
+      <div class="card" style="margin-bottom:14px;background:rgba(230,0,18,.05);border-color:rgba(230,0,18,.2)">
+        <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px">⚠️ MSCI Reclassification Risk</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">MSCI warned Jan 2026: Indonesia may be downgraded from <strong style="color:var(--text)">Emerging Market → Frontier Market</strong> (May 2026) if free float (15% rule) and ownership transparency unresolved. Impact: <strong style="color:#ff6b7a">~USD 120B market cap wiped</strong>, USD 14B in 2025 outflows. MSCI Indonesia: −13% (2024) vs. EM +33.6%.</div>
+      </div>
+
+      <!-- Indonesia news -->
+      <div class="section-label" style="margin-bottom:8px">Indonesia Headlines</div>
+      <div id="id-news" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto">
+        <div class="text-muted" style="padding:20px;text-align:center">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 4: NEWS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-news">
+  <div class="section-label">News Feed</div>
+  <div class="section-title">All Sources</div>
+
+  <!-- Manual URL entry -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+      <div style="width:12px;height:2px;background:var(--amber)"></div> Add Article by URL
+      <span style="font-size:10px;font-weight:400;opacity:.6;margin-left:4px">Paste any news link — will be flagged as Risk Signal and immediately analysed</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="url" id="manual-url-input" placeholder="https://www.ft.com/content/..." style="flex:1;min-width:260px" oninput="document.getElementById('manual-url-status').textContent=''">
+      <input type="text" id="manual-title-input" placeholder="Title (optional — auto-detected)" style="flex:1;min-width:200px">
+      <button class="btn btn-ghost btn-sm" onclick="addManualURL()" id="manual-url-btn" style="border-color:rgba(245,158,11,.4);color:var(--amber);white-space:nowrap">🔗 Add & Analyse</button>
+    </div>
+    <div id="manual-url-status" style="font-size:11px;margin-top:6px;color:var(--muted)"></div>
+  </div>
+
+  <!-- Risk Signals panel — shows flagged articles with auto-generated insights -->
+  <div id="risk-signals-panel" style="display:none">
+    <div class="risk-signals-panel">
+      <div class="risk-signals-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <span>🚩 Risk Signals — Flagged for Franchise Review <span id="flag-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button id="recompute-btn" class="btn btn-ghost btn-sm" onclick="recomputeAllInsights()" style="font-size:11px;border-color:rgba(230,0,18,.3);color:var(--red)">⚡ Recompute Insights</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleRiskSignals()" id="risk-collapse-btn" title="Collapse / expand" style="font-size:13px;padding:2px 8px;border-color:var(--border)">▸</button>
+        </div>
+      </div>
+      <div id="flagged-list" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="news-filters" id="news-filters">
+    <button class="filter-btn active" data-filter="all" onclick="filterNews('all',this)">🌏 All</button>
+    <button class="filter-btn" data-filter="indonesia" onclick="filterNews('indonesia',this)">🇮🇩 Indonesia</button>
+    <button class="filter-btn" data-filter="energy" onclick="filterNews('energy',this)">⚡ Energy</button>
+    <button class="filter-btn" data-filter="fx_rates" onclick="filterNews('fx_rates',this)">💱 FX &amp; Rates</button>
+    <button class="filter-btn" data-filter="macro" onclick="filterNews('macro',this)">📊 Macro</button>
+    <button class="filter-btn" data-filter="commodities" onclick="filterNews('commodities',this)">🪨 Commodities</button>
+    <button class="filter-btn" data-filter="corruption" onclick="filterNews('corruption',this)">🚨 Corruption</button>
+    <button class="filter-btn" data-filter="global" onclick="filterNews('global',this)">🌍 Global</button>
+  </div>
+  <div class="search-row">
+    <input type="text" id="news-search" placeholder="🔍 Search headlines..." oninput="renderNews()">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('news-search').value='';renderNews()">✕ Clear</button>
+  </div>
+  <div id="news-count" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+  <div class="news-list" id="news-list">
+    <div class="text-muted" style="padding:30px;text-align:center">Loading news...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 5: CLIENT IDEAS -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-ideas">
+  <div class="section-label">RM Intelligence</div>
+  <div class="section-title">Four Segments — Distinct Exposures &amp; Opportunities</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Click each segment to see risks, opportunities, and key client names</div>
+  <div style="display:flex;gap:0;margin-bottom:24px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden" id="segment-tabs"><!-- rendered by JS --></div>
+  <div id="segment-content"><!-- rendered by JS --></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB: SECTOR -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-sector">
+  <div class="section-label">RM Intelligence</div>
+  <div class="section-title">Sector &amp; Priority Conversations</div>
+
+  <!-- Source summary bar -->
+  <div id="ideas-source-bar" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:12px;color:var(--muted)">
+    <span style="color:var(--muted)">Loading sources...</span>
+  </div>
+
+  <!-- Collapsible: Priority Conversations -->
+  <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <button onclick="toggleSection('sec-priorities',this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border:none;cursor:pointer;color:var(--text)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:16px;height:2px;background:var(--red)"></div>
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Today's Priority Conversations</span>
+      </div>
+      <span class="collapse-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">▾</span>
+    </button>
+    <div id="sec-priorities" style="padding:12px 16px 16px">
+      <div id="ideas-list">
+        <div class="text-muted" style="padding:30px;text-align:center">Loading ideas...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapsible: Sector Impact -->
+  <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <button onclick="toggleSection('sec-impact',this)" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg2);border:none;cursor:pointer;color:var(--text)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:16px;height:2px;background:var(--amber)"></div>
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)">Sector Direct / Indirect Impact</span>
+      </div>
+      <span class="collapse-chevron" style="font-size:14px;color:var(--muted);transition:transform .2s">▾</span>
+    </button>
+    <div id="sec-impact" style="padding:12px 16px 16px">
+      <div id="sector-impact" class="sector-grid" style="grid-template-columns:1fr"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 6: MUFG RESEARCH -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-mufg">
+  <div class="mufg-hero">
+    <div class="tj-name">Tom Joyce — Head of Capital Markets Strategy, Americas</div>
+    <div class="tj-title">Research Intelligence</div>
+    <div class="tj-bio">Tom Joyce leads MUFG's Capital Markets Strategy Group, providing in-depth analysis on the impact of economic, political, public policy and regulatory dynamics on credit, FX, rates and commodities markets for S&amp;P 500 corporate clients. He publishes daily/weekly updates on <a href="https://www.linkedin.com/in/tom-joyce-07055314a/" target="_blank" rel="noopener noreferrer">LinkedIn</a> and at <a href="https://www.mufgresearch.com/macro/" target="_blank" rel="noopener noreferrer">mufgresearch.com</a>.</div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <a href="https://www.linkedin.com/search/results/content/?keywords=Tom%20Joyce%20MUFG&sortBy=date" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">🔗 Search Tom Joyce on LinkedIn</a>
+      <a href="https://www.mufgresearch.com/macro/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">📄 MUFG Macro Research</a>
+      <a href="https://www.mufgresearch.com/fx/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">💱 MUFG FX Research</a>
+      <a href="https://www.mufgresearch.com/rates/" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">📉 MUFG Rates Research</a>
+      <a href="https://www.mufgresearch.com/fx/?s=indonesia" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm">🇮🇩 Indonesia Research</a>
+    </div>
+  </div>
+
+  <!-- Chart of the Day -->
+  <div style="margin-bottom:20px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px">
+      📈 Chart of the Day
+      <a href="https://www.mufgamericas.com/insights-and-experience/capital-markets-strategy#chart" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:var(--muted);font-weight:400">mufgamericas.com ↗</a>
+    </div>
+    <div id="chart-of-day-list" style="display:flex;flex-direction:column;gap:6px">
+      <div class="text-muted" style="padding:12px;font-size:12px">Loading...</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="mufg-filters">
+    <button class="filter-btn active" onclick="filterMufg('all',this)">All</button>
+    <button class="filter-btn" onclick="filterMufg('FX',this)">FX</button>
+    <button class="filter-btn" onclick="filterMufg('Macro',this)">Macro</button>
+    <button class="filter-btn" onclick="filterMufg('Indonesia',this)">Indonesia</button>
+    <button class="filter-btn" onclick="filterMufg('RATES',this)">Rates</button>
+  </div>
+
+  <div class="mufg-articles" id="mufg-articles">
+    <div class="text-muted" style="padding:20px;text-align:center">Loading Research...</div>
+  </div>
+
+  <hr class="divider">
+  <div style="font-size:13px;font-weight:700;margin-bottom:8px">📝 My Notes on Latest Tom Joyce Update</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Paste Tom Joyce's latest LinkedIn post or notes here. Saved locally in your browser.</div>
+  <textarea class="notes-area" id="tj-notes" placeholder="Paste Tom Joyce's latest macro update here or write your own notes...&#10;&#10;e.g. 'Tom Joyce — 15 Mar 2026: Oil price surge has invalidated the January Transformative Change baseline. Stagflation scenario now the primary risk. Key message for corporates: hedge now, rates going higher before lower...'" oninput="saveNotes()"></textarea>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Saved automatically to localStorage ✓</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  TAB 7: SOURCES -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-sources">
+  <div class="section-label">Data Sources & Configuration</div>
+  <div class="section-title">Sources, Settings & Refresh</div>
+
+  <!-- Connection status -->
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">Supabase:</span>
+      <span id="sb-status" class="conn-badge conn-err"><span class="conn-dot err"></span>Not connected</span>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">GitHub Actions:</span>
+      <span id="gh-status" class="conn-badge conn-err"><span class="conn-dot err"></span>Not configured</span>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">News items:</span>
+      <strong id="src-news-count">–</strong>
+    </div>
+    <div class="card-sm flex flex-center gap-2">
+      <span style="font-size:12px;font-weight:600">Last fetch:</span>
+      <strong id="src-last-fetch">–</strong>
+    </div>
+  </div>
+
+  <!-- Add custom source -->
+  <div class="add-source-form">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">➕ Add Custom RSS Source</div>
+    <div class="form-row">
+      <input type="text" id="new-src-name" placeholder="Source name (e.g. Kontan)">
+      <select id="new-src-cat">
+        <option value="custom">Custom</option>
+        <option value="indonesia">Indonesia</option>
+        <option value="energy">Energy</option>
+        <option value="markets">Markets</option>
+        <option value="global">Global</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <input type="url" id="new-src-url" placeholder="RSS feed URL (e.g. https://example.com/feed.xml)" style="flex:3">
+      <button class="btn btn-red" onclick="addCustomSource()">Add Source</button>
+    </div>
+  </div>
+
+  <!-- Custom sources -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Custom Sources</div>
+  <div id="custom-sources-list">
+    <div class="text-muted">No custom sources added yet.</div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Default RSS sources -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:10px">Default RSS Sources (fetched by GitHub Actions)</div>
+  <div id="default-sources-list"></div>
+
+  <hr class="divider">
+
+  <!-- GitHub / Supabase settings -->
+  <div style="font-size:13px;font-weight:700;margin-bottom:12px">⚙️ Connection Settings</div>
+  <div class="grid-2">
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">Supabase</div>
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Project URL</label>
+      <input type="url" id="set-sb-url" placeholder="https://xxx.supabase.co" style="width:100%;margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Anon/Public Key</label>
+      <input type="text" id="set-sb-anon" placeholder="eyJhbGciOi..." style="width:100%;margin-bottom:8px">
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:6px">GitHub Actions Refresh</div>
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Repository (username/repo)</label>
+      <input type="text" id="set-gh-repo" placeholder="yourusername/indonesia-morning-brief" style="width:100%;margin-bottom:8px">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Fine-grained PAT (Actions: RW on this repo, 30-day expiry)</label>
+      <input type="password" id="set-gh-token" placeholder="github_pat_..." style="width:100%;margin-bottom:8px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.4">Use a <strong>fine-grained</strong> PAT scoped to this one repo with only <em>Actions: Read and write</em>. Classic PATs with <code>repo</code>/<code>workflow</code> scope grant far more access than needed — if this browser ever executes hostile JS, the token can be stolen.</div>
+    </div>
+  </div>
+  <button class="btn btn-red btn-sm" onclick="saveSettingsFromTab()">💾 Save Settings</button>
+  <button class="btn btn-ghost btn-sm" onclick="clearAllSettings()" style="margin-left:8px">🗑 Clear All</button>
+  <div id="settings-msg" style="font-size:12px;color:var(--green);margin-top:8px;display:none">✓ Settings saved</div>
+</div>
+</div><!-- /content -->
+
+<div class="footer">
+  <strong>Indonesia Corporate Coverage Morning Brief</strong> &nbsp;·&nbsp;
+  Data: Yahoo Finance · FRED · RSS feeds · mufgresearch.com &nbsp;·&nbsp;
+  <span id="ft-updated">–</span>
+</div>
+
+<!-- ═══════ JAVASCRIPT ═══════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────────────────────
+//  PUBLIC SITE CREDENTIALS  ← Fill these in once, then push to GitHub
+//  The anon/public key is safe to expose — Supabase RLS protects data.
+// ─────────────────────────────────────────────────────────────────────
+const SITE_SB_URL  = 'https://foueycrzskbdjchpgumx.supabase.co';
+const SITE_SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZvdWV5Y3J6c2tiZGpjaHBndW14Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzExMDcsImV4cCI6MjA4OTE0NzEwN30.cck4mIwiieR5TCdriVfz_fvbP4mkSpoN77zh4B_z8To';
+
+// ── Config helpers ──────────────────────────────────────────────────────
+const LS = {
+  get:    k => localStorage.getItem(k),
+  set:    (k,v) => localStorage.setItem(k, typeof v==='object'?JSON.stringify(v):v),
+  json:   k => { try{return JSON.parse(localStorage.getItem(k))||null}catch{return null} },
+  del:    k => localStorage.removeItem(k)
+};
+let SB = null;  // Supabase client
+
+// Use site constants as defaults; localStorage overrides (for admins)
+function getConfig(){
+  return {
+    url:    LS.get('sb_url')    || SITE_SB_URL,
+    anon:   LS.get('sb_anon')   || SITE_SB_ANON,
+    repo:   LS.get('gh_repo')   || '',
+    token:  LS.get('gh_token')  || '',
+    branch: LS.get('gh_branch') || 'master',
+  };
+}
+function updateRefreshVisibility(){
+  // Refresh + gear only shown to admins who have stored a GitHub PAT
+  const isAdmin = !!LS.get('gh_token');
+  const btn  = document.getElementById('refreshBtn');
+  const gear = document.getElementById('adminGearBtn');
+  if(btn)  btn.style.display  = isAdmin ? '' : 'none';
+  if(gear) gear.style.display = isAdmin ? '' : 'none';
+}
+async function reloadData(){
+  const btn=document.getElementById('reloadBtn');
+  if(btn){ btn.disabled=true; btn.textContent='↻'; }
+  try{ await loadAll(); } finally {
+    if(btn){ btn.disabled=false; btn.textContent='↺'; }
+  }
+}
+
+// ── Theme ───────────────────────────────────────────────────────────────
+function setThemeIcon(light){
+  const btn=document.getElementById('theme-toggle');
+  if(!btn) return;
+  const icon=btn.querySelector('span:first-child')||btn;
+  icon.textContent=light?'☀️':'🌙';
+}
+function toggleTheme(){
+  const light=document.body.classList.toggle('light');
+  setThemeIcon(light);
+  LS.set('theme',light?'light':'dark');
+  stickyNavTop(); // header height may change with theme
+}
+// ── Live "X minutes ago" counter ─────────────────────────────────────────
+function updateAgo(){
+  const el = document.getElementById('hdr-ago');
+  if(!window._lastFetchedISO){
+    if(el) el.textContent='';
+    ['ov-refreshed-ago','mkt-refreshed-ago'].forEach(id=>{const e=document.getElementById(id); if(e) e.textContent='';});
+    return;
+  }
+  const diffMs  = Date.now() - new Date(window._lastFetchedISO).getTime();
+  const diffMin = Math.round(diffMs / 60000);
+  let agoLabel;
+  if(diffMin < 1)        agoLabel = '(just now)';
+  else if(diffMin < 60)  agoLabel = `(${diffMin} min ago)`;
+  else {
+    const h = Math.floor(diffMin/60), m = diffMin%60;
+    agoLabel = m>0 ? `(${h}h ${m}m ago)` : `(${h}h ago)`;
+  }
+  ['ov-refreshed-ago','mkt-refreshed-ago'].forEach(id=>{const e=document.getElementById(id); if(e) e.textContent=agoLabel;});
+  if(!el) return;
+  // legacy branch for the header "hdr-ago" formatting (kept identical to before)
+  if(diffMin < 1)        el.textContent = '(just now)';
+  else if(diffMin < 60)  el.textContent = `(${diffMin} min ago)`;
+  else {
+    const h = Math.floor(diffMin/60), m = diffMin%60;
+    el.textContent = m>0 ? `(${h}h ${m}m ago)` : `(${h}h ago)`;
+  }
+}
+// Update the counter every minute
+setInterval(updateAgo, 60000);
+
+// ── Sticky nav — pins below header regardless of header height ────────────
+function stickyNavTop(){
+  const hdr=document.querySelector('.hdr');
+  const nav=document.querySelector('.nav');
+  if(hdr&&nav) nav.style.top=hdr.offsetHeight+'px';
+}
+window.addEventListener('resize',stickyNavTop);
+document.addEventListener('DOMContentLoaded',stickyNavTop);
+(function(){ // apply saved theme immediately
+  if(localStorage.getItem('theme')==='light'){
+    document.body.classList.add('light');
+    document.addEventListener('DOMContentLoaded',()=>{
+      setThemeIcon(true);
+      stickyNavTop();
+    });
+  }
+})();
+
+// ── State ───────────────────────────────────────────────────────────────
+let ALL_NEWS   = [];
+let ALL_MUFG   = [];
+let ALL_IDEAS  = [];
+let ALL_FLAGGED = [];
+let ALL_MARKET = [];
+let FLAGGED_IDS = new Set();
+let newsFilter = 'all';
+let mufgFilter = 'all';
+
+// ── HTML safety helpers ──────────────────────────────────────────────────
+function esc(str){
+  if(str==null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function safeUrl(url){
+  if(!url) return '#';
+  const u=String(url).trim();
+  return(u.startsWith('http://')||u.startsWith('https://'))?u:'#';
+}
+function safeId(id){
+  // IDs must be MD5 hex[:12] (from Python hashlib or browser urlHash).
+  // Strips anything else to prevent JS-string breakout via onclick handlers.
+  return String(id||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,32);
+}
+
+// ── Init ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setGreeting();
+  loadNotes();
+  renderDefaultSources();
+  renderCustomSources();
+  // Standalone mode: fetch directly, no Supabase required
+  loadAllDirect();
+});
+
+function setGreeting(){
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('ov-greeting').textContent = `${g}, Michael ☀️`;
+  document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + ' · Jakarta WIB';
+}
+
+function initSupabase(url, anon){
+  // Standalone mode — Supabase not used
+}
+
+// ── Standalone direct-fetch mode — no Supabase ──────────────────────────
+
+// Symbol metadata (mirrors fetch_data.py YAHOO_SYMBOLS)
+const DIRECT_SYMBOLS = {
+  'BZ=F':      {name:'Brent Crude',    unit:'USD/bbl',   category:'energy'},
+  'CL=F':      {name:'WTI Crude',      unit:'USD/bbl',   category:'energy'},
+  'NG=F':      {name:'Natural Gas',    unit:'USD/MMBtu', category:'energy'},
+  'GC=F':      {name:'Gold',           unit:'USD/oz',    category:'metals'},
+  'SI=F':      {name:'Silver',         unit:'USD/oz',    category:'metals'},
+  'HG=F':      {name:'Copper',         unit:'USD/lb',    category:'metals'},
+  'ZW=F':      {name:'Wheat',          unit:'USc/bu',    category:'agricultural'},
+  'ZS=F':      {name:'Soybeans',       unit:'USc/bu',    category:'agricultural'},
+  'IDR=X':     {name:'USD/IDR',        unit:'Rp',        category:'fx'},
+  'SGD=X':     {name:'USD/SGD',        unit:'SGD',       category:'fx'},
+  'EURUSD=X':  {name:'EUR/USD',        unit:'USD',       category:'fx'},
+  'JPY=X':     {name:'USD/JPY',        unit:'¥',         category:'fx'},
+  'CNY=X':     {name:'USD/CNY',        unit:'CNY',       category:'fx'},
+  'MYR=X':     {name:'USD/MYR',        unit:'MYR',       category:'fx'},
+  'DX-Y.NYB':  {name:'DXY Index',      unit:'',          category:'fx'},
+  '^GSPC':     {name:'S&P 500',        unit:'',          category:'equities'},
+  '^IXIC':     {name:'Nasdaq',         unit:'',          category:'equities'},
+  '^DJI':      {name:'Dow Jones',      unit:'',          category:'equities'},
+  '^STI':      {name:'SGX STI',        unit:'',          category:'equities'},
+  '^JKSE':     {name:'IDX Composite',  unit:'',          category:'equities'},
+  '^N225':     {name:'Nikkei 225',     unit:'',          category:'equities'},
+  '^HSI':      {name:'Hang Seng',      unit:'',          category:'equities'},
+  '^TNX':      {name:'US 10Y Yield',   unit:'%',         category:'rates_spot'},
+  '^FVX':      {name:'US 5Y Yield',    unit:'%',         category:'rates_spot'},
+  '^TYX':      {name:'US 30Y Yield',   unit:'%',         category:'rates_spot'},
+};
+
+// FRED series for yield curve
+const FRED_TENORS = [
+  {id:'DGS1MO',  label:'1M',  tenor:1},
+  {id:'DGS3MO',  label:'3M',  tenor:2},
+  {id:'DGS6MO',  label:'6M',  tenor:3},
+  {id:'DGS1',    label:'1Y',  tenor:4},
+  {id:'DGS2',    label:'2Y',  tenor:5},
+  {id:'DGS5',    label:'5Y',  tenor:6},
+  {id:'DGS10',   label:'10Y', tenor:7},
+  {id:'DGS20',   label:'20Y', tenor:8},
+  {id:'DGS30',   label:'30Y', tenor:9},
+];
+
+// RSS sources (same defaults as fetch_data.py)
+const DIRECT_RSS = [
+  {name:'Reuters Business',  url:'https://feeds.reuters.com/reuters/businessNews',              cat:'markets'},
+  {name:'Reuters World',     url:'https://feeds.reuters.com/reuters/worldNews',                 cat:'global'},
+  {name:'Yahoo Finance',     url:'https://finance.yahoo.com/rss/topstories',                   cat:'markets'},
+  {name:'CNBC Top News',     url:'https://www.cnbc.com/id/100003114/device/rss/rss.html',      cat:'markets'},
+  {name:'Jakarta Post',      url:'https://www.thejakartapost.com/rss/id/business.xml',         cat:'indonesia'},
+  {name:'Antara News',       url:'https://www.antaranews.com/rss/economics.xml',               cat:'indonesia'},
+  {name:'EIA News',          url:'https://www.eia.gov/rss/news.xml',                           cat:'energy'},
+];
+
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+async function fetchViaProxy(url) {
+  const r = await fetch(PROXY + encodeURIComponent(url), {signal: AbortSignal.timeout(12000)});
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.text();
+}
+
+async function fetchYahooQuotes() {
+  const syms = Object.keys(DIRECT_SYMBOLS).join(',');
+  const apiUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(syms)}&fields=regularMarketPrice,regularMarketChangePercent,regularMarketChange,regularMarketPreviousClose,shortName`;
+  const raw = await fetchViaProxy(apiUrl);
+  const data = JSON.parse(raw);
+  const results = data?.quoteResponse?.result || [];
+  return results.map(q => {
+    const meta = DIRECT_SYMBOLS[q.symbol] || {};
+    const price  = q.regularMarketPrice || 0;
+    const prev   = q.regularMarketPreviousClose || price;
+    const chgPct = q.regularMarketChangePercent || 0;
+    const chgAbs = q.regularMarketChange || 0;
+    return {
+      symbol:      q.symbol,
+      name:        meta.name || q.shortName || q.symbol,
+      price,
+      change_pct:  chgPct,
+      change_abs:  chgAbs,
+      prev_close:  prev,
+      currency:    q.currency || 'USD',
+      unit:        meta.unit || '',
+      category:    meta.category || 'other',
+      subcategory: meta.category || 'other',
+    };
+  });
+}
+
+async function fetchFredYields() {
+  const results = await Promise.allSettled(
+    FRED_TENORS.map(async t => {
+      const url = `https://fred.stlouisfed.org/graph/fredgraph.csv?id=${t.id}`;
+      const txt = await (await fetch(url, {signal: AbortSignal.timeout(10000)})).text();
+      const lines = txt.trim().split('\n').filter(l => l && !l.startsWith('DATE'));
+      const last  = lines[lines.length - 1];
+      const val   = last ? parseFloat(last.split(',')[1]) : null;
+      return {...t, yield_pct: isNaN(val) ? null : val};
+    })
+  );
+  return results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
+    .filter(r => r.yield_pct !== null);
+}
+
+function parseRssXml(xml, source, cat) {
+  try {
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    const items = Array.from(doc.querySelectorAll('item')).slice(0, 12);
+    const now   = new Date().toISOString();
+    return items.map((item, i) => {
+      const title   = item.querySelector('title')?.textContent?.trim() || '';
+      const link    = item.querySelector('link')?.textContent?.trim() ||
+                      item.querySelector('guid')?.textContent?.trim() || '#';
+      const summary = item.querySelector('description')?.textContent
+                          ?.replace(/<[^>]+>/g,'').trim().slice(0, 300) || '';
+      const pubDate = item.querySelector('pubDate')?.textContent?.trim() || now;
+      const idStr   = (source + title).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12);
+      const idn     = /indonesia|jakarta|rupiah|bi rate|jkse|idr|bpjs|bnpb|pertamina|pln|garuda/i.test(title+summary);
+      const iscorr  = /corrupt|kpk|suap|tipikor|fraud/i.test(title+summary);
+      return {
+        id:            idStr.padEnd(12,'0').slice(0,12),
+        title,
+        url:           link,
+        summary,
+        source,
+        category:      cat,
+        is_indonesia:  idn,
+        is_corruption: iscorr,
+        created_at:    new Date(pubDate).toISOString() || now,
+      };
+    });
+  } catch(e) {
+    return [];
+  }
+}
+
+async function fetchAllNews() {
+  const feeds = [...DIRECT_RSS];
+  // Merge user-saved custom sources from localStorage
+  try {
+    const saved = JSON.parse(localStorage.getItem('standalone_sources') || '[]');
+    feeds.push(...saved.filter(s => s.enabled !== false));
+  } catch(e) {}
+
+  const results = await Promise.allSettled(
+    feeds.map(async f => {
+      const xml = await fetchViaProxy(f.url);
+      return parseRssXml(xml, f.name, f.cat || 'markets');
+    })
+  );
+  const articles = results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => r.value);
+  // Deduplicate by id
+  const seen = new Set();
+  return articles.filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  }).sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 80);
+}
+
+function generateIdeas(mkt) {
+  const q = {};
+  mkt.forEach(r => { q[r.symbol] = r; });
+  const ideas = [];
+  let id = 1;
+
+  const add = (priority, title, sector, idea, segment) =>
+    ideas.push({id: String(id++), priority, title, sector, idea, segment});
+
+  const brent = q['BZ=F']?.change_pct || 0;
+  if (brent >= 1.5)  add('CRITICAL','Brent +'+(brent.toFixed(1))+'%','Energy','Upstream energy cost alert for energy-intensive sectors','corporate');
+  if (brent <= -1.5) add('HIGH','Brent '+(brent.toFixed(1))+'%','Energy','Downstream/consumer sector opportunity on lower fuel costs','corporate');
+
+  const idr = q['IDR=X']?.price || 0;
+  const idrChg = q['IDR=X']?.change_pct || 0;
+  if (idr >= 16500)  add('HIGH','USD/IDR at '+idr.toLocaleString(),'FX','IDR weakness — hedging alert for corporates with USD exposure','fx');
+  if (idrChg >= 1.0) add('CRITICAL','IDR weakened '+idrChg.toFixed(1)+'% today','FX','IDR sharp move — urgent RM discussion needed','fx');
+
+  const gas = q['NG=F']?.change_pct || 0;
+  if (gas >= 2.0)    add('HIGH','Natural Gas +'+(gas.toFixed(1))+'%','Energy','Gas/LNG pricing alert for utilities and fertiliser clients','corporate');
+
+  const jkse = q['^JKSE']?.change_pct || 0;
+  if (Math.abs(jkse) >= 1.0) add('MEDIUM','IDX '+(jkse>0?'+':'')+jkse.toFixed(1)+'%','Equities','IDX equity market move — equity-linked product discussion','equities');
+
+  const sp = q['^GSPC']?.change_pct || 0;
+  if (sp <= -1.5)    add('HIGH','S&P 500 '+(sp.toFixed(1))+'%','Equities','US risk-off — discuss capital flows and hedging with clients','macro');
+
+  const gold = q['GC=F']?.change_pct || 0;
+  if (gold >= 1.5)   add('MEDIUM','Gold +'+(gold.toFixed(1))+'%','Metals','Safe-haven demand rising — review client hedging positions','metals');
+
+  return ideas;
+}
+
+async function loadAllDirect() {
+  const nowISO = new Date().toISOString();
+  const nowDisplay = new Date().toLocaleString('en-GB', {
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit', timeZoneName:'short'
+  });
+
+  document.getElementById('hdr-status').textContent = '↻ Loading…';
+  document.getElementById('hdr-status').className   = 'text-amber';
+
+  try {
+    const [mkt, ylds, news] = await Promise.all([
+      fetchYahooQuotes().catch(e => { console.warn('Quotes error:', e); return []; }),
+      fetchFredYields().catch(e => { console.warn('FRED error:', e); return []; }),
+      fetchAllNews().catch(e => { console.warn('News error:', e); return []; }),
+    ]);
+
+    const ideas   = generateIdeas(mkt);
+    ALL_MARKET    = mkt;
+    ALL_NEWS      = news;
+    ALL_IDEAS     = ideas;
+    ALL_MUFG      = [];
+    ALL_FLAGGED   = loadLocalFlagged();
+    FLAGGED_IDS   = new Set(ALL_FLAGGED.map(f => f.id));
+
+    // Update header timestamps
+    document.getElementById('hdr-updated').textContent   = nowDisplay;
+    document.getElementById('ft-updated').textContent    = 'Last updated: ' + nowDisplay;
+    document.getElementById('src-last-fetch').textContent = nowDisplay;
+    document.getElementById('src-news-count').textContent = String(news.length);
+    document.getElementById('hdr-status').textContent    = '✓ Live data';
+    document.getElementById('hdr-status').className      = 'text-green';
+
+    const elOvTime  = document.getElementById('ov-refreshed-time');  if(elOvTime)  elOvTime.textContent  = nowDisplay;
+    const elMktTime = document.getElementById('mkt-refreshed-time'); if(elMktTime) elMktTime.textContent = nowDisplay;
+
+    window._lastFetchedISO = nowISO;
+    updateAgo();
+
+    renderKPIs(mkt);
+    renderAlerts(mkt);
+    renderMovers(mkt);
+    renderTables(mkt);
+    renderYieldCurve(ylds);
+    renderRatesRow(ylds);
+    renderNDFandCCS(mkt, ylds);
+    renderIDR(mkt);
+    renderIDNews();
+    renderNews();
+    renderIdeas();
+    renderSectorImpact();
+    renderSegmentNotes();
+    renderChartOfDay();
+    renderMufgArticles();
+    renderOvNews();
+    renderOvPriorities();
+    renderOvSectors();
+    renderFlagged();
+
+  } catch(e) {
+    console.error('loadAllDirect error:', e);
+    document.getElementById('hdr-status').textContent = '⚠ Load error';
+    document.getElementById('hdr-status').className   = 'text-red';
+  }
+}
+
+// Stub original loadAll — used by Refresh button if present
+async function loadAll() { return loadAllDirect(); }
+
+// ── Local-storage backed flagged articles (replaces Supabase writes) ───────
+function loadLocalFlagged() {
+  try { return JSON.parse(localStorage.getItem('standalone_flagged') || '[]'); } catch(e) { return []; }
+}
+function saveLocalFlagged(arr) {
+  localStorage.setItem('standalone_flagged', JSON.stringify(arr));
+}
+async function flagArticle(n) {
+  const id = safeId(n.id || Math.random().toString(36).slice(2,14));
+  const row = {
+    id, title: n.title, url: n.url, source: n.source,
+    risk_headline: n.title, risk_level: 'MEDIUM',
+    flagged_at: new Date().toISOString(),
+    is_processed: false,
+  };
+  const arr = loadLocalFlagged().filter(f => f.id !== id);
+  arr.unshift(row);
+  saveLocalFlagged(arr.slice(0,100));
+  ALL_FLAGGED = loadLocalFlagged();
+  FLAGGED_IDS = new Set(ALL_FLAGGED.map(f => f.id));
+  renderFlagged();
+}
+async function unflagArticle(id) {
+  const arr = loadLocalFlagged().filter(f => f.id !== id);
+  saveLocalFlagged(arr);
+  ALL_FLAGGED = arr;
+  FLAGGED_IDS = new Set(ALL_FLAGGED.map(f => f.id));
+  renderFlagged();
+}
+async function toggleFlag(id) {
+  if (FLAGGED_IDS.has(id)) {
+    await unflagArticle(id);
+  } else {
+    const n = ALL_NEWS.find(x => x.id === id);
+    if (n) await flagArticle(n);
+  }
+  renderNews();
+}
+
+// ── Local-storage backed custom sources ─────────────────────────────────────
+async function addCustomSource() {
+  const name = document.getElementById('src-new-name')?.value?.trim() || '';
+  const url  = document.getElementById('src-new-url')?.value?.trim()  || '';
+  const cat  = document.getElementById('src-new-cat')?.value || 'markets';
+  if (!url) { alert('Enter a URL'); return; }
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:') { alert('URL must start with https://'); return; }
+    if (url.length >= 500)        { alert('URL too long (max 500 chars)'); return; }
+    if (name.length >= 200)       { alert('Name too long (max 200 chars)'); return; }
+  } catch { alert('Invalid URL — enter a full https:// address'); return; }
+
+  const saved = JSON.parse(localStorage.getItem('standalone_sources') || '[]');
+  const id = Math.random().toString(36).slice(2,14);
+  saved.push({id, name: name||url, url, cat, enabled: true, added_at: new Date().toISOString()});
+  localStorage.setItem('standalone_sources', JSON.stringify(saved));
+  if (document.getElementById('src-new-name')) document.getElementById('src-new-name').value = '';
+  if (document.getElementById('src-new-url'))  document.getElementById('src-new-url').value  = '';
+  renderCustomSources();
+  loadAllDirect();
+}
+function toggleSource(id, val) {
+  const saved = JSON.parse(localStorage.getItem('standalone_sources') || '[]');
+  const idx = saved.findIndex(s => s.id === id);
+  if (idx >= 0) { saved[idx].enabled = val; localStorage.setItem('standalone_sources', JSON.stringify(saved)); }
+}
+function deleteSource(id) {
+  const saved = JSON.parse(localStorage.getItem('standalone_sources') || '[]').filter(s => s.id !== id);
+  localStorage.setItem('standalone_sources', JSON.stringify(saved));
+  renderCustomSources();
+}
+function renderCustomSources() {
+  const el = document.getElementById('custom-sources-list');
+  if (!el) return;
+  const saved = JSON.parse(localStorage.getItem('standalone_sources') || '[]');
+  if (!saved.length) { el.innerHTML = '<p style="color:var(--muted);font-size:12px">No custom sources added yet.</p>'; return; }
+  el.innerHTML = saved.map(s => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${s.enabled!==false?'checked':''} onchange="toggleSource('${safeId(s.id)}',this.checked)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.name)}</div>
+        <div style="font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(s.url)}</div>
+      </div>
+      <button class="btn-ghost" style="font-size:11px;padding:3px 8px" onclick="deleteSource('${safeId(s.id)}')">Remove</button>
+    </div>`).join('');
+}
+
+// ── Render KPIs ──────────────────────────────────────────────────────────
+function renderKPIs(mkt){
+  const q = bySymbol(mkt);
+  // Indonesia-relevant cards get accent treatment; global indicators are standard
+  const cards = [
+    { label:'USD / IDR',    sym:'IDR=X', fmt:v=>`Rp ${v.toLocaleString('en',{maximumFractionDigits:0})}`, unit:'Indonesian Rupiah', accent:true },
+    { label:'IDX Composite',sym:'^JKSE', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'Indonesian Stocks', accent:true },
+    { label:'Brent Crude',  sym:'BZ=F',  fmt:v=>`$${v.toFixed(2)}`, unit:'USD/bbl' },
+    { label:'S&P 500',      sym:'^GSPC', fmt:v=>v.toLocaleString('en',{maximumFractionDigits:0}), unit:'US Equity Index' },
+  ];
+  document.getElementById('ov-kpis').innerHTML = cards.map(c=>{
+    const d = q[c.sym];
+    if(!d) return `<div class="kpi${c.accent?' kpi-accent':''}"><div class="kpi-label">${c.label}</div><div class="kpi-value text-muted">–</div></div>`;
+    const pc = d.change_pct||0; const cls = pc>0?'up':pc<0?'down':'flat'; const arr = pc>0?'▲':pc<0?'▼':'–';
+    const idrAlert = c.sym==='IDR=X'&&d.price>=17000 ? ';border-color:rgba(230,0,18,.6)' : '';
+    return `<div class="kpi${c.accent?' kpi-accent':''}" style="${idrAlert}">
+      <div class="kpi-label">${c.label}${c.accent?' <span style="font-size:9px;background:rgba(230,0,18,.15);color:var(--red);padding:1px 5px;border-radius:4px;font-weight:700">ID</span>':''}</div>
+      <div class="kpi-value">${c.fmt(d.price)}</div>
+      <div class="kpi-change ${cls}">${arr} ${pc>0?'+':''}${pc.toFixed(2)}%</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">${c.unit}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Alerts — auto-scroll ticker, top 4 movers ────────────────────────────
+function renderAlerts(mkt){
+  const movers = [...mkt].filter(r=>Math.abs(r.change_pct||0)>=1.5)
+    .sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0))
+    .slice(0,5);
+  const bar = document.getElementById('alertBar');
+  if(!movers.length){bar.classList.remove('show');return;}
+  bar.classList.add('show');
+  const pills = movers.map(r=>{
+    const pc=r.change_pct||0;
+    return `<span class="alert-pill">${r.name} <strong>${pc>0?'+':''}${pc.toFixed(1)}%</strong></span>`;
+  }).join('');
+  // Duplicate for seamless loop
+  bar.innerHTML = `<span style="font-size:11px;font-weight:700;color:#ff8a95;white-space:nowrap;margin-right:12px">⚡ Movers:</span>
+    <div class="ticker-wrap" style="flex:1;overflow:hidden">
+      <div class="ticker-track">${pills}${pills}</div>
+    </div>`;
+}
+
+// ── Market movers ────────────────────────────────────────────────────────
+function renderMovers(mkt){
+  const sorted = [...mkt].filter(r=>r.price>0).sort((a,b)=>Math.abs(b.change_pct||0)-Math.abs(a.change_pct||0)).slice(0,10);
+  document.getElementById('ov-movers').innerHTML = sorted.map(r=>{
+    const pc=r.change_pct||0; const cls=pc>0?'chg-up':'chg-dn';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);gap:8px;min-height:34px">
+      <span style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%">${r.name}</span>
+      <span class="${cls}" style="font-size:12px;white-space:nowrap;flex-shrink:0">${pc>0?'▲ +':'▼ '}${pc.toFixed(2)}%</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Market tables ────────────────────────────────────────────────────────
+function renderTables(mkt){
+  const q = bySymbol(mkt);
+  const comOrder = ['BZ=F','CL=F','NG=F','FKPO.KLS','ZW=F','ZS=F','GC=F','SI=F','HG=F'];
+  const fxOrder  = ['IDR=X','SGD=X','EURUSD=X','JPY=X','MYR=X','CNY=X','DX-Y.NYB'];
+  const eqOrder  = ['^GSPC','^IXIC','^DJI','^STI','^JKSE','^STOXX50E','^N225','^HSI'];
+
+  function row(sym, tagHtml=''){
+    const d=q[sym]; if(!d||!d.price) return '';
+    const pc=d.change_pct||0; const cls=pc>0?'chg-up':'chg-dn'; const arr=pc>0?'▲':'▼';
+    const bw = Math.min(60,Math.abs(pc)*10);
+    const bar = `<div class="bar-wrap"><div class="bar-fill ${pc>0?'bar-up':'bar-dn'}" style="width:${bw}%"></div></div>`;
+    const priceStr = d.price>1000?d.price.toLocaleString('en',{maximumFractionDigits:0}):(d.price<1?d.price.toFixed(4):d.price.toFixed(2));
+    return `<tr>
+      <td><span style="font-weight:600">${d.name}</span>${tagHtml}</td>
+      <td style="text-align:right;font-weight:700">${priceStr}</td>
+      <td class="${cls}" style="text-align:right">${arr} ${pc.toFixed(2)}%</td>
+      <td>${bar}</td>
+    </tr>`;
+  }
+
+  document.getElementById('tbl-commodities').innerHTML = `<thead><tr><th>Commodity</th><th style="text-align:right">Price</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${comOrder.map(s=>row(s)).join('')}</tbody>`;
+  document.getElementById('tbl-fx').innerHTML          = `<thead><tr><th>Pair</th><th style="text-align:right">Rate</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${fxOrder.map(s=>row(s)).join('')}</tbody>`;
+  document.getElementById('tbl-equities').innerHTML    = `<thead><tr><th>Index</th><th style="text-align:right">Level</th><th style="text-align:right">Chg %</th><th>Trend</th></tr></thead><tbody>${eqOrder.map(s=>row(s)).join('')}</tbody>`;
+}
+
+// ── Yield curve ───────────────────────────────────────────────────────────
+function renderYieldCurve(data){
+  if(!data||!data.length) return;
+  const tenorOrder = ['1M','3M','6M','1Y','2Y','5Y','10Y','30Y'];
+  const pts = tenorOrder.map((t,i)=>{ const d=data.find(r=>r.tenor===t); return d&&d.yield_pct!=null?{t,i,y:d.yield_pct}:null; }).filter(Boolean);
+  if(!pts.length) return;
+
+  const W=420, H=160, PAD={l:36,r:12,t:12,b:28};
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const minY=Math.min(...pts.map(p=>p.y))-0.2, maxY=Math.max(...pts.map(p=>p.y))+0.2;
+  const scX=i=>(i/(tenorOrder.length-1))*cW+PAD.l;
+  const scY=v=>PAD.t+cH-(v-minY)/(maxY-minY)*cH;
+
+  let svg=`<svg id="yield-svg" viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  // Grid
+  [0,.25,.5,.75,1].forEach(frac=>{
+    const y=PAD.t+cH*frac; const yv=(maxY-(maxY-minY)*frac).toFixed(2);
+    svg+=`<line class="yc-grid" x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}"/>`;
+    svg+=`<text class="yc-axis" x="${PAD.l-4}" y="${y+4}" text-anchor="end">${yv}%</text>`;
+  });
+  // X labels
+  pts.forEach(p=>{
+    const x=scX(tenorOrder.indexOf(p.t));
+    svg+=`<text class="yc-axis" x="${x}" y="${H-5}" text-anchor="middle">${p.t}</text>`;
+  });
+  // Path
+  const pathD=pts.map((p,i)=>`${i===0?'M':'L'}${scX(tenorOrder.indexOf(p.t))},${scY(p.y)}`).join(' ');
+  svg+=`<path class="yc-line" d="${pathD}"/>`;
+  // Area
+  const areaD=`${pathD} L${scX(tenorOrder.indexOf(pts[pts.length-1].t))},${PAD.t+cH} L${scX(tenorOrder.indexOf(pts[0].t))},${PAD.t+cH} Z`;
+  svg+=`<path d="${areaD}" fill="rgba(230,0,18,.08)" stroke="none"/>`;
+  // Dots
+  pts.forEach(p=>{
+    const x=scX(tenorOrder.indexOf(p.t)), y=scY(p.y);
+    svg+=`<circle class="yc-dot" cx="${x}" cy="${y}" r="4"/>`;
+    svg+=`<text class="yc-label" x="${x}" y="${y-8}" text-anchor="middle">${p.y.toFixed(2)}%</text>`;
+  });
+  svg+='</svg>';
+  document.getElementById('yield-svg').outerHTML=svg;
+}
+
+function renderRatesRow(data){
+  const key = {'2Y':'US 2Y','10Y':'US 10Y','30Y':'US 30Y'};
+  const html = Object.entries(key).map(([t,n])=>{
+    const d=data.find(r=>r.tenor===t);
+    return d&&d.yield_pct!=null?`<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">${n}</div><div style="font-size:14px;font-weight:700">${d.yield_pct.toFixed(2)}%</div></div>`:'';
+  }).join('') + `<div style="text-align:center"><div style="font-size:10px;color:var(--muted)">BI Rate</div><div style="font-size:14px;font-weight:700">4.75%</div></div>`;
+  document.getElementById('rates-row').innerHTML=html;
+}
+
+// ── IDR NDF & CCS ─────────────────────────────────────────────────────────
+const BI_RATE = 4.75; // % p.a. — Bank Indonesia benchmark rate
+const IDR_TERM_PREM = {'1M':0.30,'3M':0.60,'6M':0.90,'1Y':1.25,'2Y':1.70,'3Y':2.00,'5Y':2.30};
+const NDF_TENORS = [{l:'1M',t:1/12},{l:'3M',t:3/12},{l:'6M',t:6/12},{l:'1Y',t:1},{l:'2Y',t:2}];
+const CCS_TENORS = [{l:'1Y',t:1},{l:'2Y',t:2},{l:'3Y',t:3},{l:'5Y',t:5}];
+
+function renderNDFandCCS(mkt, yields){
+  const q=bySymbol(mkt);
+  const spot=q['IDR=X']?.price; if(!spot) return;
+  const ym={}; (yields||[]).forEach(r=>{ ym[r.tenor]=r.yield_pct; });
+
+  // ── NDF ──────────────────────────────────────────────────────────────────
+  const ndfData = NDF_TENORS.map(({l,t})=>{
+    const idrR = (BI_RATE + (IDR_TERM_PREM[l]||1.25)) / 100;
+    const usdR = (ym[l] ?? ym['1Y'] ?? 4.5) / 100;
+    const ndf  = spot * (1 + idrR*t) / (1 + usdR*t);
+    const fwdPts = ndf - spot;
+    const hedgeCost = (ndf/spot - 1) / t * 100;
+    return {l, t, ndf, fwdPts, hedgeCost, idrR:idrR*100, usdR:usdR*100};
+  });
+
+  document.getElementById('tbl-ndf').innerHTML=`
+    <thead><tr>
+      <th>Tenor</th><th style="text-align:right">IDR Rate</th>
+      <th style="text-align:right">NDF</th><th style="text-align:right">Fwd Pts</th><th style="text-align:right">Hedge Cost p.a.</th>
+    </tr></thead>
+    <tbody>
+      <tr><td colspan="5" style="font-size:10px;color:var(--muted);padding:3px 12px">Spot: Rp ${spot.toLocaleString('en',{maximumFractionDigits:0})} · USD rates from FRED · IDR = BI Rate + term premium</td></tr>
+      ${ndfData.map(r=>`<tr>
+        <td style="font-weight:700">${r.l}</td>
+        <td style="text-align:right;color:var(--amber)">${r.idrR.toFixed(2)}%</td>
+        <td style="text-align:right;font-weight:700">${r.ndf.toLocaleString('en',{maximumFractionDigits:0})}</td>
+        <td style="text-align:right" class="chg-dn">+${r.fwdPts.toLocaleString('en',{maximumFractionDigits:0})}</td>
+        <td style="text-align:right;color:var(--blue)">${r.hedgeCost.toFixed(2)}%</td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  // NDF svg — forward points curve
+  const W=420,H=120,PAD={l:48,r:12,t:14,b:26};
+  const fps=ndfData.map(r=>r.fwdPts);
+  const maxF=Math.max(...fps)*1.15, minF=0;
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const scX=i=>PAD.l+(i/(ndfData.length-1))*cW;
+  const scY=v=>PAD.t+cH-(v-minF)/(maxF-minF)*cH;
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">`;
+  [0,.33,.67,1].forEach(frac=>{
+    const y=PAD.t+cH*frac, yv=((maxF-minF)*(1-frac)+minF).toFixed(0);
+    svg+=`<line class="yc-grid" x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}"/>`;
+    svg+=`<text class="yc-axis" x="${PAD.l-4}" y="${y+4}" text-anchor="end">${yv}</text>`;
+  });
+  ndfData.forEach((r,i)=>{ svg+=`<text class="yc-axis" x="${scX(i)}" y="${H-2}" text-anchor="middle">${r.l}</text>`; });
+  const pathD=ndfData.map((r,i)=>`${i===0?'M':'L'}${scX(i)},${scY(r.fwdPts)}`).join(' ');
+  svg+=`<path class="yc-line" d="${pathD}" stroke="var(--blue)"/>`;
+  svg+=`<path d="${pathD} L${scX(ndfData.length-1)},${PAD.t+cH} L${scX(0)},${PAD.t+cH} Z" fill="rgba(96,165,250,.1)" stroke="none"/>`;
+  ndfData.forEach((r,i)=>{
+    const x=scX(i), y=scY(r.fwdPts);
+    svg+=`<circle cx="${x}" cy="${y}" r="4" fill="var(--blue)"/>`;
+    svg+=`<text class="yc-label" x="${x}" y="${y-8}" text-anchor="middle" fill="var(--blue)">${Math.round(r.fwdPts)}</text>`;
+  });
+  svg+='</svg>';
+  // Replace via wrapper innerHTML so width:100% is preserved on the new element
+  const ndfWrap=document.getElementById('ndf-svg-wrap');
+  if(ndfWrap) ndfWrap.innerHTML=svg;
+  else document.getElementById('ndf-svg').outerHTML=svg;
+
+  // ── CCS ──────────────────────────────────────────────────────────────────
+  const sofrBase = ym['3M'] ?? 4.5;
+  const ccsData = CCS_TENORS.map(({l,t})=>{
+    const idrR  = (BI_RATE + (IDR_TERM_PREM[l]||IDR_TERM_PREM['2Y'])) / 100;
+    const usdR  = (ym[l] ?? ym['1Y'] ?? 4.5) / 100;
+    const ndfImplied = (Math.pow((1+idrR*t)/(1+usdR*t), 1/t)-1)*100;
+    const ccsIDR    = ndfImplied - 0.40; // ~40bps CCS vs NDF liquidity premium
+    const ccsSpread = ccsIDR - sofrBase;
+    return {l, sofrBase, ccsIDR, ccsSpread};
+  });
+
+  document.getElementById('tbl-ccs').innerHTML=`
+    <thead><tr>
+      <th>Tenor</th><th style="text-align:right">USD Leg (SOFR)</th>
+      <th style="text-align:right">IDR Fixed</th><th style="text-align:right">CCS Spread</th>
+    </tr></thead>
+    <tbody>
+      ${ccsData.map(r=>`<tr>
+        <td style="font-weight:700">${r.l}</td>
+        <td style="text-align:right;color:var(--blue)">${r.sofrBase.toFixed(2)}%</td>
+        <td style="text-align:right;color:var(--amber)">${r.ccsIDR.toFixed(2)}%</td>
+        <td style="text-align:right;font-weight:700;color:var(--green)">+${Math.round(r.ccsSpread*100)}bps</td>
+      </tr>`).join('')}
+    </tbody>`;
+
+  const tp1Y=ccsData.find(r=>r.l==='1Y'), tp3Y=ccsData.find(r=>r.l==='3Y'), tp5Y=ccsData.find(r=>r.l==='5Y');
+  const idrSpot=spot.toLocaleString('en',{maximumFractionDigits:0});
+  document.getElementById('ccs-talking-points').innerHTML=[
+    {icon:'💬',text:`Corporates with USD bonds: swap USD SOFR to IDR fixed via ${tp3Y?tp3Y.l:'3Y'} CCS at ~${tp3Y?tp3Y.ccsIDR.toFixed(2):'–'}% — locking IDR funding cost vs rolling NDF`},
+    {icon:'🏦',text:`FI / NBFI hedging: ${tp1Y?tp1Y.l:'1Y'} CCS spread of +${tp1Y?Math.round(tp1Y.ccsSpread*100):'–'}bps reflects IDR liquidity premium over USD`},
+    {icon:'⚡',text:`PLN / Pertamina: ${tp5Y?tp5Y.l:'5Y'} CCS at ~${tp5Y?tp5Y.ccsIDR.toFixed(2):'–'}% IDR fixed for USD project debt conversion discussion`},
+    {icon:'📊',text:`At spot Rp ${idrSpot}, hedge cost of ${ndfData.find(r=>r.l==='1Y')?.hedgeCost.toFixed(2)||'–'}% p.a. (1Y NDF) reflects full IDR–USD rate differential`},
+  ].map(t=>`<div style="font-size:11px;color:var(--muted);display:flex;gap:8px;line-height:1.5"><span>${t.icon}</span><span>${t.text}</span></div>`).join('');
+}
+
+// ── IDR panel ─────────────────────────────────────────────────────────────
+function renderIDR(mkt){
+  const d=bySymbol(mkt)['IDR=X']; if(!d||!d.price) return;
+  const p=d.price, pc=d.change_pct||0;
+  document.getElementById('idr-val').textContent = 'Rp '+p.toLocaleString('en',{maximumFractionDigits:0});
+  const cls=pc>0?'text-red':'text-green';
+  document.getElementById('idr-change').innerHTML=`<span class="${cls}">${pc>0?'▲ IDR weakening':'▼ IDR strengthening'} ${Math.abs(pc).toFixed(2)}% today</span>`;
+  // Position on bar: 15000=0%, 18000=100%
+  const pct=Math.min(100,Math.max(0,(p-15000)/(18000-15000)*100));
+  document.getElementById('idr-fill').style.width=pct+'%';
+}
+
+function renderIDNews(){
+  const items=ALL_NEWS.filter(n=>n.is_indonesia).slice(0,8);
+  document.getElementById('id-news').innerHTML=items.length?items.map(n=>newsCardHTML(n,true)).join(''):'<div class="text-muted" style="padding:12px">No Indonesia-specific headlines</div>';
+}
+
+// ── News ──────────────────────────────────────────────────────────────────
+const TAG_STYLE = {
+  indonesia:  'background:var(--red-dim);color:#ff8a95',
+  corruption: 'background:rgba(167,139,250,.2);color:var(--purple)',
+  energy:     'background:rgba(245,158,11,.15);color:var(--amber)',
+  fx_rates:   'background:rgba(96,165,250,.15);color:var(--blue)',
+  commodities:'background:rgba(34,197,94,.12);color:var(--green)',
+  macro:      'background:rgba(167,139,250,.15);color:var(--purple)',
+  global:     'background:rgba(255,255,255,.08);color:var(--muted)',
+};
+const TAG_EMOJI = {indonesia:'🇮🇩',corruption:'🚨',energy:'⚡',fx_rates:'💱',commodities:'🪨',macro:'📊',global:'🌍'};
+
+function newsCardHTML(n, compact=false){
+  const tags=(n.tags||['global']).map(t=>`<span class="news-tag" style="${TAG_STYLE[t]||TAG_STYLE.global}">${TAG_EMOJI[t]||''} ${esc(t)}</span>`).join('');
+  const border=n.is_corruption?'corruption':n.is_indonesia?'indonesia':n.is_energy?'energy':'';
+  const ago=timeAgo(n.published_raw);
+  const isFlagged=FLAGGED_IDS.has(n.id);
+  const flagIcon=isFlagged?'🚩':'🏳';
+  const flagTip=isFlagged?'Flagged as Risk Signal — click to unflag':'Flag as Risk Signal for franchise';
+  return `<div class="news-card ${border}" id="ncard-${safeId(n.id)}">
+    <div class="news-meta">
+      <span class="news-src">${esc(n.source)}</span>
+      ${ago?`<span class="news-time">${ago}</span>`:''}
+      ${tags}
+      <button class="flag-btn ${isFlagged?'flagged':''}" title="${flagTip}" onclick="toggleFlag('${safeId(n.id)}')">${flagIcon}</button>
+    </div>
+    <div class="news-title"><a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer">${esc(n.title)}</a></div>
+    ${!compact&&n.summary?`<div class="news-summary">${esc(n.summary)}</div>`:''}
+  </div>`;
+}
+
+function parseDate(str){
+  if(!str) return 0;
+  try{ const d=new Date(str); return isNaN(d)?0:d.getTime(); }catch{return 0;}
+}
+
+function renderNews(){
+  // Merge manually-added flagged articles into news list (deduplicated by id)
+  const existingIds = new Set(ALL_NEWS.map(n=>n.id));
+  const flaggedAsNews = ALL_FLAGGED
+    .filter(f=>!existingIds.has(f.id))
+    .map(f=>({
+      id:f.id, title:f.title, url:f.url||'', source:f.source||'Manual',
+      source_cat:f.source_cat||'', summary:f.summary||'',
+      tags:f.tags||[], is_indonesia:f.is_indonesia, is_energy:f.is_energy,
+      is_fx:(f.tags||[]).includes('fx_rates'), is_macro:(f.tags||[]).includes('macro'),
+      published_raw:f.flagged_at, created_at:f.flagged_at,
+    }));
+  const combined = [...ALL_NEWS, ...flaggedAsNews];
+  // Derive is_corruption from tags OR title scan (covers manually-added articles with no tags)
+  const CORR_TERMS=['corruption','korupsi','kpk','bribery','suap','gratifikasi','fraud','embezzlement','money laundering','tipikor','penyelidikan','tersangka','ditangkap','arrested'];
+  combined.forEach(n=>{
+    if(!n.is_corruption){
+      const txt=((n.title||'')+(n.summary||'')).toLowerCase();
+      n.is_corruption=(n.tags||[]).includes('corruption')||CORR_TERMS.some(k=>txt.includes(k));
+    }
+  });
+
+  // Stamp counts onto filter buttons
+  const counts={
+    all:         combined.length,
+    indonesia:   combined.filter(n=>n.is_indonesia).length,
+    corruption:  combined.filter(n=>n.is_corruption).length,
+    energy:      combined.filter(n=>n.is_energy).length,
+    fx_rates:    combined.filter(n=>n.is_fx).length,
+    macro:       combined.filter(n=>n.is_macro).length,
+    commodities: combined.filter(n=>(n.tags||[]).includes('commodities')).length,
+    global:      combined.filter(n=>(n.tags||[]).includes('global')).length,
+  };
+  document.querySelectorAll('#news-filters .filter-btn').forEach(btn=>{
+    const f=btn.dataset.filter;
+    if(!(f in counts)) return;
+    const label=btn.firstChild.textContent.trim();
+    btn.innerHTML=`${label} <span class="filter-count">${counts[f]}</span>`;
+  });
+
+  const q=(document.getElementById('news-search').value||'').toLowerCase();
+  const filtered=combined.filter(n=>{
+    const matchFilter=newsFilter==='all'||(n.tags||[]).includes(newsFilter)||
+      (newsFilter==='indonesia'&&n.is_indonesia)||(newsFilter==='corruption'&&n.is_corruption)||
+      (newsFilter==='energy'&&n.is_energy)||(newsFilter==='fx_rates'&&n.is_fx)||(newsFilter==='macro'&&n.is_macro);
+    const matchQ=!q||n.title.toLowerCase().includes(q)||(n.summary||'').toLowerCase().includes(q)||(n.source||'').toLowerCase().includes(q);
+    return matchFilter&&matchQ;
+  });
+  // Sort latest first — by published date, fallback to created_at
+  filtered.sort((a,b)=>{
+    const da=parseDate(a.published_raw)||parseDate(a.created_at)||0;
+    const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
+    return db-da;
+  });
+  document.getElementById('news-count').textContent=`Showing ${filtered.length} of ${combined.length} articles`;
+
+  // When viewing "all" — pin corruption alerts at the top in a separate block
+  let html='';
+  if(newsFilter==='all'&&!q){
+    const corrItems=filtered.filter(n=>n.is_corruption);
+    const restItems=filtered.filter(n=>!n.is_corruption);
+    if(corrItems.length){
+      html+=`<div class="corruption-section-header">🚨 Corruption / Governance Alerts (${corrItems.length})</div>`;
+      html+=corrItems.map(n=>newsCardHTML(n)).join('');
+      if(restItems.length) html+=`<div class="section-divider" style="height:1px;background:var(--border);margin:12px 0"></div>`;
+    }
+    html+=restItems.map(n=>newsCardHTML(n)).join('');
+  } else {
+    html=filtered.map(n=>newsCardHTML(n)).join('');
+  }
+  document.getElementById('news-list').innerHTML=html||'<div class="text-muted" style="padding:30px;text-align:center">No matching articles</div>';
+}
+
+function filterNews(f,btn){
+  newsFilter=f;
+  document.querySelectorAll('#news-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNews();
+}
+
+function renderOvNews(){
+  // Sort by published date descending so latest headlines always appear first
+  const sorted=[...ALL_NEWS].sort((a,b)=>{
+    const da=parseDate(a.published_raw)||parseDate(a.created_at)||0;
+    const db=parseDate(b.published_raw)||parseDate(b.created_at)||0;
+    return db-da;
+  });
+  const el=document.getElementById('ov-news');
+  if(!sorted.length){
+    el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--muted);text-align:center">No headlines yet — data refreshes at 6am WIB. Check GitHub Actions if this persists.</div>';
+    return;
+  }
+  const cap=5; // show first 5, toggle rest
+  const makeCard=n=>{
+    const pc=n.is_corruption?'border-left:3px solid var(--purple)':n.is_indonesia?'border-left:3px solid var(--red)':n.is_energy?'border-left:3px solid var(--amber)':'';
+    const tag=n.is_corruption?'🚨':n.is_indonesia?'🇮🇩':n.is_energy?'⚡':n.is_fx?'💱':'🌍';
+    const ago=timeAgo(n.published_raw);
+    return `<div class="card-sm" style="${pc}padding:10px 12px">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:3px">${tag} ${esc(n.source)}${ago?` <span style="color:var(--amber);font-weight:600">${ago}</span>`:''}</div>
+      <div style="font-size:12px;font-weight:600;line-height:1.4"><a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(n.title)}</a></div>
+    </div>`;
+  };
+  const visible=sorted.slice(0,cap);
+  const hidden=sorted.slice(cap);
+  let html=visible.map(makeCard).join('');
+  if(hidden.length){
+    html+=`<div id="ov-news-extra" style="display:none">${hidden.map(makeCard).join('')}</div>`;
+    html+=`<button onclick="toggleOvNewsExtra(this)" style="width:100%;padding:8px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;margin-top:2px" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Show ${hidden.length} more headlines ▾</button>`;
+  }
+  el.innerHTML=html;
+}
+function toggleOvNewsExtra(btn){
+  const ex=document.getElementById('ov-news-extra');
+  const shown=ex.style.display!=='none';
+  ex.style.display=shown?'none':'';
+  btn.textContent=shown?`Show ${ex.children.length} more headlines ▾`:'Show fewer ▴';
+}
+
+// ── Client Ideas — Unified (Market Data + Risk Signals + MUFG Research) ──────
+const SECTORS = [
+  {name:'Energy & Utilities',  emoji:'⚡', sev:'CRITICAL', clients:'Pertamina, PLN, PGN',
+   direct:'Crude procurement costs +50%; LNG input costs; LPG subsidy blowout',
+   indirect:'Govt subsidy transfers rising; fiscal deficit widening'},
+  {name:'Mining & Extractives', emoji:'⛏', sev:'HIGH', clients:'Adaro, Sinar Mas Berau, Nickel smelters',
+   direct:'Freight costs on exports; coal revenue −21.8%; nickel oversupply (288k tonne surplus)',
+   indirect:'Revenue volatility → conglomerate credit risk; ESG financing tightening'},
+  {name:'Petrochemicals',       emoji:'🏭', sev:'HIGH', clients:'Chemical MNCs, Pupuk Indonesia',
+   direct:'LPG/naphtha feedstock cost spike from Gulf disruption',
+   indirect:'Polymer supply tight → packaging/FMCG input cost inflation'},
+  {name:'Manufacturing',        emoji:'🏗', sev:'MEDIUM', clients:'Astra, Textiles, Electronics MNCs',
+   direct:'Energy 15–25% of opex; electricity tariff rising with gas costs',
+   indirect:'Export margin compression; employment risk'},
+  {name:'FMCG & Consumer',      emoji:'🛒', sev:'MEDIUM', clients:'Salim/Indofood, MNC FMCG',
+   direct:'Wheat/CPO import costs + freight; LPG cooking fuel cost rise',
+   indirect:'Consumer purchasing power squeeze; MSME credit deterioration'},
+  {name:'Financial Services',   emoji:'🏦', sev:'MEDIUM', clients:'Bank Danamon, BRI, FI / NBFI',
+   direct:'Wholesale funding spread widening on sovereign rating downgrades',
+   indirect:'NPL risk from manufacturing/agri/logistics borrowers over 12–18 months'},
+  {name:'Agriculture',          emoji:'🌾', sev:'MEDIUM', clients:'Pupuk Indonesia, Bulog, Farmers',
+   direct:'Fertiliser input costs rising (gas-linked urea); rice import costs +11%',
+   indirect:'Food security risk; staple price inflation'},
+  {name:'Logistics & Transport',emoji:'🚢', sev:'MEDIUM', clients:'Pelindo, Astra logistics, shippers',
+   direct:'Bunker fuel +50%; B40 blending costs; inter-island freight rising',
+   indirect:'Distributes cost inflation to all sectors via supply chain'},
+  {name:'TMT / Digital Infrastructure',emoji:'📡', sev:'MEDIUM', clients:'PT Telkom, Mitratel, Telkomsel, data centre operators',
+   direct:'USD equipment import costs rising with IDR weakness; data center power costs up with electricity tariff increases',
+   indirect:'Fiber & tower rollout capex inflation; clean energy procurement urgency for hyperscalers'},
+  {name:'Mining & Commodities (MIND ID)',emoji:'⛰', sev:'HIGH', clients:'MIND ID, Antam, Bukit Asam, Timah, Freeport Indonesia',
+   direct:'Nickel oversupply (288k tonne surplus); coal revenue pressure; copper price volatility; bauxite export ban impact',
+   indirect:'Conglomerate credit risk; ESG financing tightening; transition metals demand shift'},
+];
+
+const PORDER = {CRITICAL:4, HIGH:3, MEDIUM:2, LOW:1};
+const SORDER = {CRITICAL:4, HIGH:3, MEDIUM:2, LOW:1, Direct:4, High:3, Medium:2, Low:1};
+
+function buildUnifiedIdeas(){
+  const all = [];
+
+  // ① Market-data ideas from DB (generated by Python/GitHub Actions)
+  for(const idea of ALL_IDEAS){
+    all.push({_type:'market',_sourceIcon:'📊',_sourceLabel:'Market Data',
+      _sourceDetail:idea.trigger||'',_sourceUrl:null,
+      priority:idea.priority||'MEDIUM', icon:idea.icon||'💡',
+      sector:idea.sector||'', clients:idea.clients||'',
+      trigger:idea.trigger||'', topic:idea.topic||'', products:idea.products||''});
+  }
+
+  // ② Flagged Risk Signal articles → client_opportunities
+  for(const f of ALL_FLAGGED){
+    const opps = f.client_opportunities||[];
+    if(!opps.length) continue;
+    const priority = PORDER[f.risk_level] ? f.risk_level : 'MEDIUM';
+    for(const opp of opps){
+      all.push({_type:'flagged',_sourceIcon:'🚩',_sourceLabel:'Risk Signal',
+        _sourceDetail:f.title,_sourceUrl:f.url||null,
+        priority, icon:'🚩', sector:opp.segment||'General',
+        clients:opp.segment||'', trigger:f.risk_headline||f.title,
+        topic:opp.idea||'', products:''});
+    }
+  }
+
+  // ③ MUFG Research articles → run insight engine; fall back to category mapping
+  const MUFG_CAT_OPPS = {
+    'fx':        [{segment:'All USD-exposed clients',         idea:'Review FX forward/NDF positioning in light of latest MUFG FX outlook'}],
+    'macro':     [{segment:'All segments',                    idea:'Share MUFG macro perspective — discuss implications for client portfolio/hedging strategy'}],
+    'indonesia': [{segment:'SOEs & Large Local Conglomerates',idea:'MUFG Indonesia note: review IDR, BI rate path, and sovereign credit implications'}],
+    'rates':     [{segment:'FI / Banks & Fixed Income clients',idea:'MUFG rates research: duration positioning and credit spread discussion'}],
+    'chartofday':[{segment:'All segments',                    idea:'Share Chart of the Day — Tom Joyce capital markets strategy perspective'}],
+  };
+  for(const a of ALL_MUFG){
+    const cat = (a.category||'').toLowerCase();
+    let ins = generateArticleInsights({title:a.title||'', summary:'', tags:[cat]});
+    // If keyword match returns LOW, fall back to category-level mapping
+    const opps = ins.risk_level !== 'LOW'
+      ? ins.client_opportunities.slice(0,2)
+      : (MUFG_CAT_OPPS[cat] || [{segment:'All segments', idea:'Review latest MUFG research — discuss client implications'}]);
+    const priority = ins.risk_level !== 'LOW' ? ins.risk_level : 'MEDIUM';
+    for(const opp of opps){
+      all.push({_type:'mufg',_sourceIcon:'🏦',_sourceLabel:'MUFG Research',
+        _sourceDetail:a.title,_sourceUrl:a.url||null,
+        priority, icon:'🏦', sector:opp.segment||'General', clients:opp.segment||'',
+        trigger:a.title, topic:opp.idea||'', products:''});
+    }
+  }
+
+  // Deduplicate: same sector + first 50 chars of topic
+  const seen=new Set();
+  const deduped=all.filter(x=>{
+    const k=`${x.sector}|${x.topic.substring(0,50)}`;
+    if(seen.has(k)) return false; seen.add(k); return true;
+  });
+
+  // Sort by priority desc, then market > flagged > mufg within same priority
+  const TYPE={market:3,flagged:2,mufg:1};
+  deduped.sort((a,b)=>{
+    const pd=(PORDER[b.priority]||0)-(PORDER[a.priority]||0);
+    return pd!==0?pd:(TYPE[b._type]||0)-(TYPE[a._type]||0);
+  });
+  return deduped;
+}
+
+function ideaCardHTML(idea){
+  const srcColor = idea._type==='flagged'?'var(--red)':idea._type==='mufg'?'var(--blue)':'var(--amber)';
+  const escapedDetail = esc(idea._sourceDetail||'');
+  const trunc = escapedDetail.length>55?escapedDetail.substring(0,55)+'…':escapedDetail;
+  const srcBadge = `<div style="font-size:10px;padding:2px 8px;background:rgba(255,255,255,.05);border-radius:4px;color:${srcColor};display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;max-width:100%;overflow:hidden;white-space:nowrap">
+    ${esc(idea._sourceIcon)} <strong>${esc(idea._sourceLabel)}</strong>${trunc?` · <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis" title="${escapedDetail}">${trunc}</span>`:''}
+  </div>`;
+  const readMore = idea._sourceUrl?`<a href="${safeUrl(idea._sourceUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:var(--muted);margin-top:6px;display:block">→ Read source</a>`:'';
+  return `<div class="idea-card ${esc(idea.priority)}">
+    <div class="idea-header">
+      <div class="idea-icon">${esc(idea.icon||'💡')}</div>
+      <div class="idea-meta">
+        <div class="idea-priority ${esc(idea.priority)}">${esc(idea.priority)} PRIORITY</div>
+        <div class="idea-sector">${esc(idea.sector)}</div>
+        <div class="idea-clients">${idea.clients?((/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(idea.clients+idea.sector)?'FI: ':'Corporates: ')+esc(idea.clients)):''}</div>
+      </div>
+    </div>
+    ${srcBadge}
+    <div class="idea-trigger">${esc(idea.trigger)}</div>
+    <div class="idea-topic">${esc(idea.topic)}</div>
+    ${idea.products?`<div class="idea-products">${String(idea.products).split(',').map(p=>`<span class="idea-prod">${esc(p.trim())}</span>`).join('')}</div>`:''}
+    ${readMore}
+  </div>`;
+}
+
+function renderIdeas(){
+  const unified = buildUnifiedIdeas();
+  const cm=unified.filter(x=>x._type==='market').length;
+  const cf=unified.filter(x=>x._type==='flagged').length;
+  const cmu=unified.filter(x=>x._type==='mufg').length;
+  const bar=document.getElementById('ideas-source-bar');
+  if(bar) bar.innerHTML=`
+    <span>Sources feeding this page:</span>
+    <button onclick="showSourceDetail('market')" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--amber);font-size:12px;font-weight:600">📊 Market Data <strong style="color:var(--text)">${cm}</strong></button>
+    <button onclick="showSourceDetail('flagged')" style="background:rgba(230,0,18,.1);border:1px solid rgba(230,0,18,.3);border-radius:8px;padding:4px 10px;cursor:pointer;color:#ff8a95;font-size:12px;font-weight:600">🚩 Risk Signals <strong style="color:var(--text)">${cf}</strong>${cf===0?' <span style="font-size:10px;opacity:.6">(flag news to add)</span>':''}</button>
+    <button onclick="showSourceDetail('mufg')" style="background:rgba(96,165,250,.1);border:1px solid rgba(96,165,250,.3);border-radius:8px;padding:4px 10px;cursor:pointer;color:var(--blue);font-size:12px;font-weight:600">🏦 MUFG Research <strong style="color:var(--text)">${cmu}</strong></button>
+    <span style="color:var(--muted)">|</span>
+    <span>Total: <strong style="color:var(--text)">${unified.length}</strong> ideas</span>`;
+  document.getElementById('ideas-list').innerHTML = unified.length
+    ? unified.map(ideaCardHTML).join('')
+    : '<div class="text-muted" style="padding:30px;text-align:center">No ideas yet — run Refresh or flag news articles as Risk Signals</div>';
+}
+
+function showSourceDetail(type){
+  const modal = document.getElementById('sourceModal');
+  const title = document.getElementById('srcModal-title');
+  const body  = document.getElementById('srcModal-body');
+  const row = (icon, label, sub, url, badge, badgeColor) => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start">
+      <div style="font-size:18px;line-height:1;padding-top:2px">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:3px">${url?`<a href="${safeUrl(url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(label)}</a>`:esc(label)}</div>
+        ${sub?`<div style="font-size:11px;color:var(--muted)">${esc(sub)}</div>`:''}
+      </div>
+      ${badge?`<span style="font-size:9px;font-weight:800;padding:2px 7px;border-radius:6px;white-space:nowrap;background:${badgeColor}22;color:${badgeColor}">${esc(badge)}</span>`:''}
+    </div>`;
+
+  if(type==='market'){
+    title.textContent = '📊 Market Data — Triggered Ideas';
+    body.innerHTML = ALL_IDEAS.length
+      ? ALL_IDEAS.map(i=>row('📊', i.sector||'Market Idea', i.trigger||'', null,
+          i.priority, i.priority==='CRITICAL'?'#ff2d55':i.priority==='HIGH'?'#f59e0b':'#60a5fa')).join('')
+      : '<div style="color:var(--muted);padding:20px;text-align:center">No market ideas — run a data refresh</div>';
+
+  } else if(type==='flagged'){
+    title.textContent = '🚩 Risk Signals — Flagged Articles';
+    body.innerHTML = ALL_FLAGGED.length
+      ? [...ALL_FLAGGED].sort((a,b)=>({CRITICAL:4,HIGH:3,MEDIUM:2,LOW:1}[b.risk_level]||0)-({CRITICAL:4,HIGH:3,MEDIUM:2,LOW:1}[a.risk_level]||0))
+          .map(f=>row('🚩', f.title||'Untitled', (f.source||'')+(f.risk_headline?' · '+f.risk_headline:''), f.url||null,
+            f.risk_level||'MEDIUM', f.risk_level==='HIGH'||f.risk_level==='CRITICAL'?'#ff8c00':'#60a5fa')).join('')
+      : '<div style="color:var(--muted);padding:20px;text-align:center">No flagged articles — flag news items from the News tab</div>';
+
+  } else if(type==='mufg'){
+    title.textContent = '🏦 Research Intelligence — Articles Used';
+    const used = ALL_MUFG.filter(a=>{
+      const ins = generateArticleInsights({title:a.title||'',summary:'',tags:[a.category?a.category.toLowerCase():'global']});
+      return ins.risk_level !== 'LOW';
+    });
+    body.innerHTML = used.length
+      ? used.map(a=>row('🏦', a.title||'Untitled', (a.author||'Research Team')+(a.date_str?' · '+a.date_str:''), a.url||null,
+          a.category, '#60a5fa')).join('')
+      : '<div style="color:var(--muted);padding:20px;text-align:center">No research articles matched insight rules</div>';
+  }
+  modal.classList.add('show');
+}
+function closeSourceModal(){ document.getElementById('sourceModal').classList.remove('show'); }
+
+function renderOvPriorities(){
+  const all=buildUnifiedIdeas();
+  const top=all.slice(0,4);
+  const el=document.getElementById('ov-priorities');
+  el.innerHTML=top.map(idea=>{
+    const trig = String(idea.trigger||'');
+    return `
+    <div class="card-sm idea-card ${esc(idea.priority)}" style="padding:14px 14px;margin-bottom:0">
+      <div style="font-size:10px;font-weight:700;color:${idea.priority==='CRITICAL'?'#ff2d55':idea.priority==='HIGH'?'var(--amber)':'var(--blue)'};margin-bottom:4px">${esc(idea.icon||'💡')} ${esc(idea.priority)} · <span style="opacity:.65;font-weight:500">${esc(idea._sourceIcon)} ${esc(idea._sourceLabel)}</span></div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:3px">${esc(idea.sector)}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.4">${esc(trig.length>90?trig.substring(0,90)+'…':trig)}</div>
+    </div>`;
+  }).join('');
+  // "View all" link at bottom to balance column height
+  if(all.length>4){
+    el.insertAdjacentHTML('beforeend',`
+      <button onclick="switchTab('ideas',document.querySelector('.nav-btn[onclick*=ideas]'))" style="width:100%;padding:10px;background:none;border:1px dashed var(--border);border-radius:10px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
+        View all ${all.length} priorities → Client Opps
+      </button>`);
+  }
+}
+
+// ── Sector Impact — Unified (Market Analysis + Risk Signals) ──────────────
+function buildUnifiedSectorImpacts(){
+  const byName={};
+  for(const s of SECTORS) byName[s.name]={...s,_sources:['📊 Market Analysis'],_flaggedArticles:[],_flaggedDetails:[]};
+
+  for(const f of ALL_FLAGGED){
+    for(const si of f.sector_impacts||[]){
+      const sn=si.sector;
+      const artObj={id:f.id,title:f.title,url:f.url||'',risk_level:f.risk_level,risk_headline:f.risk_headline,client_opportunities:f.client_opportunities||[]};
+      if(byName[sn]){
+        const curSev=byName[sn].sev; const newSev=si.impact||'MEDIUM';
+        if((SORDER[newSev]||0)>(SORDER[curSev]||0)) byName[sn].sev=newSev;
+        if(!byName[sn]._flaggedArticles.find(a=>a.id===f.id)) byName[sn]._flaggedArticles.push(artObj);
+        if(si.detail&&!byName[sn]._flaggedDetails.includes(si.detail)) byName[sn]._flaggedDetails.push(si.detail);
+      } else {
+        byName[sn]={name:sn,emoji:'📌',sev:si.impact||'MEDIUM',clients:'See Risk Signals',
+          direct:si.detail||'',indirect:'',_sources:['📊 Market Analysis'],_flaggedArticles:[artObj],_flaggedDetails:[]};
+      }
+    }
+  }
+  return Object.values(byName).sort((a,b)=>(SORDER[b.sev]||0)-(SORDER[a.sev]||0));
+}
+
+function renderSectorImpact(){
+  const sectors=buildUnifiedSectorImpacts();
+  const html=sectors.map(s=>{
+    const arts=s._flaggedArticles||[];
+    const srcBlock=arts.length?`
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(230,0,18,.15)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--red);letter-spacing:.06em;margin-bottom:8px">🚩 Risk Signals Contributing (${arts.length})</div>
+        ${arts.map(a=>`
+          <div onclick="showFlaggedDetail('${safeId(a.id)}')" style="margin-bottom:8px;padding:8px 10px;border-radius:8px;background:rgba(230,0,18,.05);border:1px solid rgba(230,0,18,.12);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(230,0,18,.1)'" onmouseout="this.style.background='rgba(230,0,18,.05)'">
+            <div style="display:flex;align-items:flex-start;gap:6px">
+              <span style="color:var(--red);margin-top:1px;flex-shrink:0">🚩</span>
+              <div>
+                <div style="font-size:12px;font-weight:600;color:var(--text);line-height:1.4">${esc(a.title)}</div>
+                ${a.risk_headline?`<div style="font-size:11px;color:var(--amber);margin-top:3px;line-height:1.3">${esc(a.risk_headline)}</div>`:''}
+                <div style="font-size:10px;color:var(--muted);margin-top:2px">
+                  <span class="sev-badge sev-${esc((a.risk_level||'medium').toLowerCase())}" style="font-size:9px">${esc(a.risk_level||'MEDIUM')}</span>
+                  · click to view opportunities
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+        ${s._flaggedDetails.length?`<div style="margin-top:6px;padding:6px 10px;background:rgba(245,158,11,.06);border-radius:6px;font-size:11px;color:var(--amber);line-height:1.4">${s._flaggedDetails.map(d=>esc(d)).join(' · ')}</div>`:''}
+      </div>`:'';
+    return `<div class="sector-card" style="${arts.length?'border-color:rgba(230,0,18,.25)':''}">
+      <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
+      <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
+      ${s.indirect?`<div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>`:''}
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">${/bank|fig|danamon|bri|nbfi|insurance|leasing/i.test(s.clients)?'Key FI:':'Key Corporates:'} ${s.clients}</div>
+      ${srcBlock}
+    </div>`;
+  }).join('');
+  const el=document.getElementById('sector-impact');
+  if(el) el.innerHTML=html;
+}
+
+function renderOvSectors(){
+  const top=buildUnifiedSectorImpacts().filter(s=>['CRITICAL','HIGH'].includes(s.sev));
+  document.getElementById('ov-sectors').innerHTML=top.map(s=>`
+    <div class="sector-card">
+      <div class="sector-name">${s.emoji} ${s.name} <span class="sev-badge sev-${s.sev.toLowerCase()}">${s.sev}</span></div>
+      <div class="impact-row"><strong>Direct:</strong> ${s.direct}</div>
+      ${s.indirect?`<div class="impact-row"><strong>Indirect:</strong> ${s.indirect}</div>`:''}
+    </div>`).join('');
+}
+
+// ── Segment-item heat scoring ─────────────────────────────────────────────
+// Mix today's market moves, news, flagged articles, and MUFG research into
+// a 0–100 "heat" per segment risk/opportunity so the cards re-rank daily
+// around whatever the market is actually doing.
+function computeItemHeat(item){
+  const kws = (item.kw||[]).map(k=>String(k).toLowerCase());
+  const syms = item.sym||[];
+  const out = {score:0, news:[], flagged:[], mufg:[], market:[]};
+
+  // Market: up to 35 pts — 1% move = 12 pts, capped around 3%+
+  const byS = bySymbol(ALL_MARKET);
+  for(const s of syms){
+    const d = byS[s]; if(!d) continue;
+    const pct = +d.change_pct||0;
+    const mag = Math.abs(pct);
+    if(mag >= 0.15){
+      out.market.push({sym:s, name:d.name||s, pct, price:d.price});
+      out.score += Math.min(35, mag*12);
+    }
+  }
+
+  const textMatches = (arr, getText) => {
+    if(!kws.length) return [];
+    return arr.filter(x=>{
+      const t = getText(x).toLowerCase();
+      return kws.some(k=>t.includes(k));
+    });
+  };
+
+  // News: up to 35 pts — first hit gets 12 pts so a single headline lands in "warm"
+  const newsHits = textMatches(ALL_NEWS, n=>(n.title||'')+' '+(n.summary||''));
+  out.news = newsHits.slice(0,6);
+  if(newsHits.length) out.score += Math.min(35, 12 + (newsHits.length-1)*6);
+
+  // Flagged: up to 40 pts — any flagged article that matches keywords is a strong signal
+  const flagHits = textMatches(ALL_FLAGGED, f=>(f.title||'')+' '+(f.risk_headline||''));
+  out.flagged = flagHits;
+  const levelPts = {CRITICAL:40, HIGH:30, MEDIUM:22, LOW:14};
+  out.score += flagHits.reduce((acc,f)=>Math.max(acc, levelPts[f.risk_level]||0), 0);
+
+  // MUFG research: up to 20 pts — curated content, each match is meaningful
+  const mufgHits = textMatches(ALL_MUFG, a=>(a.title||'')+' '+(a.author||''));
+  out.mufg = mufgHits.slice(0,4);
+  if(mufgHits.length) out.score += Math.min(20, 8 + (mufgHits.length-1)*4);
+
+  out.score = Math.min(100, Math.round(out.score));
+  out.hasEvidence = !!(out.market.length || out.news.length || out.flagged.length || out.mufg.length);
+  out.band = out.score >= 65 ? 'critical' : out.score >= 35 ? 'hot' : out.score >= 15 ? 'warm' : 'cold';
+  return out;
+}
+
+function heatBadge(heat){
+  if(heat.band === 'cold') return '';
+  const cfg = {
+    warm:     {bg:'rgba(96,165,250,.15)',  fg:'#60a5fa',  icon:'●', label:'LIVE'},
+    hot:      {bg:'rgba(245,158,11,.18)',  fg:'#f59e0b',  icon:'▲', label:`HOT ${heat.score}`},
+    critical: {bg:'rgba(230,0,18,.18)',    fg:'#ff4d5e',  icon:'🔥', label:`${heat.score}`}
+  }[heat.band];
+  const ev = [];
+  if(heat.market.length) ev.push(heat.market.map(m=>`${m.name} ${m.pct>0?'+':''}${(+m.pct).toFixed(1)}%`).join(', '));
+  if(heat.news.length)    ev.push(`${heat.news.length} news`);
+  if(heat.flagged.length) ev.push(`${heat.flagged.length} flagged`);
+  if(heat.mufg.length)    ev.push(`${heat.mufg.length} research`);
+  const tip = ev.join(' · ') || 'No live drivers';
+  return `<span title="${esc(tip)}" style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${cfg.bg};color:${cfg.fg};white-space:nowrap;margin-left:6px;letter-spacing:.03em">${cfg.icon} ${esc(cfg.label)}</span>`;
+}
+
+// Render the "Today:" evidence row for an item — actual chips for market moves,
+// the top news headline as a link, flagged count, and top MUFG title.
+// Always renders if there's any evidence (even in cold band) — that's what
+// makes the page feel alive day-to-day instead of static.
+function heatDriverRow(heat){
+  if(!heat.hasEvidence) return '';
+  const chips = [];
+  // Market chips: colored by direction
+  for(const m of heat.market.slice(0,3)){
+    const up = m.pct > 0;
+    const color = up ? '#22c55e' : '#ff4d5e';
+    const sign = up ? '+' : '';
+    chips.push(`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${color}22;color:${color};white-space:nowrap">📊 ${esc(m.name)} ${sign}${(+m.pct).toFixed(2)}%</span>`);
+  }
+  // Top flagged article — strongest signal first
+  if(heat.flagged.length){
+    const f = heat.flagged[0];
+    const lvlColor = {CRITICAL:'#ff4d5e',HIGH:'#ff4d5e',MEDIUM:'#f59e0b',LOW:'#60a5fa'}[f.risk_level]||'#60a5fa';
+    const title = (f.title||'').length > 48 ? f.title.substring(0,48)+'…' : (f.title||'');
+    chips.push(`<span style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:${lvlColor}22;color:${lvlColor};white-space:nowrap" title="${esc(f.title||'')}">🚩 ${esc(f.risk_level||'')} · ${esc(title)}</span>`);
+  }
+  // Top news headline — clickable
+  if(heat.news.length){
+    const n = heat.news[0];
+    const title = (n.title||'').length > 60 ? n.title.substring(0,60)+'…' : (n.title||'');
+    chips.push(`<a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(245,158,11,.12);color:#f59e0b;white-space:nowrap;text-decoration:none;max-width:320px;overflow:hidden;text-overflow:ellipsis" title="${esc(n.title||'')}">📰 ${esc(title)}</a>`);
+    if(heat.news.length > 1){
+      chips.push(`<span style="font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.08);color:#f59e0b;white-space:nowrap">+${heat.news.length-1} more</span>`);
+    }
+  }
+  // Top MUFG research — clickable
+  if(heat.mufg.length){
+    const a = heat.mufg[0];
+    const title = (a.title||'').length > 55 ? a.title.substring(0,55)+'…' : (a.title||'');
+    chips.push(`<a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(96,165,250,.12);color:#60a5fa;white-space:nowrap;text-decoration:none" title="${esc(a.title||'')}">🏦 ${esc(title)}</a>`);
+  }
+  if(!chips.length) return '';
+  return `<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+    <span style="font-size:9px;font-weight:800;color:var(--muted);letter-spacing:.06em">TODAY</span>
+    ${chips.join('')}
+  </div>`;
+}
+
+// ── RM segment notes ──────────────────────────────────────────────────────
+const RM_SEGMENT_NOTES = [
+  {
+    id:'soe', name:'SOEs', icon:'🏛',
+    fullName:'State-Owned Enterprises (SOEs)',
+    subtitle:'Pertamina · PLN · Bulog · PGN · MIND ID · Telkom · Mitratel — energy, commodities, digital infrastructure',
+    color:'var(--red)',
+    newsKw:['pertamina','pln','bulog','pgn','bumn','subsidi','lpg','listrik','mind id','antam','freeport','telkom','mitratel','telkomsel','data center','tower','fiber','nikel','bauksit','corruption','korupsi','kpk','bribery','tipikor'],
+    mufgCats:['Indonesia','INDONESIA'],
+    sectorNames:['Energy & Utilities','Petrochemicals & Agriculture','Mining & Extractives','TMT / Digital Infrastructure'],
+    trackSyms:['BZ=F','NG=F','HG=F','IDR=X','FKPO.KLS','^JKSE'],
+    risks:[
+      {title:'Pertamina import cost spike',        detail:'Higher crude procurement costs while domestic non-subsidised prices were cut Jan 2026',
+        sym:['BZ=F','CL=F'], kw:['pertamina','crude','brent','wti','opec','oil price','barrel','petroleum']},
+      {title:'PLN PPA squeeze',                    detail:'Fixed take-or-pay obligations + higher gas input costs compress margin; government compensates at fiscal cost',
+        sym:['NG=F'], kw:['pln','ppa','gas','lng','electricity','power','pltu','pltgu']},
+      {title:'LPG subsidy blowout',                detail:'~60M households on 3-kg subsidised LPG; landed import cost rising sharply',
+        sym:['NG=F','BZ=F'], kw:['lpg','subsid','propane','cooking fuel','bbm']},
+      {title:'MIND ID commodity price exposure',   detail:'Antam (nickel/bauxite) and Bukit Asam (coal) revenues volatile; Freeport Indonesia copper concentrate export dependency',
+        sym:['HG=F','GC=F','SI=F'], kw:['nickel','copper','bauxite','antam','freeport','bukit asam','timah','mind id','mining','smelter']},
+      {title:'Telkom capex pressure',              detail:'Heavy data center & fiber rollout capex cycle; Mitratel tower monetisation ongoing; USD-denominated equipment imports',
+        sym:['IDR=X'], kw:['telkom','telkomsel','mitratel','data center','data centre','fiber','tower','hyperscaler']},
+      {title:'Governance & corruption risk',       detail:'SOE sector exposed to KPK scrutiny; procurement irregularities can freeze capex and disrupt banking relationships',
+        kw:['kpk','korupsi','bribery','suap','fraud','tipikor','corruption','embezzlement','tersangka','ditangkap','arrested','money laundering','pencucian uang','gratifikasi']},
+    ],
+    opportunities:[
+      {title:'Oil & commodity hedging',            detail:'Crude price & FX hedging for Pertamina; nickel/copper price hedging for MIND ID export revenues',
+        sym:['BZ=F','HG=F','IDR=X'], kw:['oil','crude','brent','nickel','copper','hedg','commodity swap']},
+      {title:'PLN renewable project finance',      detail:'Lead arranger for 42.6 GW RUPTL 2025–2034 pipeline: solar, wind, hydro, geothermal',
+        kw:['pln','ruptl','renewable','solar','geothermal','hydro','wind','clean energy','green project']},
+      {title:'MIND ID trade & export finance',     detail:'Pre-export financing, offtake structures and commodity swap for Antam, Bukit Asam, Timah',
+        sym:['HG=F'], kw:['antam','bukit asam','timah','mind id','export finance','offtake','pre-export']},
+      {title:'Telkom digital infra financing',     detail:'Project finance for data center build-out; USD bond advisory for Mitratel tower portfolio monetisation; fiber optic capex facilities',
+        kw:['telkom','mitratel','data center','data centre','fiber','tower','digital infra']},
+      {title:'LPG & Bulog trade finance',          detail:'Import LCs, working capital and supply chain facilities for Bulog food commodity imports and Pertamina LPG procurement',
+        sym:['ZW=F','ZS=F'], kw:['bulog','lpg','rice','wheat','soybean','import lc','trade finance','pupuk','bapanas']},
+    ],
+    clients:[
+      {name:'Pertamina',  detail:'National oil & gas company; 605K bpd production; dominant refiner; LPG distributor'},
+      {name:'PLN',        detail:'State electricity utility; 73,460 MW capacity; USD PPA obligations; 42.6 GW renewables pipeline'},
+      {name:'MIND ID',    detail:'State mining holding; controls Antam, Bukit Asam, Timah; 49% Freeport Indonesia stake; major nickel, coal, copper, bauxite exporter'},
+      {name:'PT Telkom',  detail:'State telco; Telkomsel parent; Mitratel tower subsidiary; digital infra expansion (data centers, fiber, cloud)'},
+      {name:'Mitratel',   detail:'Listed tower company (Telkom subsidiary); ~28,000 towers; USD bond issuer; monetisation pipeline'},
+      {name:'PGN',        detail:'State gas transmission & distribution; LNG procurement; piped gas distribution to industry'},
+      {name:'Bulog',      detail:'National food logistics agency; major rice & wheat importer; buffer stock management'},
+    ],
+  },
+  {
+    id:'fig', name:'FIG — Banks', icon:'🏦',
+    fullName:'Financial Institutions (FIG — Banks)',
+    subtitle:'Danamon · BRI · Mandiri · BCA — financial institutions with energy & commodity credit exposure',
+    color:'var(--blue)',
+    newsKw:['bank','bri','mandiri','bca','danamon','banking','nbfi','bi rate','interest rate','npl','kredit','perbankan','ojk'],
+    mufgCats:['Rates','RATES','Macro','MACRO'],
+    sectorNames:['Banking & FI','Financial Services'],
+    trackSyms:['IDR=X','^TNX','^JKSE','^GSPC','DX-Y.NYB','EURUSD=X'],
+    risks:[
+      {title:'NPL risk in energy book',        detail:'Higher energy costs squeezing SME borrowers; manufacturing sector stress visible',
+        sym:['BZ=F','NG=F'], kw:['npl','non-performing','bad loan','sme','manufacturing','credit quality','energy cost']},
+      {title:'MSCI reclassification stress',   detail:'Foreign ownership thresholds create capital adequacy questions for listed banks',
+        kw:['msci','reclassif','foreign ownership','em to fm','capital adequacy','listed bank']},
+      {title:'BI rate hold pressure',          detail:'BI held 4.75% — elongated cost of funding for retail lending books',
+        sym:['IDR=X','^TNX'], kw:['bi rate','bank indonesia','rate cut','rate hold','interest rate','policy rate','fed']},
+      {title:'IDR funding mismatch',           detail:'USD-funded balance sheets face spread widening if IDR weakens further',
+        sym:['IDR=X','^TNX','DX-Y.NYB'], kw:['idr','rupiah','usd funding','dollar','currency','spread']},
+    ],
+    opportunities:[
+      {title:'Sustainable finance co-lending', detail:'Danamon Rp 32.7T green portfolio — co-lending, ESG structuring advisory',
+        kw:['sustainable','green finance','esg','danamon','co-lending']},
+      {title:'Trade finance solutions',        detail:'LC issuance and supply chain finance for commodity import flows',
+        kw:['trade finance','lc issuance','letter of credit','supply chain','import financing']},
+      {title:'Capital adequacy advisory',      detail:'Tier 2 capital and AT1 issuance as RWA increases with stressed book',
+        kw:['tier 2','tier ii','at1','capital adequacy','rwa','basel']},
+      {title:'FX hedging programme',           detail:'Cross-currency swaps and NDF hedging for USD-denominated liabilities',
+        sym:['IDR=X','EURUSD=X','JPY=X'], kw:['fx forward','ndf','cross-currency','hedg','usd liabilit']},
+    ],
+    clients:[
+      {name:'Bank Danamon',  detail:'Rp 32.7T sustainable finance portfolio; MUFG affiliate; retail & SME focus'},
+      {name:'BRI',           detail:'Indonesia\'s largest bank by assets; dominant micro/SME lender'},
+      {name:'Bank Mandiri',  detail:'State-owned; largest corporate bank; significant energy & infrastructure exposure'},
+      {name:'BCA',           detail:'Largest private bank; transaction banking focus; strong FX flow volumes'},
+    ],
+  },
+  {
+    id:'mnc', name:'MNCs', icon:'🌐',
+    fullName:'Multinational Corporations (MNCs)',
+    subtitle:'Manufacturing · FMCG · Chemical — multinationals with Indonesia supply chain & energy exposure',
+    color:'var(--purple)',
+    newsKw:['manufacturing','fmcg','supply chain','unilever','astra','indofood','pupuk','chemical','carbon','cbam','relocation','repatriation'],
+    mufgCats:['FX','Macro','MACRO'],
+    sectorNames:['Manufacturing / Industrial','Petrochemicals & Agriculture','Consumer / Retail'],
+    trackSyms:['IDR=X','BZ=F','NG=F','HG=F','^GSPC','DX-Y.NYB'],
+    risks:[
+      {title:'Energy cost surge',              detail:'Crude & LNG input cost spike compresses manufacturing margins for energy-intensive MNCs',
+        sym:['BZ=F','NG=F','CL=F'], kw:['crude','brent','lng','natural gas','oil price','energy cost','opec']},
+      {title:'Supply chain disruption',        detail:'Hormuz shipping disruption affects MNCs considering relocation of supply chains',
+        kw:['supply chain','hormuz','shipping','red sea','freight','relocation','tariff','trade war']},
+      {title:'IDR dividend repatriation risk', detail:'USD/IDR above Rp 17,000 risk reduces repatriated earnings in USD terms',
+        sym:['IDR=X','DX-Y.NYB'], kw:['idr','rupiah','repatriation','dividend','usd']},
+      {title:'Carbon compliance costs',        detail:'EU CBAM and Indonesia carbon tax increasing cost of non-green production',
+        kw:['cbam','carbon tax','emission','carbon border','green tariff','deforestation']},
+    ],
+    opportunities:[
+      {title:'Energy cost hedging',            detail:'Commodity swap & cap structures for LNG and crude input cost management',
+        sym:['BZ=F','NG=F'], kw:['commodity swap','energy hedg','crude cap','lng hedg']},
+      {title:'Supply chain finance',           detail:'N0W platform — working capital finance for local supplier networks',
+        kw:['supply chain','working capital','scf','supplier finance','n0w']},
+      {title:'Clean energy procurement',       detail:'Renewable PPA structuring and green project finance advisory',
+        kw:['renewable','ppa','power purchase','geothermal','solar','green project','clean energy']},
+      {title:'FX forward programmes',          detail:'NDF and forward hedging for dividend repatriation and USD payables',
+        sym:['IDR=X','JPY=X','EURUSD=X'], kw:['ndf','fx forward','forward hedg','repatriation','usd payable']},
+    ],
+    clients:[
+      {name:'Unilever Indonesia', detail:'FMCG; palm oil & packaging cost exposure; significant IDR cash generation'},
+      {name:'Astra International',detail:'Auto & industrial conglomerate; USD component imports; FX sensitivity'},
+      {name:'Indofood',           detail:'Wheat & palm oil importer; USD-denominated commodity procurement'},
+      {name:'Pupuk Indonesia',    detail:'State fertiliser group; gas feedstock cost directly exposed to LNG price'},
+    ],
+  },
+  {
+    id:'local', name:'Large Local', icon:'🏢',
+    fullName:'Large Local Conglomerates',
+    subtitle:'Adaro · Sinar Mas · Salim · Astra — conglomerates with multi-sector USD debt & commodity exposure',
+    color:'var(--green)',
+    newsKw:['coal','nickel','palm oil','adaro','sinar mas','salim','cpo','mining','conglomerate','batubara','nikel','sawit','tambang','geothermal'],
+    mufgCats:['FX','Indonesia','INDONESIA'],
+    sectorNames:['Mining & Extractives','Energy & Utilities','Agriculture / Commodities'],
+    trackSyms:['FKPO.KLS','HG=F','IDR=X','^TNX','BZ=F','ZW=F'],
+    risks:[
+      {title:'USD debt service coverage',      detail:'IDR at 17,000 risk inflates USD bond servicing costs across conglomerate holdcos',
+        sym:['IDR=X','^TNX','DX-Y.NYB'], kw:['usd debt','offshore bond','conglomerate','holdco','refinanc','debt service','dollar bond']},
+      {title:'Coal & nickel revenue swings',   detail:'Commodity price swings affect Adaro coal revenue; nickel oversupply (-21.8%)',
+        sym:['HG=F','GC=F'], kw:['coal','nickel','adaro','bayan','mining','commodity price','batubara','nikel']},
+      {title:'CPO export margin compression',  detail:'EU deforestation regulation + palm oil price risk affecting Sinar Mas margins',
+        sym:['FKPO.KLS'], kw:['cpo','palm oil','sawit','sinar mas','astra agro','wilmar','deforestation','eudr']},
+      {title:'Transition finance gap',         detail:'Coal-to-green transition roadmap requires significant refinancing of legacy assets',
+        kw:['transition','coal to green','geothermal','climate','decarbon','esg','refinanc legacy']},
+    ],
+    opportunities:[
+      {title:'USD debt refinancing',           detail:'Offshore bond issuance advisory for conglomerate holdco refinancing',
+        sym:['IDR=X','^TNX'], kw:['usd bond','offshore bond','refinanc','holdco','conglomerate']},
+      {title:'CPO export hedging',             detail:'Forward & option structures for palm oil price and FX export proceeds',
+        sym:['FKPO.KLS','IDR=X'], kw:['cpo','palm oil','sawit','export hedg','b35','b40','biodiesel']},
+      {title:'Transition finance',             detail:'Adaro coal-to-geothermal; Sinar Mas 440 MW JV project finance structuring',
+        kw:['adaro','geothermal','sinar mas','transition','440 mw','project finance']},
+      {title:'Indofood import cost review',    detail:'Wheat & soybean import cost lock-in via commodity swap structures',
+        sym:['ZW=F','ZS=F'], kw:['indofood','salim','wheat','soybean','commodity swap','import lock']},
+    ],
+    clients:[
+      {name:'Adaro Energy',       detail:'Indonesia\'s 2nd largest coal producer; geothermal JV; offshore bonds'},
+      {name:'Sinar Mas',          detail:'Palm oil, paper, property, financial services; 440 MW geothermal JV'},
+      {name:'Salim Group',        detail:'Indofood parent; wheat/soybean import dependency; Indomaret retail chain'},
+      {name:'Astra International',detail:'Auto, agribusiness, financial services; USD import + IDR earnings mix'},
+    ],
+  },
+];
+
+function renderSegmentNotes(activeId){
+  activeId = activeId || RM_SEGMENT_NOTES[0].id;
+  const seg = RM_SEGMENT_NOTES.find(s=>s.id===activeId) || RM_SEGMENT_NOTES[0];
+  // Tabs
+  document.getElementById('segment-tabs').innerHTML = RM_SEGMENT_NOTES.map(s=>`
+    <button onclick="renderSegmentNotes('${s.id}')" style="flex:1;padding:12px 8px;background:${s.id===activeId?'var(--bg3, var(--bg))':'transparent'};border:none;border-bottom:${s.id===activeId?'2px solid '+s.color:'2px solid transparent'};color:${s.id===activeId?s.color:'var(--muted)'};font-size:12px;font-weight:${s.id===activeId?'700':'500'};cursor:pointer;transition:all .15s;white-space:nowrap">
+      ${s.icon} ${s.name}
+    </button>`).join('');
+  // Content — rank risks/opps by today's heat (market + news + flagged + research).
+  // Tie-breaker: preserve the editorial order so cold items stay in their canonical sequence.
+  const rankedCol = (label, color, items, keyFn, detailFn, live) => {
+    const withHeat = items.map((it,i) => ({it, i, heat: live ? computeItemHeat(it) : {score:0,band:'cold',market:[],news:[],flagged:[],mufg:[],hasEvidence:false}}));
+    withHeat.sort((a,b)=> b.heat.score - a.heat.score || a.i - b.i);
+    const borderFor = b => b==='critical'?'border-left:3px solid #ff4d5e;padding-left:8px'
+                        : b==='hot'     ?'border-left:3px solid #f59e0b;padding-left:8px'
+                        : b==='warm'    ?'border-left:3px solid #60a5fa;padding-left:8px'
+                        : '';
+    const hotCount = withHeat.filter(w=>['hot','critical'].includes(w.heat.band)).length;
+    const liveCount = withHeat.filter(w=>w.heat.hasEvidence).length;
+    const countBadge = live
+      ? (hotCount ? `<span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.18);color:#f59e0b;margin-left:6px">${hotCount} HOT</span>`
+        : liveCount ? `<span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:rgba(96,165,250,.15);color:#60a5fa;margin-left:6px">${liveCount} LIVE</span>`
+        : '')
+      : '';
+    return `
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:${color};margin-bottom:14px;display:flex;align-items:center;gap:6px">
+          <div style="width:16px;height:2px;background:${color}"></div>${label}${countBadge}
+        </div>
+        ${withHeat.map(({it, heat})=>`
+          <div style="margin-bottom:14px;${borderFor(heat.band)}">
+            <div style="font-size:12px;font-weight:700;color:var(--text);display:flex;align-items:flex-start;gap:4px;flex-wrap:wrap">
+              <span>${esc(keyFn(it))}</span>${heatBadge(heat)}
+            </div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${esc(detailFn(it))}</div>
+            ${heatDriverRow(heat)}
+          </div>`).join('')}
+      </div>`;
+  };
+  // Key Client Entities aren't ranked — they're identity, not signal.
+  const col = (label, color, items, keyFn, detailFn) => rankedCol(label, color, items, keyFn, detailFn, false);
+
+  // Segment-level market ticker: quick pulse of the symbols that matter for this segment.
+  const trackSyms = seg.trackSyms || [];
+  const byS = bySymbol(ALL_MARKET);
+  const tickerChips = trackSyms.map(s=>{
+    const d = byS[s]; if(!d) return '';
+    const pct = +d.change_pct || 0;
+    const up = pct > 0, flat = Math.abs(pct) < 0.05;
+    const color = flat ? 'var(--muted)' : up ? '#22c55e' : '#ff4d5e';
+    const arrow = flat ? '→' : up ? '▲' : '▼';
+    const price = d.price != null ? (+d.price).toLocaleString('en',{maximumFractionDigits: d.price<10 ? 4 : d.price<1000 ? 2 : 0}) : '–';
+    return `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:11px">
+      <span style="color:var(--muted);font-weight:600">${esc(d.name||s)}</span>
+      <span style="color:var(--text);font-weight:700">${esc(price)}</span>
+      <span style="color:${color};font-weight:700;font-size:10px">${arrow} ${up?'+':''}${pct.toFixed(2)}%</span>
+    </span>`;
+  }).filter(Boolean).join('');
+  const tickerHTML = tickerChips
+    ? `<div style="margin-bottom:14px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;flex-wrap:wrap;gap:7px;align-items:center">
+         <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px">Live Pulse</span>
+         ${tickerChips}
+       </div>`
+    : '';
+  // ── Live signals ───────────────────────────────────────────────────────
+  const kw = seg.newsKw || [];
+  const matchNews = (n) => {
+    const t = ((n.title||'') + ' ' + (n.summary||'')).toLowerCase();
+    return kw.some(k => t.includes(k));
+  };
+  const liveNews    = ALL_NEWS.filter(matchNews).slice(0,4);
+  const liveMufg    = ALL_MUFG.filter(a => (seg.mufgCats||[]).map(c=>c.toLowerCase()).includes((a.category||'').toLowerCase()) && a.category!=='ChartOfDay').slice(0,3);
+  const liveFlagged = ALL_FLAGGED.filter(f => (f.sector_impacts||[]).some(si => (seg.sectorNames||[]).includes(si.sector))).slice(0,3);
+  const liveIdeas   = buildUnifiedIdeas().filter(x => {
+    const s=(x.sector||'').toLowerCase(), c=(x.clients||'').toLowerCase();
+    return kw.some(k => s.includes(k) || c.includes(k));
+  }).slice(0,2);
+
+  const hasLive = liveNews.length || liveMufg.length || liveFlagged.length;
+  const liveHTML = hasLive ? `
+    <div style="margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);margin-bottom:14px;display:flex;align-items:center;gap:6px">
+        <div style="width:16px;height:2px;background:var(--amber)"></div>Live Signals — Today's Relevant Data
+      </div>
+      <div style="display:grid;grid-template-columns:${liveMufg.length?'1fr 1fr':'1fr'};gap:12px">
+        ${liveNews.length ? `<div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">📰 News (${liveNews.length})</div>
+          ${liveNews.map(n=>`<div style="margin-bottom:7px">
+            <a href="${safeUrl(n.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:600;color:var(--text);text-decoration:none;line-height:1.4;display:block">${esc(n.title)}</a>
+            <span style="font-size:10px;color:var(--muted)">${esc(n.source||'')}${n.is_corruption?' · <span style="color:#c084fc">🚨 Corruption</span>':''}</span>
+          </div>`).join('')}
+          ${liveFlagged.length ? liveFlagged.map(f=>`<div style="margin-bottom:7px;padding:5px 8px;background:rgba(230,0,18,.06);border-radius:6px;border-left:2px solid var(--red)">
+            <span style="font-size:10px;font-weight:700;color:var(--red)">🚩 ${esc(f.risk_level)}</span>
+            <div style="font-size:11px;color:var(--text);margin-top:2px">${esc(f.title)}</div>
+          </div>`).join('') : ''}
+        </div>` : ''}
+        ${liveMufg.length ? `<div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:8px">🏦 Tom Joyce / MUFG Research (${liveMufg.length})</div>
+          ${liveMufg.map(a=>`<div style="margin-bottom:7px">
+            <a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;font-weight:600;color:var(--blue);text-decoration:none;line-height:1.4;display:block">${esc(a.title)}</a>
+            <span style="font-size:10px;color:var(--muted)">${esc(a.author||'MUFG')} · ${esc(a.date_str||'')}</span>
+          </div>`).join('')}
+          ${liveIdeas.length ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:600;color:var(--muted);margin-bottom:6px">💡 Suggested Actions</div>
+            ${liveIdeas.map(x=>`<div style="font-size:11px;margin-bottom:5px;padding:4px 8px;background:rgba(245,158,11,.07);border-radius:5px">
+              <span style="font-weight:700;color:${x.priority==='HIGH'||x.priority==='CRITICAL'?'var(--amber)':'var(--blue)'}">${esc(x.priority)}</span> · ${esc((x.topic||x.trigger||'').substring(0,70))}
+            </div>`).join('')}
+          </div>` : ''}
+        </div>` : ''}
+      </div>
+    </div>` : `<div style="margin-top:16px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;font-size:11px;color:var(--muted)">No live signals matching this segment today — data refreshes at 6am WIB</div>`;
+
+  document.getElementById('segment-content').innerHTML = `
+    <div style="background:var(--bg2);border:1px solid ${seg.color};border-radius:12px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:32px;line-height:1">${seg.icon}</div>
+      <div>
+        <div style="font-size:17px;font-weight:800;color:var(--text)">${esc(seg.fullName)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${esc(seg.subtitle)}</div>
+      </div>
+    </div>
+    ${tickerHTML}
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+      ${rankedCol('Key Risks',           'var(--red)',   seg.risks,         r=>r.title, r=>r.detail, true)}
+      ${rankedCol('MUFG Opportunities',  'var(--green)', seg.opportunities, o=>o.title, o=>o.detail, true)}
+      ${col('Key Client Entities',       'var(--blue)',  seg.clients,       c=>c.name,  c=>c.detail)}
+    </div>
+    ${liveHTML}`;
+}
+
+// ── MUFG Research ─────────────────────────────────────────────────────────
+function renderChartOfDay(){
+  const charts=ALL_MUFG.filter(a=>a.category==='ChartOfDay')
+    .sort((a,b)=>{ try{return new Date(b.date_str)-new Date(a.date_str);}catch{return 0;} });
+  const el=document.getElementById('chart-of-day-list');
+  if(!el) return;
+  if(!charts.length){
+    el.innerHTML='<div class="text-muted" style="padding:12px;font-size:12px">No chart data yet — refreshes at 6am WIB</div>';
+    return;
+  }
+  el.innerHTML=charts.map((c,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--bg3);border-radius:8px;${i===0?'border:1px solid rgba(230,0,18,.25)':'border:1px solid var(--border)'}">
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap;min-width:72px">${esc(c.date_str)}</span>
+      <span style="flex:1;font-size:12px;font-weight:${i===0?'700':'500'};color:${i===0?'var(--text)':'var(--muted)'};line-height:1.4">${esc(c.title)}</span>
+      <a href="${safeUrl(c.url)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:var(--blue);white-space:nowrap;text-decoration:none">Learn More ↗</a>
+    </div>`).join('');
+}
+
+function renderMufgArticles(){
+  // Exclude ChartOfDay — rendered separately above
+  const research=ALL_MUFG.filter(a=>a.category!=='ChartOfDay');
+  const filtered=mufgFilter==='all'?research:research.filter(a=>a.category===mufgFilter);
+  const catClass={'FX':'ma-fx','Macro':'ma-macro','Indonesia':'ma-indonesia','RATES':'ma-rates','MACRO':'ma-macro'};
+  document.getElementById('mufg-articles').innerHTML=filtered.length?filtered.map(a=>`
+    <div class="mufg-article">
+      <span class="ma-cat ${catClass[a.category]||'ma-fx'}">${esc(a.category)}</span>
+      <div>
+        <div class="ma-title"><a href="${safeUrl(a.url)}" target="_blank" rel="noopener noreferrer">${esc(a.title)}</a></div>
+        <div class="ma-meta">${esc(a.author||'')} ${a.date_str?'· '+esc(a.date_str):''}</div>
+      </div>
+    </div>`).join('')
+    :'<div class="text-muted" style="padding:20px">No articles in this category</div>';
+}
+function filterMufg(f,btn){
+  mufgFilter=f;
+  document.querySelectorAll('#mufg-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMufgArticles();
+}
+
+// ── Notes ─────────────────────────────────────────────────────────────────
+function saveNotes(){ LS.set('tj_notes',document.getElementById('tj-notes').value); }
+function loadNotes(){ const v=LS.get('tj_notes'); if(v) document.getElementById('tj-notes').value=v; }
+
+// ── Sources ───────────────────────────────────────────────────────────────
+const DEFAULT_SOURCES = [
+  {name:'Yahoo Finance',      url:'https://finance.yahoo.com/rss/topstories',                       cat:'markets'},
+  {name:'CNBC Markets',       url:'https://www.cnbc.com/id/100003114/device/rss/rss.html',          cat:'markets'},
+  {name:'OilPrice.com',       url:'https://oilprice.com/rss/main',                                  cat:'energy'},
+  {name:'Jakarta Post',       url:'https://www.thejakartapost.com/feed',                            cat:'indonesia'},
+  {name:'Investing.com',      url:'https://www.investing.com/rss/news.rss',                         cat:'markets'},
+  {name:'MarketWatch',        url:'https://www.marketwatch.com/rss/realtimeheadlines',              cat:'markets'},
+  {name:'The Guardian Biz',   url:'https://www.theguardian.com/business/rss',                       cat:'global'},
+  {name:'Bisnis Indonesia',   url:'https://bisnis.com/feed',                                        cat:'indonesia'},
+  {name:'Kontan',             url:'https://rss.kontan.co.id/',                                      cat:'indonesia'},
+  {name:'Reuters via Yahoo',  url:'https://finance.yahoo.com/rss/industry?ind=Energy&lang=en-US',  cat:'energy'},
+];
+function renderDefaultSources(){
+  const el=document.getElementById('default-sources-list');
+  if(!el) return;
+  el.innerHTML=DEFAULT_SOURCES.map(s=>`
+    <div class="source-row">
+      <span class="source-name">${esc(s.name)}</span>
+      <span class="source-url">${esc(s.url.substring(0,60))}...</span>
+      <span class="source-cat">${esc(s.cat)}</span>
+      <span style="font-size:11px;color:var(--green)">✓ active</span>
+    </div>`).join('');
+}
+
+/* addCustomSource / renderCustomSources / toggleSource / deleteSource
+   — replaced by localStorage-backed standalone versions above */
+
+// ── Settings ──────────────────────────────────────────────────────────────
+function loadSettings(){
+  const cfg=getConfig();
+  if(cfg.url)   {document.getElementById('set-sb-url').value=cfg.url; document.getElementById('inp-url').value=cfg.url;}
+  if(cfg.anon)  {document.getElementById('set-sb-anon').value=cfg.anon; document.getElementById('inp-anon').value=cfg.anon;}
+  if(cfg.repo)  {document.getElementById('set-gh-repo').value=cfg.repo; document.getElementById('inp-repo').value=cfg.repo; document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+  if(cfg.token) {document.getElementById('set-gh-token').value=cfg.token; document.getElementById('inp-token').value=cfg.token;}
+  if(cfg.repo&&cfg.token){document.getElementById('gh-status').className='conn-badge conn-ok';document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+}
+
+function saveConfig(){
+  const url  = document.getElementById('inp-url').value.trim();
+  const anon = document.getElementById('inp-anon').value.trim();
+  const repo = document.getElementById('inp-repo').value.trim();
+  const tok  = document.getElementById('inp-token').value.trim();
+  // Only override Supabase if both fields are filled
+  if(url && anon){ LS.set('sb_url',url); LS.set('sb_anon',anon); }
+  if(repo) LS.set('gh_repo',repo);
+  if(tok)  LS.set('gh_token',tok);
+  closeSetup();
+  updateRefreshVisibility();
+  // Re-init with potentially new override credentials
+  const cfg = getConfig();
+  initSupabase(cfg.url, cfg.anon);
+  loadAll();
+  renderCustomSources();
+}
+
+function saveSettingsFromTab(){
+  const url=document.getElementById('set-sb-url').value.trim();
+  const anon=document.getElementById('set-sb-anon').value.trim();
+  const repo=document.getElementById('set-gh-repo').value.trim();
+  const tok=document.getElementById('set-gh-token').value.trim();
+  if(url)  LS.set('sb_url',url);
+  if(anon) LS.set('sb_anon',anon);
+  if(repo) LS.set('gh_repo',repo);
+  if(tok)  LS.set('gh_token',tok);
+  const msg=document.getElementById('settings-msg');
+  msg.style.display='block'; setTimeout(()=>msg.style.display='none',3000);
+  if(url&&anon) initSupabase(url,anon);
+  if(repo&&tok){document.getElementById('gh-status').className='conn-badge conn-ok';document.getElementById('gh-status').innerHTML='<span class="conn-dot ok"></span>Configured';}
+  updateRefreshVisibility();
+}
+
+function clearAllSettings(){
+  if(!confirm('Clear all settings?')) return;
+  ['sb_url','sb_anon','gh_repo','gh_token','tj_notes'].forEach(k=>LS.del(k));
+  location.reload();
+}
+
+function openSetup(){ document.getElementById('setupModal').classList.add('show'); loadSettings(); }
+function closeSetup(){ document.getElementById('setupModal').classList.remove('show'); }
+
+// ── Refresh (GitHub Actions trigger) ─────────────────────────────────────
+async function triggerRefresh(){
+  const cfg=getConfig();
+  const btn=document.getElementById('refreshBtn');
+  if(!cfg.repo||!cfg.token){
+    openSetup();
+    alert('Please configure your GitHub repo and Personal Access Token to use the Refresh button.');
+    return;
+  }
+  btn.disabled=true; btn.innerHTML='<span class="spin">⏳</span> Triggering...';
+  try{
+    // Auto-detect default branch so we never hardcode 'main' vs 'master'
+    let branch = cfg.branch || 'main';
+    try{
+      const repoInfo=await fetch(`https://api.github.com/repos/${cfg.repo}`,{
+        headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(repoInfo.ok){ const rd=await repoInfo.json(); branch=rd.default_branch||branch; }
+    }catch(_){}
+
+    const r=await fetch(`https://api.github.com/repos/${cfg.repo}/actions/workflows/update.yml/dispatches`,{
+      method:'POST',
+      headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({ref:branch,inputs:{reason:'Manual refresh from dashboard'}})
+    });
+    if(r.status===204){
+      btn.innerHTML='✅ Triggered!';
+      document.getElementById('hdr-status').textContent='⏳ Fetching new data... (~2 min)';
+      setTimeout(()=>{btn.disabled=false;btn.innerHTML='🔄 Refresh';},5000);
+    } else {
+      const err=await r.text();
+      alert(`GitHub error ${r.status}: ${err}`);
+      btn.disabled=false; btn.innerHTML='🔄 Refresh';
+    }
+  }catch(e){
+    alert('Request failed: '+e.message);
+    btn.disabled=false; btn.innerHTML='🔄 Refresh';
+  }
+}
+
+// ── Collapsible sections ───────────────────────────────────────────────────
+function toggleSection(contentId, btn){
+  const el = document.getElementById(contentId);
+  const chevron = btn.querySelector('.collapse-chevron');
+  const collapsed = el.style.display === 'none';
+  el.style.display = collapsed ? '' : 'none';
+  if(chevron) chevron.style.transform = collapsed ? '' : 'rotate(-90deg)';
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='sources') renderCustomSources();
+  if(id==='sector'){ renderIdeas(); renderSectorImpact(); }
+  if(id==='ideas')  renderSegmentNotes();
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function bySymbol(mkt){ const o={}; (mkt||[]).forEach(r=>o[r.symbol]=r); return o; }
+
+// ── Insight Rules Engine (browser-side, mirrors fetch_data.py) ───────────────
+const INSIGHT_RULES = [
+  {
+    keywords: ["idr","rupiah","indonesia","jakarta","pertamina","pln","bri","mandiri","jkse","bank indonesia","bi rate","prabowo","bulog",
+               "mind id","antam","freeport","bukit asam","timah","telkom","mitratel","telkomsel","data center","data centre","tower","fiber optic",
+               "corruption","korupsi","kpk","bribery","suap","fraud","money laundering","tipikor","tersangka","arrested"],
+    risk_level: "HIGH",
+    risk_headline: "Indonesia macro / governance signal — BI policy / IDR / equity / rule-of-law implications",
+    opportunities: [
+      {segment:"Corporates (USD exposure)", idea:"IDR hedging review — FX forwards or vanilla options to protect import costs", urgency:"HIGH"},
+      {segment:"FI (Banks & NBFIs)", idea:"BI rate path update — NIM sensitivity and bond portfolio repositioning", urgency:"MEDIUM"},
+      {segment:"SOE / Government-linked", idea:"Fiscal policy discussion — budget deficit implications and sovereign rating watch", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Banking & Finance", impact:"Direct", detail:"NIM, liquidity, BI rate sensitivity"},
+      {sector:"Import-dependent manufacturing", impact:"High", detail:"IDR weakness increases raw material costs"},
+      {sector:"Retail / Consumer", impact:"Medium", detail:"Imported goods inflation pass-through"},
+    ]
+  },
+  {
+    keywords: ["brent","crude oil","wti","opec","petroleum","oil price","barrel","upstream","downstream","hormuz","strait"],
+    risk_level: "HIGH",
+    risk_headline: "Crude oil price movement — energy cost and current account implications",
+    opportunities: [
+      {segment:"Energy sector corporates", idea:"Commodity price risk management — crude oil swaps or collar structures", urgency:"HIGH"},
+      {segment:"Manufacturing / Industrials", idea:"Fuel oil input cost hedging — energy price protection structures", urgency:"MEDIUM"},
+      {segment:"Plantation / Agriculture", idea:"CPO vs crude correlation play — relative value discussion", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Energy / Oil & Gas", impact:"Direct", detail:"Revenue and margin directly tied to crude price"},
+      {sector:"Petrochemicals", impact:"Direct", detail:"Feedstock cost movement"},
+      {sector:"Aviation / Transportation", impact:"High", detail:"Jet fuel and transport fuel cost"},
+      {sector:"Fertiliser / Agriculture", impact:"Medium", detail:"LNG/gas feedstock for fertiliser production"},
+    ]
+  },
+  {
+    keywords: ["lng","natural gas","gas price","liquefied natural gas","pltgu","regasification"],
+    risk_level: "MEDIUM",
+    risk_headline: "Natural gas / LNG price signal — PLN and fertiliser sector impact",
+    opportunities: [
+      {segment:"Utility / PLN", idea:"Gas procurement cost discussion — LNG price risk management and term contracts", urgency:"MEDIUM"},
+      {segment:"Fertiliser (Pupuk Indonesia)", idea:"Gas feedstock cost — hedging structures for margin protection", urgency:"MEDIUM"},
+      {segment:"Industrial estate corporates", idea:"Energy cost outlook — impact on operating margins", urgency:"LOW"},
+    ],
+    sectors: [
+      {sector:"Power & Utilities", impact:"Direct", detail:"Gas-fired power generation cost"},
+      {sector:"Fertiliser", impact:"Direct", detail:"Natural gas is primary feedstock"},
+      {sector:"Manufacturing", impact:"Medium", detail:"Industrial gas for production processes"},
+    ]
+  },
+  {
+    keywords: ["federal reserve","fomc","rate hike","rate cut","powell","hawkish","dovish","treasury yield","us rates","fed funds","nikkei","japan stocks","japan","trade"],
+    risk_level: "HIGH",
+    risk_headline: "US Fed / global rates signal — capital flow and Indonesia bond market implications",
+    opportunities: [
+      {segment:"All corporates with USD debt", idea:"Interest rate hedging review — USD IRS or cross-currency swap positioning", urgency:"HIGH"},
+      {segment:"FI (Banks & NBFIs)", idea:"Bond portfolio duration risk — positioning vs BI rate path divergence", urgency:"HIGH"},
+      {segment:"Real estate / REITs", idea:"Cap rate sensitivity to rate environment — refinancing discussion", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Banking & Finance", impact:"Direct", detail:"Bond portfolio MTM, NIM, funding costs"},
+      {sector:"Real Estate", impact:"High", detail:"Cap rate and financing cost sensitivity"},
+      {sector:"Infrastructure / Utilities", impact:"High", detail:"Long-duration asset financing cost"},
+    ]
+  },
+  {
+    keywords: ["tariff","trade war","trump","sanction","trade policy","import duty","export ban","protectionism","trade truce","us-china","china trade","summit"],
+    risk_level: "HIGH",
+    risk_headline: "Trade policy / tariff risk — Indonesia trade flows and FX implications",
+    opportunities: [
+      {segment:"Exporters (palm oil, mining)", idea:"Export revenue FX hedging — USD receivables protection structures", urgency:"HIGH"},
+      {segment:"Importers / supply chain", idea:"Supply chain diversification financing — trade finance structures", urgency:"MEDIUM"},
+      {segment:"MNC corporates", idea:"Geopolitical risk scenario planning — balance sheet and FX stress testing", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Commodity exports (Palm oil, Coal, Nickel)", impact:"Direct", detail:"Export pricing and volume risk"},
+      {sector:"Manufacturing / Electronics", impact:"High", detail:"Supply chain disruption risk"},
+      {sector:"Retail / Consumer", impact:"Medium", detail:"Imported goods cost pass-through"},
+    ]
+  },
+  {
+    keywords: ["coal","thermal coal","mining","nickel","copper","tin","bauxite","mineral","adaro","bayan","vale indonesia"],
+    risk_level: "MEDIUM",
+    risk_headline: "Commodity / mining sector signal — export revenue and capex implications",
+    opportunities: [
+      {segment:"Mining corporates (Adaro, Bayan, Vale)", idea:"Revenue hedging — commodity price forward contracts", urgency:"MEDIUM"},
+      {segment:"Mining capex financing", idea:"Project finance and equipment leasing discussion", urgency:"LOW"},
+      {segment:"Export-oriented corporates", idea:"FX receivables hedging — USD export revenue protection", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"Mining & Resources", impact:"Direct", detail:"Revenue tied directly to commodity prices"},
+      {sector:"Infrastructure / Logistics", impact:"Medium", detail:"Mining capex and logistics investment"},
+    ]
+  },
+  {
+    keywords: ["cpo","palm oil","plantation","sawit","biodiesel","b35","b40","kppu","astra agro"],
+    risk_level: "MEDIUM",
+    risk_headline: "Palm oil / CPO signal — plantation sector and biodiesel policy impact",
+    opportunities: [
+      {segment:"Plantation corporates (Astra Agro, SMART)", idea:"CPO price risk management — futures and options structures", urgency:"MEDIUM"},
+      {segment:"Downstream oleochemicals", idea:"Feedstock cost hedging and margin protection", urgency:"LOW"},
+      {segment:"Biodiesel policy beneficiaries", idea:"B35/B40 mandate — domestic demand floor discussion", urgency:"LOW"},
+    ],
+    sectors: [
+      {sector:"Plantation / Agriculture", impact:"Direct", detail:"Revenue directly tied to CPO price"},
+      {sector:"Food & Consumer goods", impact:"Medium", detail:"Cooking oil and food ingredient costs"},
+    ]
+  },
+  {
+    keywords: ["recession","stagflation","gdp contraction","growth slowing","economic slowdown","inflation surge","cpi spike","diesel prices","fuel prices","diesel"],
+    risk_level: "HIGH",
+    risk_headline: "Global macro deterioration — growth and inflation risk for Indonesia",
+    opportunities: [
+      {segment:"All segments", idea:"Portfolio stress test discussion — scenario analysis for recession/stagflation", urgency:"HIGH"},
+      {segment:"FI (Fixed income portfolio managers)", idea:"Duration positioning — government bond vs corporate credit spreads", urgency:"MEDIUM"},
+      {segment:"Export corporates", idea:"Demand outlook review — order book and revenue hedging", urgency:"MEDIUM"},
+    ],
+    sectors: [
+      {sector:"All sectors", impact:"High", detail:"Broad macro deterioration affects all borrowers"},
+      {sector:"Consumer / Retail", impact:"Direct", detail:"Spending slowdown risk"},
+      {sector:"Real Estate / Property", impact:"High", detail:"Demand slowdown and financing cost pressure"},
+    ]
+  },
+];
+
+function generateArticleInsights(article){
+  const text = ((article.title||'') + ' ' + (article.summary||'')).toLowerCase();
+  const tags  = article.tags || [];
+  let matched = INSIGHT_RULES.filter(r => r.keywords.some(k => text.includes(k)));
+  if(!matched.length){
+    if(tags.includes('indonesia')) matched = [INSIGHT_RULES[0]];
+    else if(tags.includes('energy')) matched = [INSIGHT_RULES[1]];
+  }
+  if(!matched.length){
+    return {
+      risk_level: 'LOW',
+      risk_headline: 'Monitor — no specific franchise keyword match',
+      client_opportunities: [{segment:'All segments', idea:'Discuss at next scheduled client review', urgency:'LOW'}],
+      sector_impacts: [{sector:'Broad markets', impact:'Low', detail:'No direct sector match identified'}],
+    };
+  }
+  const LEVEL = {CRITICAL:4, HIGH:3, MEDIUM:2, LOW:1};
+  const primary = matched.reduce((a,b) => (LEVEL[b.risk_level]||0) > (LEVEL[a.risk_level]||0) ? b : a);
+  const allOpps=[], allSecs=[], seenSegs=new Set(), seenSecs=new Set();
+  for(const r of matched){
+    for(const o of r.opportunities||[]){ if(!seenSegs.has(o.segment)){allOpps.push(o);seenSegs.add(o.segment);} }
+    for(const s of r.sectors||[]){     if(!seenSecs.has(s.sector)){allSecs.push(s);seenSecs.add(s.sector);} }
+  }
+  return {
+    risk_level: primary.risk_level,
+    risk_headline: primary.risk_headline,
+    client_opportunities: allOpps.slice(0,6),
+    sector_impacts: allSecs.slice(0,8),
+  };
+}
+
+async function computeAndSaveInsights(article){
+  const insights = generateArticleInsights(article);
+  const updated = {
+    ...article,
+    risk_level:           insights.risk_level,
+    risk_headline:        insights.risk_headline,
+    client_opportunities: insights.client_opportunities,
+    sector_impacts:       insights.sector_impacts,
+    last_computed:        new Date().toISOString(),
+  };
+  // Standalone: persist to localStorage only
+  const arr = loadLocalFlagged().map(f => f.id === article.id ? updated : f);
+  saveLocalFlagged(arr);
+  return updated;
+}
+
+function toggleRiskSignals(){
+  const list = document.getElementById('flagged-list');
+  const btn  = document.getElementById('risk-collapse-btn');
+  if(!list) return;
+  const collapsed = list.style.display === 'none';
+  list.style.display = collapsed ? '' : 'none';
+  btn.textContent   = collapsed ? '▾' : '▸';
+}
+
+async function recomputeAllInsights(){
+  if(!ALL_FLAGGED.length) return;
+  const btn = document.getElementById('recompute-btn');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Computing...'; }
+  const updated = [];
+  for(const f of ALL_FLAGGED){ updated.push(await computeAndSaveInsights(f)); }
+  ALL_FLAGGED = updated;
+  renderFlagged();
+  renderIdeas();
+  renderSegmentNotes(); // refresh live signals on Client Opps tab
+  renderOvPriorities();
+  renderOvSectors();    // push to Overview sector snapshot
+  const panel = document.getElementById('risk-signals-panel');
+  if(panel) panel.style.display = 'none';
+  if(btn){ btn.disabled=false; btn.textContent='✅ Ideas updated'; setTimeout(()=>{ btn.textContent='⚡ Recompute Insights'; }, 2500); }
+}
+
+// ── Flagging / Risk Signals ─ standalone versions defined above in loadAllDirect block ──
+
+// ── Manual URL entry → direct flag + immediate insight compute ────────────
+function urlHash(str){ let h=5381; for(let i=0;i<str.length;i++){h=((h<<5)+h)+str.charCodeAt(i)>>>0;} return h.toString(16).padStart(12,'0').substring(0,12); }
+
+async function addManualURL(){
+  const urlInput   = document.getElementById('manual-url-input');
+  const titleInput = document.getElementById('manual-title-input');
+  const status     = document.getElementById('manual-url-status');
+  const btn        = document.getElementById('manual-url-btn');
+  const rawUrl = (urlInput.value||'').trim();
+  if(!rawUrl || !rawUrl.startsWith('http')){ status.textContent='⚠ Please enter a valid URL starting with http(s)://'; status.style.color='var(--amber)'; return; }
+  btn.disabled=true; btn.textContent='⏳ Fetching...';
+  status.textContent='Attempting to read article title...'; status.style.color='var(--muted)';
+
+  // Try to extract page title via CORS proxy
+  let title = (titleInput.value||'').trim();
+  if(!title){
+    try{
+      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`;
+      const res = await fetch(proxy, {signal: AbortSignal.timeout(8000)});
+      const html = await res.text();
+      const m = html.match(/<title[^>]*>([^<]{3,200})<\/title>/i);
+      if(m) title = m[1].replace(/\s+/g,' ').trim();
+    } catch(e){ /* silent fallback */ }
+  }
+  if(!title) title = rawUrl.replace(/^https?:\/\//,'').split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ')||rawUrl;
+
+  // Derive tags from title + URL
+  const text = (title+' '+rawUrl).toLowerCase();
+  const tags = [];
+  if(/indonesia|idr|rupiah|jakarta|pertamina|pln|bri|jkse|bi rate/i.test(text)) tags.push('indonesia');
+  if(/oil|crude|brent|wti|lng|gas|energy|opec|petroleum/i.test(text)) tags.push('energy');
+  if(/dollar|usd|forex|currency|fed|rate|yield|inflation|treasury/i.test(text)) tags.push('fx_rates');
+  if(/gold|copper|nickel|palm|cpo|coal|wheat|commodity/i.test(text)) tags.push('commodities');
+  if(/gdp|recession|growth|tariff|trade|stagflation|macro/i.test(text)) tags.push('macro');
+  if(!tags.length) tags.push('global');
+
+  const id = urlHash(rawUrl);
+  const domain = rawUrl.replace(/^https?:\/\//,'').split('/')[0];
+  const row = {
+    id, title, url: rawUrl,
+    source: domain, source_cat: tags[0]||'global',
+    summary: '', tags,
+    is_indonesia: tags.includes('indonesia'),
+    is_energy:    tags.includes('energy'),
+    flagged_at:   new Date().toISOString(),
+    risk_level:   'MEDIUM',
+    risk_headline:'Computing...',
+    client_opportunities:[], sector_impacts:[],
+  };
+
+  status.textContent='Saving to Risk Signals...'; status.style.color='var(--muted)';
+  // Standalone: persist to localStorage
+  const arr = loadLocalFlagged().filter(f => f.id !== id);
+  arr.unshift(row);
+  saveLocalFlagged(arr.slice(0, 100));
+  FLAGGED_IDS.add(id);
+  ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==id), row];
+
+  status.textContent='Running insight analysis...'; status.style.color='var(--blue)';
+  btn.textContent='⚡ Analysing...';
+  const withInsights = await computeAndSaveInsights(row);
+  ALL_FLAGGED = [...ALL_FLAGGED.filter(f=>f.id!==id), withInsights];
+
+  renderFlagged();
+  renderIdeas();
+  renderOvPriorities();
+  renderOvSectors();
+
+  urlInput.value=''; titleInput.value='';
+  status.innerHTML=`✅ "<strong>${esc(title.substring(0,60))}${title.length>60?'…':''}</strong>" added as Risk Signal · Corporate Ideas updated`;
+  status.style.color='var(--green)';
+  btn.disabled=false; btn.textContent='🔗 Add & Analyse';
+  setTimeout(()=>{ status.textContent=''; }, 6000);
+}
+
+function renderFlagged(){
+  const panel = document.getElementById('risk-signals-panel');
+  const list  = document.getElementById('flagged-list');
+  const cnt   = document.getElementById('flag-count');
+  if(!ALL_FLAGGED.length){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  cnt.textContent = `(${ALL_FLAGGED.length} article${ALL_FLAGGED.length>1?'s':''})`;
+
+  const LEVEL_ORDER = {CRITICAL:4,HIGH:3,MEDIUM:2,LOW:1};
+  const sorted = [...ALL_FLAGGED].sort((a,b)=>(LEVEL_ORDER[b.risk_level]||0)-(LEVEL_ORDER[a.risk_level]||0));
+
+  list.innerHTML = sorted.map(f=>{
+    const opps  = (f.client_opportunities||[]).slice(0,4);
+    const sects = (f.sector_impacts||[]).slice(0,6);
+    const oppsHTML = opps.length ? `
+      <div class="risk-opps">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Corporate / FI Opportunities</div>
+        ${opps.map(o=>`<div class="risk-opp">
+          <span class="risk-opp-seg">${esc(o.segment||'')}</span>
+          <span class="risk-opp-idea">${esc(o.idea||'')}</span>
+          ${o.urgency?`<span style="font-size:9px;font-weight:700;color:${o.urgency==='HIGH'?'#ff8c00':o.urgency==='CRITICAL'?'#ff4444':'var(--muted)'};white-space:nowrap">${esc(o.urgency)}</span>`:''}
+        </div>`).join('')}
+      </div>` : '';
+    const sectsHTML = sects.length ? `
+      <div style="font-size:10px;font-weight:700;color:var(--muted);margin:8px 0 4px;text-transform:uppercase;letter-spacing:.05em">Sector Impact</div>
+      <div class="risk-sectors">${sects.map(s=>`<span class="risk-sector-chip ${esc(s.impact||'')}" title="${esc(s.detail||'')}">${esc(s.sector)} · ${esc(s.impact)}</span>`).join('')}</div>` : '';
+    return `<div class="risk-card">
+      <div class="risk-card-header">
+        <div>
+          <div class="risk-headline">${esc(f.risk_headline||'Analysing...')}</div>
+          <div class="risk-article-title"><a href="${safeUrl(f.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--muted);text-decoration:none">${esc(f.title)}</a></div>
+          <div style="font-size:10px;color:var(--muted)">${esc(f.source||'')} ${f.flagged_at?'· Flagged '+timeAgo(f.flagged_at):''}</div>
+        </div>
+        <span class="risk-badge ${esc(f.risk_level||'MEDIUM')}">${esc(f.risk_level||'MEDIUM')}</span>
+      </div>
+      ${oppsHTML}${sectsHTML}
+      <button class="unflag-btn" onclick="unflagArticle('${safeId(f.id)}')">✕ Remove from Risk Signals</button>
+    </div>`;
+  }).join('');
+  // Cascade: re-render Client Ideas and Sector Impact to reflect latest flags
+  renderIdeas();
+  renderSectorImpact();
+  renderOvPriorities();
+  renderOvSectors();
+}
+
+function timeAgo(str){
+  if(!str) return '';
+  try{
+    // Handle RFC 2822 and ISO formats
+    let d = new Date(str);
+    // Fallback: try parsing common feedparser format "Mon, 17 Mar 2026 06:23:00 +0000"
+    if(isNaN(d)) d = new Date(str.replace(/(\+\d{4}|GMT|UTC)$/,'').trim());
+    if(isNaN(d)) return formatDateStr(str);
+    const mins=Math.floor((Date.now()-d)/60000);
+    if(mins<1)    return 'just now';
+    if(mins<60)   return mins+'m ago';
+    if(mins<1440) return Math.floor(mins/60)+'h ago';
+    if(mins<10080) return Math.floor(mins/1440)+'d ago';
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  }catch{return formatDateStr(str);}
+}
+function formatDateStr(str){
+  // Show a readable short date from raw string as last resort
+  try{
+    const m=str.match(/(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})/i);
+    if(m) return `${m[1]} ${m[2]}`;
+  }catch{}
+  return '';
+}
+// ── Flagged Article Detail Modal ──────────────────────────────────────────
+function showFlaggedDetail(id){
+  const f = ALL_FLAGGED.find(a=>a.id===id);
+  if(!f) return;
+  const lvlColor = {CRITICAL:'var(--red)',HIGH:'var(--red)',MEDIUM:'var(--amber)',LOW:'var(--green)'}[f.risk_level]||'var(--muted)';
+  const opps = (f.client_opportunities||[]).map(o=>`
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(245,158,11,.15);color:var(--amber);white-space:nowrap;margin-top:1px">${esc(o.urgency||'MED')}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(o.idea||'')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(o.segment||'')}</div>
+      </div>
+    </div>`).join('');
+  const sects = (f.sector_impacts||[]).map(s=>`
+    <div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(230,0,18,.12);color:var(--red);white-space:nowrap;margin-top:1px">${esc(s.impact||'')}</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(s.sector||'')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${esc(s.detail||'')}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('fda-title').innerHTML = f.url
+    ? `<a href="${safeUrl(f.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--text)">${esc(f.title)}</a>`
+    : esc(f.title);
+  document.getElementById('fda-meta').innerHTML = `<span style="color:${lvlColor};font-weight:700">${esc(f.risk_level||'')}</span> &nbsp;·&nbsp; ${esc(f.risk_headline||'')}`;
+  document.getElementById('fda-opps').innerHTML = opps || '<div style="color:var(--muted);font-size:12px">No client opportunities computed</div>';
+  document.getElementById('fda-sects').innerHTML = sects || '<div style="color:var(--muted);font-size:12px">No sector impacts computed</div>';
+  document.getElementById('flagged-detail-overlay').style.display='flex';
+}
+function closeFlaggedDetail(){ document.getElementById('flagged-detail-overlay').style.display='none'; }
+</script>
+
+<!-- ── Flagged Article Detail Overlay ── -->
+<div id="flagged-detail-overlay" onclick="if(event.target===this)closeFlaggedDetail()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-width:620px;max-height:85vh;overflow-y:auto;padding:20px 22px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red);margin-bottom:6px">🚩 Risk Signal</div>
+        <div id="fda-title" style="font-size:14px;font-weight:700;line-height:1.4;color:var(--text)"></div>
+        <div id="fda-meta" style="font-size:11px;color:var(--muted);margin-top:5px"></div>
+      </div>
+      <button onclick="closeFlaggedDetail()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:4px 10px;font-size:14px;flex-shrink:0">✕</button>
+    </div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px">Client Opportunities</div>
+    <div id="fda-opps"></div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 6px">Sector Impacts</div>
+    <div id="fda-sects"></div>
+  </div>
+</div>
+</body>
+</html>

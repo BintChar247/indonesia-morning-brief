@@ -1,0 +1,44 @@
+#!/bin/sh
+# Gradle wrapper — delegates to the system Gradle or downloads it automatically.
+# Generated from Gradle 8.7 defaults.
+
+##############################################################################
+# Environment setup
+##############################################################################
+APP_HOME="$(cd "$(dirname "$0")" && pwd)"
+GRADLE_USER_HOME="${GRADLE_USER_HOME:-$HOME/.gradle}"
+GRADLE_OPTS="${GRADLE_OPTS:-}"
+
+##############################################################################
+# Find Java
+##############################################################################
+if [ -n "$JAVA_HOME" ]; then
+  JAVACMD="$JAVA_HOME/bin/java"
+else
+  JAVACMD="java"
+fi
+
+if ! command -v "$JAVACMD" >/dev/null 2>&1; then
+  echo "ERROR: JAVA_HOME is not set and 'java' is not in PATH." >&2
+  echo "Please set JAVA_HOME to a JDK 17+ installation." >&2
+  exit 1
+fi
+
+##############################################################################
+# Download Gradle if not already cached
+##############################################################################
+GRADLE_VERSION="8.7"
+GRADLE_DIST_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"
+GRADLE_HOME="$GRADLE_USER_HOME/wrapper/dists/gradle-${GRADLE_VERSION}-bin"
+GRADLE_BIN="$GRADLE_HOME/gradle-${GRADLE_VERSION}/bin/gradle"
+
+if [ ! -f "$GRADLE_BIN" ]; then
+  echo "Downloading Gradle ${GRADLE_VERSION}..."
+  mkdir -p "$GRADLE_HOME"
+  TMP="$GRADLE_HOME/gradle-${GRADLE_VERSION}-bin.zip"
+  curl -sSL "$GRADLE_DIST_URL" -o "$TMP"
+  unzip -q "$TMP" -d "$GRADLE_HOME"
+  rm "$TMP"
+fi
+
+exec "$GRADLE_BIN" "$@"

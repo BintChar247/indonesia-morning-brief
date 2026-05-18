@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Full-screen dark theme: no action bar, black status bar to match dashboard -->
+    <style name="Theme.MorningBrief" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">#080c14</item>
+        <item name="android:statusBarColor">#080c14</item>
+        <item name="android:navigationBarColor">#080c14</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

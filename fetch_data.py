@@ -116,83 +116,149 @@ def sb_prune_old(table: str, date_col: str, days: int) -> None:
     if r.status_code not in (200, 204):
         print(f"  ⚠ Supabase PRUNE {table}: {r.status_code} {r.text[:200]}")
 
-# ─── stooq.com symbol mapping ─────────────────────────────────────────────────
-# stooq provides free daily data with no API key — works reliably from CI/CD IPs.
-# Yahoo Finance rate-limits GitHub Actions IPs aggressively; stooq does not.
-STOOQ_SYMBOL_MAP: Dict[str, str] = {
-    # Commodities (futures — stooq uses .F suffix)
-    "BZ=F":      "BZ.F",
-    "CL=F":      "CL.F",
-    "NG=F":      "NG.F",
-    "GC=F":      "GC.F",
-    "SI=F":      "SI.F",
-    "HG=F":      "HG.F",
-    "ZW=F":      "ZW.F",
-    "ZS=F":      "ZS.F",
-    # FKPO.KLS (CPO Malaysia) — not on stooq; left to Yahoo fallback
-    # FX (stooq format: BASEQUOTE, e.g. USDIDR)
-    "IDR=X":     "USDIDR",
-    "SGD=X":     "USDSGD",
-    "EURUSD=X":  "EURUSD",
-    "JPY=X":     "USDJPY",
-    "CNY=X":     "USDCNY",
-    "MYR=X":     "USDMYR",
-    "DX-Y.NYB":  "DXY",
-    # Equity indices
-    "^GSPC":     "^SPX",
-    "^IXIC":     "^NDX",    # Nasdaq 100 — proxy for Composite
-    "^DJI":      "^DJI",
-    "^STI":      "^STI",
-    "^JKSE":     "^JCI",
-    "^STOXX50E": "^SX5E",
-    "^N225":     "^NKX",
-    "^HSI":      "^HSI",
-    # US Treasury yields (stooq bond format)
-    "^TNX":      "10USY.B",
-    "^FVX":      "5USY.B",
-    "^TYX":      "30USY.B",
+# ─── FRED commodity series (free, no API key, works from CI/CD IPs) ───────────
+FRED_COMMODITY_SERIES: Dict[str, str] = {
+    "BZ=F":      "DCOILBRENTEU",  # Brent crude USD/bbl, daily (1-day lag)
+    "CL=F":      "DCOILWTICO",    # WTI crude USD/bbl, daily (1-day lag)
+    "NG=F":      "DHHNGSP",       # Henry Hub nat gas USD/MMBtu, weekly
+    "DX-Y.NYB":  "DTWEXBGS",      # Broad Dollar Index (proxy for DXY), daily
 }
 
-def _fetch_stooq_batch(yahoo_symbols: List[str]) -> Dict:
-    """Fetch daily quotes from stooq.com CSV API — free, no key, CI/CD-safe."""
+def _fetch_fred_commodity(series_id: str) -> Optional[tuple]:
+    """Return (price, prev_price) from a FRED CSV series."""
+    try:
+        r     = requests.get(f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}", timeout=12)
+        valid = [l for l in r.text.strip().split("\n")
+                 if l and not l.startswith("DATE") and l.split(",")[1].strip() not in (".", "", "nan")]
+        if len(valid) < 2:
+            return None
+        cur = float(valid[-1].split(",")[1])
+        prv = float(valid[-2].split(",")[1])
+        return cur, prv
+    except Exception as e:
+        print(f"  ⚠ FRED commodity [{series_id}]: {e}")
+        return None
+
+def _fetch_fred_commodities(yahoo_symbols: List[str]) -> Dict:
+    """Fetch commodity / FX prices from FRED — proven to work from GitHub Actions."""
     results = {}
     for yahoo_sym in yahoo_symbols:
-        stooq_sym = STOOQ_SYMBOL_MAP.get(yahoo_sym)
-        if not stooq_sym:
+        sid = FRED_COMMODITY_SERIES.get(yahoo_sym)
+        if not sid:
             continue
-        try:
-            url = f"https://stooq.com/q/d/l/?s={stooq_sym.lower()}&i=d"
-            r = requests.get(url, timeout=15, headers={
-                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:124.0) Gecko/20100101 Firefox/124.0",
-                "Accept": "text/csv,text/plain,*/*",
-            })
-            if r.status_code != 200 or not r.text.strip():
+        pair = _fetch_fred_commodity(sid)
+        if pair is None:
+            continue
+        price, prev_close = pair
+        change     = price - prev_close
+        change_pct = (change / prev_close * 100) if prev_close else 0
+        results[yahoo_sym] = {
+            "symbol":                     yahoo_sym,
+            "regularMarketPrice":         price,
+            "regularMarketChange":        change,
+            "regularMarketChangePercent": change_pct,
+            "regularMarketPreviousClose": prev_close,
+            "shortName": YAHOO_SYMBOLS.get(yahoo_sym, {}).get("name", yahoo_sym),
+        }
+    return results
+
+# ─── open.er-api.com FX source (free, no API key, reliable) ──────────────────
+# Rates are units-per-USD, matching Yahoo's IDR=X / JPY=X convention.
+ER_API_FX: Dict[str, str] = {
+    "IDR=X":    "IDR",
+    "SGD=X":    "SGD",
+    "JPY=X":    "JPY",
+    "CNY=X":    "CNY",
+    "MYR=X":    "MYR",
+}
+ER_API_EUR_SYM = "EURUSD=X"   # special case: 1/EUR_rate = USD per EUR
+
+def _read_prev_closes_from_db() -> Dict[str, float]:
+    """Read all market_data prices from Supabase — used as prev_close for FX."""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/market_data?select=symbol,price"
+        hdrs = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}"}
+        r = requests.get(url, headers=hdrs, timeout=10)
+        if r.status_code == 200:
+            return {row["symbol"]: float(row["price"]) for row in r.json() if row.get("price")}
+    except Exception as e:
+        print(f"  ⚠ prev_closes read: {e}")
+    return {}
+
+def _fetch_er_api_fx(yahoo_symbols: List[str], prev_closes: Dict[str, float]) -> Dict:
+    """Fetch FX rates from open.er-api.com — free, no API key, works from any IP."""
+    fx_syms = [s for s in yahoo_symbols if s in ER_API_FX or s == ER_API_EUR_SYM]
+    if not fx_syms:
+        return {}
+    try:
+        r = requests.get("https://open.er-api.com/v6/latest/USD", timeout=12)
+        r.raise_for_status()
+        data = r.json()
+        if data.get("result") != "success":
+            print(f"  ⚠ open.er-api: result={data.get('result')}")
+            return {}
+        rates   = data["rates"]
+        results = {}
+        for yahoo_sym in fx_syms:
+            iso = ER_API_FX.get(yahoo_sym)
+            if iso:
+                price = rates.get(iso)
+            elif yahoo_sym == ER_API_EUR_SYM:
+                eur = rates.get("EUR")
+                price = round(1.0 / eur, 6) if eur else None
+            else:
                 continue
-            lines = [l.strip() for l in r.text.strip().split("\n")
-                     if l.strip() and not l.startswith("Date")]
-            if not lines:
+            if price is None:
                 continue
-            # stooq returns ascending date — last row is most recent
-            current = lines[-1].split(",")
-            prev    = lines[-2].split(",") if len(lines) >= 2 else current
-            if len(current) < 5:
-                continue
-            price      = float(current[4])   # Close
-            prev_close = float(prev[4]) if len(prev) >= 5 else price
-            change     = price - prev_close
-            change_pct = (change / prev_close * 100) if prev_close else 0
+            prev       = prev_closes.get(yahoo_sym, price)
+            change     = price - prev
+            change_pct = (change / prev * 100) if prev else 0
             results[yahoo_sym] = {
                 "symbol":                     yahoo_sym,
-                "regularMarketPrice":         price,
-                "regularMarketChange":        change,
-                "regularMarketChangePercent": change_pct,
-                "regularMarketPreviousClose": prev_close,
+                "regularMarketPrice":         round(float(price), 6),
+                "regularMarketChange":        round(change, 6),
+                "regularMarketChangePercent": round(change_pct, 4),
+                "regularMarketPreviousClose": round(prev, 6),
                 "shortName": YAHOO_SYMBOLS.get(yahoo_sym, {}).get("name", yahoo_sym),
             }
-            time.sleep(0.2)
-        except Exception as e:
-            print(f"  ⚠ stooq [{stooq_sym}]: {e}")
-    return results
+        if results:
+            print(f"  ✓ open.er-api: {len(results)} FX symbols")
+        return results
+    except Exception as e:
+        print(f"  ⚠ open.er-api: {e}")
+        return {}
+
+def _fetch_yahoo_with_session(symbols: List[str]) -> Dict:
+    """Yahoo Finance with cookie/crumb session — for metals, agriculture, equities."""
+    if not symbols:
+        return {}
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+    })
+    try:
+        session.get("https://finance.yahoo.com/", timeout=15)
+        r = session.get("https://query2.finance.yahoo.com/v1/test/getcrumb", timeout=10)
+        if r.status_code != 200 or not r.text.strip():
+            raise ValueError(f"crumb HTTP {r.status_code}")
+        crumb  = r.text.strip()
+        syms   = ",".join(symbols)
+        url    = (f"https://query2.finance.yahoo.com/v8/finance/quote"
+                  f"?symbols={syms}&crumb={crumb}"
+                  f"&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,"
+                  f"regularMarketPreviousClose,shortName")
+        r2     = session.get(url, timeout=30)
+        r2.raise_for_status()
+        quotes = r2.json().get("quoteResponse", {}).get("result", [])
+        out    = {q["symbol"]: q for q in quotes if q.get("regularMarketPrice")}
+        if out:
+            print(f"  ✓ Yahoo (crumb): {len(out)}/{len(symbols)} symbols")
+        return out
+    except Exception as e:
+        print(f"  ⚠ Yahoo (crumb): {e} — trying yfinance / v7 API")
+        return _fetch_yahoo_api(symbols)
 
 # ─── Yahoo Finance ────────────────────────────────────────────────────────────
 YAHOO_SYMBOLS: Dict[str, Dict] = {
@@ -230,55 +296,31 @@ YAHOO_SYMBOLS: Dict[str, Dict] = {
 }
 
 def fetch_yahoo_batch(symbols: List[str]) -> Dict:
-    """Fetch quotes: stooq (primary) → yfinance → Yahoo v7/v8 API (fallbacks)."""
+    """Fetch quotes from multiple free sources:
+    1. FRED (Brent, WTI, Nat Gas, Broad Dollar) — proven CI/CD-safe
+    2. open.er-api.com (FX: IDR, SGD, JPY, CNY, MYR, EUR) — proven CI/CD-safe
+    3. Yahoo Finance with cookie/crumb session (metals, agriculture, equities)
+    """
     results = {}
 
-    # ── Primary: stooq.com — free, no API key, reliable from CI/CD IPs ────
-    stooq_results = _fetch_stooq_batch(symbols)
-    results.update(stooq_results)
-    print(f"  ✓ stooq: {len(stooq_results)}/{len(symbols)} symbols")
+    # ── 1. FRED commodities ────────────────────────────────────────────────
+    fred_results = _fetch_fred_commodities(symbols)
+    results.update(fred_results)
+    if fred_results:
+        print(f"  ✓ FRED commodities: {len(fred_results)} symbols ({', '.join(fred_results)})")
 
-    missing = [s for s in symbols if s not in results]
-    if not missing:
-        return results
+    # ── 2. open.er-api FX rates ────────────────────────────────────────────
+    prev_closes = _read_prev_closes_from_db()
+    er_results  = _fetch_er_api_fx(symbols, prev_closes)
+    results.update(er_results)
 
-    # ── Secondary: yfinance library (for symbols without a stooq mapping) ─
-    if YFINANCE_AVAILABLE and missing:
-        try:
-            tickers = yf.Tickers(" ".join(missing))
-            yf_hits = []
-            for sym in missing:
-                try:
-                    info = tickers.tickers[sym].fast_info
-                    prev  = getattr(info, "previous_close", None) or getattr(info, "regularMarketPreviousClose", None)
-                    price = getattr(info, "last_price", None) or getattr(info, "regularMarketPrice", None)
-                    if price:
-                        change = (price - prev) if prev else 0
-                        change_pct = (change / prev * 100) if prev else 0
-                        results[sym] = {
-                            "symbol": sym,
-                            "regularMarketPrice": price,
-                            "regularMarketChange": change,
-                            "regularMarketChangePercent": change_pct,
-                            "regularMarketPreviousClose": prev,
-                            "shortName": YAHOO_SYMBOLS.get(sym, {}).get("name", sym),
-                        }
-                        yf_hits.append(sym)
-                except Exception:
-                    pass
-            if yf_hits:
-                print(f"  ✓ yfinance: {len(yf_hits)} additional symbols")
-        except Exception as e:
-            print(f"  ⚠ yfinance error: {e}")
-
-    # ── Tertiary: Yahoo Finance REST API ───────────────────────────────────
+    # ── 3. Yahoo Finance (remaining: metals, agriculture, equity indices) ──
     missing = [s for s in symbols if s not in results]
     if missing:
-        yf_api = _fetch_yahoo_api(missing)
-        results.update(yf_api)
-        if yf_api:
-            print(f"  ✓ Yahoo API: {len(yf_api)} additional symbols")
+        yf_results = _fetch_yahoo_with_session(missing)
+        results.update(yf_results)
 
+    print(f"  → Market data total: {len(results)}/{len(symbols)} symbols")
     return results
 
 def _fetch_yahoo_api(symbols: List[str]) -> Dict:
